@@ -684,6 +684,22 @@ export function createRepos(db: Db) {
     },
   };
 
+  const demo = {
+    /** Clears case data for `seed:demo`. audit_log is append-only and is never cleared (AC-NFR-08). */
+    async reset() {
+      await db.execute(
+        sql`TRUNCATE paypal_events, raw_payloads, disputes, cases, facts, drafts, submissions, transactions, fulfilment_records, risk_flags, jobs CASCADE`,
+      );
+    },
+    async nonFixtureDisputes(ids: string[]): Promise<number> {
+      const rows = await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(t.disputes)
+        .where(sql`${t.disputes.id} <> ALL(${ids})`);
+      return rows[0]?.n ?? 0;
+    },
+  };
+
   const health = {
     async ping(): Promise<boolean> {
       try {
@@ -709,6 +725,7 @@ export function createRepos(db: Db) {
     risk,
     settings,
     analytics,
+    demo,
     health,
   };
 }

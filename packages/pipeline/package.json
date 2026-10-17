@@ -1,0 +1,31 @@
+{
+  "name": "@ds/pipeline",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ds/agent": "workspace:*",
+    "@ds/core": "workspace:*",
+    "@ds/db": "workspace:*",
+    "@ds/jobs": "workspace:*",
+    "@ds/paypal": "workspace:*",
+    "@ds/schemas": "workspace:*"
+  },
+  "devDependencies": {
+    "@ds/config-eslint": "workspace:*",
+    "@ds/config-typescript": "workspace:*",
+    "@ds/fixtures": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

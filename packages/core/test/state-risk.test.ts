@@ -25,6 +25,10 @@ describe("case state machine (AC-CASE-07)", () => {
       nextCaseState(nextCaseState("NEEDS_INFO", "COLLECT"), "COLLECTED_READY"),
     ).toBe("READY");
   });
+  it("accept_claim_allowed_from_needs_info (AC-SUB-07)", () => {
+    expect(nextCaseState("NEEDS_INFO", "APPROVE_ACCEPT")).toBe("APPROVED");
+    expect(() => nextCaseState("NEEDS_INFO", "APPROVE")).toThrow();
+  });
   it("expires_open_cases_only (AC-CASE-08)", () => {
     expect(nextCaseState("READY", "DEADLINE_PASSED")).toBe("EXPIRED");
     expect(() => nextCaseState("SUBMITTED", "DEADLINE_PASSED")).toThrow();
