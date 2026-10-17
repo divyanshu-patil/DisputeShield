@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "The item was delivered to the buyer.",
+    "factKeys": ["dispute.items"]
+  },
+  "expect": "UNKNOWN_FACT"
+}

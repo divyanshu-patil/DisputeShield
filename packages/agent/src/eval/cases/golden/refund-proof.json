@@ -1,0 +1,18 @@
+{
+  "factSet": "refund",
+  "extraFacts": [],
+  "statements": [
+    {
+      "text": "A refund of USD 36.00 was issued on 2026-10-10 with refund ID 1RF44205GH318267C.",
+      "factKeys": ["refund.amount", "refund.date", "refund.id"]
+    },
+    {
+      "text": "The refunded amount of USD 36.00 equals the disputed amount.",
+      "factKeys": ["refund.amount", "dispute.amount"]
+    },
+    {
+      "text": "The dispute concerns Glazed planter, paid on 2026-10-03.",
+      "factKeys": ["dispute.items", "txn.date"]
+    }
+  ]
+}

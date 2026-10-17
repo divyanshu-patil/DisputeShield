@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "A refund of USD 36.00 was issued on 2026-10-10.",
+    "factKeys": ["refund.amount", "refund.date"]
+  },
+  "expect": "UNKNOWN_FACT"
+}

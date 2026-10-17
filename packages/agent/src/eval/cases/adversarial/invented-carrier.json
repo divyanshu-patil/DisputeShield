@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "The order was handled by FedEx with tracking number 1Z999AA10123456784.",
+    "factKeys": ["tracking.carrier", "tracking.number"]
+  },
+  "expect": "VALUE_MISMATCH"
+}

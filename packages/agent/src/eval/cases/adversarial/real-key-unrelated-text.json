@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "The seller has excellent reviews and ships fast.",
+    "factKeys": ["tracking.carrier"]
+  },
+  "expect": "UNKNOWN_FACT"
+}

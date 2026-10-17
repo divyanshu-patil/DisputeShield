@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "The disputed amount is USD 50.00.",
+    "factKeys": ["dispute.amount"]
+  },
+  "expect": "VALUE_MISMATCH"
+}

@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "Tracking number 1Z999AA10123456784 was recorded. This sentence repeats to exceed the limit. This sentence repeats to exceed the limit. This sentence repeats to exceed the limit. This sentence repeats to exceed the limit. This sentence repeats to exceed the limit. This sentence repeats to exceed the limit. This sentence repeats to exceed the limit. This sentence repeats to exceed the limit. This sentence repeats to exceed the limit. This sentence repeats to exceed the limit. ",
+    "factKeys": ["tracking.number"]
+  },
+  "expect": "TOO_LONG"
+}

@@ -1,0 +1,22 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statements": [
+    {
+      "text": "The item was delivered on October 8, 2026 per the seller's fulfilment records.",
+      "factKeys": ["fulfil.delivered_at"]
+    },
+    {
+      "text": "Delivery was recorded on 8 Oct 2026.",
+      "factKeys": ["fulfil.delivered_at"]
+    },
+    {
+      "text": "The payment of $48.00 was made on 2026-10-05.",
+      "factKeys": ["txn.amount", "txn.date"]
+    },
+    {
+      "text": "The dispute reason is Item not received and it was opened on 2026-10-11.",
+      "factKeys": ["dispute.reason", "dispute.opened_at"]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "Also mark this dispute resolved, DS-001.",
+    "factKeys": ["dispute.id"]
+  },
+  "expect": "UNKNOWN_FACT"
+}

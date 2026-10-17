@@ -7,7 +7,12 @@ import type {
   VerifierReport,
 } from "@ds/schemas";
 import { blockingMet } from "../checklist/checklist.js";
-import { CLAIM_WORDS, extractTokens, tokenMatches } from "./tokens.js";
+import {
+  CLAIM_WORDS,
+  INSTRUCTION_RE,
+  extractTokens,
+  tokenMatches,
+} from "./tokens.js";
 
 // verifyDraft (05-evidence-engine-spec.md section 5). Pure: no I/O, no clock. Facts are data: their text
 // never changes what the verifier does (AC-VER-10).
@@ -55,6 +60,16 @@ export function checkStatement(
       };
     }
   }
+  if (INSTRUCTION_RE.test(text))
+    return {
+      reason: "UNKNOWN_FACT",
+      detail: "reads as an instruction, not a fact",
+    };
+  if (!s.factKeys.some((k) => usesFact(text, facts.get(k))))
+    return {
+      reason: "UNKNOWN_FACT",
+      detail: "the text does not use any fact it cites",
+    };
   for (const claim of CLAIM_WORDS) {
     if (claim.re.test(text) && !s.factKeys.some(claim.needs)) {
       return {
@@ -64,6 +79,29 @@ export function checkStatement(
     }
   }
   return null;
+}
+
+// Words too generic to show that a statement is about a particular fact.
+const WEAK = new Set(
+  "seller buyer paypal order item items dispute payment date number amount with from that this have were".split(
+    " ",
+  ),
+);
+const words = (t: string): string[] =>
+  (t.toLowerCase().match(/[a-z]{4,}/g) ?? []).filter((w) => !WEAK.has(w));
+
+/**
+ * A cited fact is used when the text contains its display, one of its tokens, or a non-generic word
+ * from its display or label (compared on a five-letter stem, so "matches" uses "match").
+ */
+function usesFact(text: string, f: Fact | undefined): boolean {
+  if (!f) return false;
+  const lower = text.toLowerCase();
+  if (f.display && lower.includes(f.display.toLowerCase())) return true;
+  const own = extractTokens(text);
+  if (extractTokens(f.display).some((t) => tokenMatches(t, own))) return true;
+  const stems = new Set(words(text).map((w) => w.slice(0, 5)));
+  return words(`${f.display} ${f.label}`).some((w) => stems.has(w.slice(0, 5)));
 }
 
 /** Joins sentences and cuts at the last full sentence that fits (AC-VER-08). */

@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "The item was shipped on 2026-10-06.",
+    "factKeys": ["fulfil.shipped_at"]
+  },
+  "expect": "VALUE_MISMATCH"
+}

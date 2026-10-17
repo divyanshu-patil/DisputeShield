@@ -35,7 +35,10 @@ const TRANSITIONS: Record<CaseEvent, { from: CaseState[]; to: CaseState }> = {
   COLLECTED_NEEDS_INFO: { from: ["COLLECTING"], to: "NEEDS_INFO" },
   APPROVE: { from: ["READY"], to: "APPROVED" },
   // Accepting the claim needs no evidence, so it is allowed before the case is READY (AC-SUB-07).
-  APPROVE_ACCEPT: { from: ["NEW", "READY", "NEEDS_INFO", "ERROR"], to: "APPROVED" },
+  APPROVE_ACCEPT: {
+    from: ["NEW", "READY", "NEEDS_INFO", "ERROR"],
+    to: "APPROVED",
+  },
   SUBMITTED: { from: ["APPROVED"], to: "SUBMITTED" },
   PAYPAL_REVIEWING: { from: ["SUBMITTED"], to: "AWAITING_OUTCOME" },
   RESOLVED_WON: { from: ["SUBMITTED", "AWAITING_OUTCOME"], to: "CLOSED_WON" },

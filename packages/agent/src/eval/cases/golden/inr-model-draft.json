@@ -1,0 +1,26 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statements": [
+    {
+      "text": "The item Speckled mug (set of 2) was shipped on 2026-10-05 per the seller's fulfilment records.",
+      "factKeys": ["dispute.items", "fulfil.shipped_at"]
+    },
+    {
+      "text": "The shipment was handled by UPS with tracking number 1Z999AA10123456784 per the seller's fulfilment records.",
+      "factKeys": ["fulfil.carrier", "fulfil.tracking.number"]
+    },
+    {
+      "text": "The item was delivered on 2026-10-08 per the seller's fulfilment records.",
+      "factKeys": ["fulfil.delivered_at"]
+    },
+    {
+      "text": "The ship address matches order.",
+      "factKeys": ["derived.ship_address_match"]
+    },
+    {
+      "text": "Tracking number 1Z999AA10123456784 is recorded on PayPal.",
+      "factKeys": ["tracking.number", "tracking.on_paypal"]
+    }
+  ]
+}

@@ -8,7 +8,8 @@ export type Token =
   | { kind: "date"; value: string; raw: string } // ISO YYYY-MM-DD
   | { kind: "money"; currency: string | null; minor: number; raw: string }
   | { kind: "id"; value: string; raw: string } // upper-cased, 8+ alnum with a digit
-  | { kind: "int"; value: number; raw: string };
+  | { kind: "int"; value: number; raw: string }
+  | { kind: "carrier"; value: string; raw: string }; // canonical carrier name
 
 const MONTHS: Record<string, number> = {
   jan: 1,
@@ -37,6 +38,19 @@ const CURRENCY =
   "(USD|EUR|GBP|JPY|INR|AUD|CAD|CHF|HKD|SGD|NZD|SEK|NOK|DKK|PLN|CZK|HUF|MXN|BRL|ILS|PHP|THB|TWD|MYR|RUB|CNY)";
 
 const g = (m: RegExpExecArray, i: number): string => m[i] ?? "";
+
+// Carrier names carry no digits, so they get their own token; aliases map to one canonical name.
+const CARRIER_NAMES: [RegExp, string][] = [
+  [/^(?:fedex|federal express)$/i, "FEDEX"],
+  [/^(?:usps|us postal service|united states postal service)$/i, "USPS"],
+  [/^ups$/i, "UPS"],
+  [/^dhl(?: express)?$/i, "DHL"],
+];
+const carrier = (raw: string): string =>
+  CARRIER_NAMES.find(([re]) => re.test(raw))?.[1] ??
+  raw.toUpperCase().replace(/\s+/g, " ");
+const CARRIER_RE =
+  /\b(?:FedEx|Federal Express|USPS|US Postal Service|United States Postal Service|UPS|DHL(?: Express)?|TNT|GLS|DPD|Royal Mail|Parcelforce|Evri|Hermes|Yodel|Canada Post|Purolator|Australia Post|India Post|Blue Dart|Delhivery|Aramex|La Poste|Deutsche Post|Japan Post|China Post|SF Express|OnTrac)\b/gi;
 
 type Pattern = { re: RegExp; make: (m: RegExpExecArray) => Token | null };
 
@@ -71,6 +85,14 @@ const money = (
 
 // Order matters: earlier patterns claim their span first, so "2026-10-12" is a date, not three integers.
 const PATTERNS: Pattern[] = [
+  {
+    re: CARRIER_RE,
+    // Short acronyms only count in capitals, so "ups and downs" is not a carrier.
+    make: (m) =>
+      m[0].length <= 3 && m[0] !== m[0].toUpperCase()
+        ? null
+        : { kind: "carrier", value: carrier(m[0]), raw: m[0] },
+  },
   {
     re: /\b(\d{4})-(\d{2})-(\d{2})(?:T[\d:.]+Z?)?\b/g,
     make: (m) => date(iso(+g(m, 1), +g(m, 2), +g(m, 3)), m[0]),
@@ -144,6 +166,8 @@ export function extractTokens(text: string): Token[] {
 export function tokenMatches(t: Token, cited: Token[]): boolean {
   return cited.some((c) => {
     if (t.kind === "date") return c.kind === "date" && c.value === t.value;
+    if (t.kind === "carrier")
+      return c.kind === "carrier" && c.value === t.value;
     if (t.kind === "id")
       return (
         (c.kind === "id" && c.value === t.value) ||
@@ -189,4 +213,20 @@ export const CLAIM_WORDS: {
     needs: (k) => k === "fulfil.shipped_at",
     word: "shipped",
   },
+  {
+    // "Item not received" is the dispute reason itself, so citing it backs the word.
+    re: /\b(?:received|receipt)\b/i,
+    needs: (k) => k === "fulfil.delivered_at" || k === "dispute.reason",
+    word: "received",
+  },
+  {
+    // No fact records what the buyer said or agreed to, so these claims can never be backed.
+    re: /\b(?:buyer|customer|payer|recipient)\b[^.]{0,40}?\b(?:confirm|acknowledg|admit|agree|accept|said|stated|told|promis|withdr)/i,
+    needs: () => false,
+    word: "a statement by the buyer",
+  },
 ];
+
+/** Text that reads as an instruction rather than a statement of fact (05 section 5, AC-VER-10). */
+export const INSTRUCTION_RE =
+  /\b(?:ignore|disregard|override)\b[^.]{0,40}\b(?:instruction|rule|prompt|previous|above)|\b(?:mark|set|close|resolve)\s+(?:this|the)\s+(?:dispute|case|claim)\b|\bapprove\s+(?:this|it|the refund)\b/i;

@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "The item was delivered on 2026-12-01 per the seller's fulfilment records.",
+    "factKeys": ["fulfil.delivered_at"]
+  },
+  "expect": "VALUE_MISMATCH"
+}

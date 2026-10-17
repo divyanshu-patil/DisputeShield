@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "Tracking number 1Z999AA10999999999 with carrier UPS was recorded.",
+    "factKeys": ["tracking.number", "tracking.carrier"]
+  },
+  "expect": "VALUE_MISMATCH"
+}

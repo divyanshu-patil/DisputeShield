@@ -1,0 +1,70 @@
+{
+  "inr": {
+    "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+    "facts": [
+      ["dispute.amount", "Amount in dispute", "USD 48.00", "PAYPAL"],
+      ["dispute.id", "Dispute ID", "DS-001", "PAYPAL"],
+      [
+        "dispute.items",
+        "Items in dispute",
+        "Speckled mug (set of 2)",
+        "PAYPAL"
+      ],
+      ["dispute.opened_at", "Dispute opened", "2026-10-11", "PAYPAL"],
+      ["dispute.reason", "Dispute reason", "Item not received", "PAYPAL"],
+      [
+        "dispute.transaction_id",
+        "Disputed transaction",
+        "5TY05013RG002845M",
+        "PAYPAL"
+      ],
+      ["fulfil.carrier", "Carrier (your file)", "UPS", "SELLER_UPLOAD"],
+      ["fulfil.delivered_at", "Delivered", "2026-10-08", "SELLER_UPLOAD"],
+      ["fulfil.shipped_at", "Shipped", "2026-10-05", "SELLER_UPLOAD"],
+      [
+        "fulfil.ship_to.postal_code",
+        "Shipped-to postal code",
+        "95131",
+        "SELLER_UPLOAD"
+      ],
+      [
+        "fulfil.tracking.number",
+        "Tracking number (your file)",
+        "1Z999AA10123456784",
+        "SELLER_UPLOAD"
+      ],
+      [
+        "derived.ship_address_match",
+        "Ship address matches order",
+        "Yes",
+        "DERIVED"
+      ],
+      ["refund.exists", "Refund issued", "No", "PAYPAL"],
+      ["tracking.carrier", "Carrier", "UPS", "SELLER_UPLOAD"],
+      ["tracking.number", "Tracking number", "1Z999AA10123456784", "PAYPAL"],
+      ["tracking.on_paypal", "Tracking on PayPal", "Yes", "PAYPAL"],
+      ["txn.amount", "Payment amount", "USD 48.00", "PAYPAL"],
+      ["txn.date", "Payment date", "2026-10-05", "PAYPAL"],
+      ["txn.id", "Transaction ID", "5TY05013RG002845M", "PAYPAL"],
+      ["txn.protection_eligibility", "Seller protection", "Eligible", "PAYPAL"],
+      ["txn.ship_to.postal_code", "Ship-to postal code", "95131", "PAYPAL"]
+    ]
+  },
+  "refund": {
+    "reason": "CREDIT_NOT_PROCESSED",
+    "facts": [
+      ["dispute.amount", "Amount in dispute", "USD 36.00", "PAYPAL"],
+      ["dispute.id", "Dispute ID", "DS-003", "PAYPAL"],
+      ["dispute.items", "Items in dispute", "Glazed planter", "PAYPAL"],
+      ["dispute.opened_at", "Dispute opened", "2026-10-12", "PAYPAL"],
+      ["dispute.reason", "Dispute reason", "Credit not processed", "PAYPAL"],
+      ["refund.amount", "Refund amount", "USD 36.00", "PAYPAL"],
+      ["refund.date", "Refund date", "2026-10-10", "PAYPAL"],
+      ["refund.exists", "Refund issued", "Yes", "PAYPAL"],
+      ["refund.id", "Refund ID", "1RF44205GH318267C", "PAYPAL"],
+      ["txn.amount", "Payment amount", "USD 36.00", "PAYPAL"],
+      ["txn.date", "Payment date", "2026-10-03", "PAYPAL"],
+      ["txn.id", "Transaction ID", "2PL61837CN447201T", "PAYPAL"]
+    ]
+  }
+}

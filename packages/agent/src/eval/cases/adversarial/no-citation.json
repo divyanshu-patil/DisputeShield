@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "The item was sent with tracking.",
+    "factKeys": []
+  },
+  "expect": "NO_CITATION"
+}

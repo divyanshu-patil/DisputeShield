@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "The buyer confirmed receipt of Speckled mug (set of 2).",
+    "factKeys": ["dispute.items"]
+  },
+  "expect": "UNKNOWN_FACT"
+}
