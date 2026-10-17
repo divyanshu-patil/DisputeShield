@@ -4,3 +4,5 @@ export * from "./llm/ollama.js";
 export * from "./llm/types.js";
 export * from "./studio/turn.js";
 export * from "./copilot/toolkit.js";
+export * from "./drafter/draft.js";
+export * from "./drafter/prompt.js";

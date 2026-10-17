@@ -13,6 +13,7 @@
     "eval": "vitest run --dir src/eval"
   },
   "dependencies": {
+    "@ds/core": "workspace:*",
     "@ds/schemas": "workspace:*",
     "@paypal/agent-toolkit": "1.11.0",
     "zod": "catalog:"
