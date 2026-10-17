@@ -66,6 +66,15 @@ export const PaypalDisputeDetails = z
     ...DisputeCore,
     disputed_transactions: z.array(PaypalDisputedTransaction).min(1),
     allowed_response_options: z.record(z.string(), z.unknown()).optional(),
+    // Present once RESOLVED (S4): RESOLVED_BUYER_FAVOUR / RESOLVED_SELLER_FAVOUR, …
+    dispute_outcome: z
+      .object({
+        outcome_code: z.string(),
+        outcome_reason: z.string().optional(),
+        amount_refunded: PaypalMoney.optional(),
+      })
+      .loose()
+      .optional(),
     evidences: z
       .array(
         z
