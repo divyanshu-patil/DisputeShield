@@ -8,7 +8,7 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 | ----- | -------------------------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | P0-1  | Turborepo skeleton, starter packages, CI, licence  | Done (2026-10-17)    | see below                                                                                                                                                                                                                                             |
 | P0-2  | S0: developer account, sandbox accounts, REST app  | Partial (2026-10-17) | token 200, 29 scopes, `disputes/update-seller` present; **`reporting/search/read` missing** (enable Transaction search). Log: `docs/decisions/0001-day0-spike-results.md`; fixture `paypal/oauth/token.json` (human-read); contract section 1 updated |
-| P0-3  | S1: create a sandbox dispute                       | Not started          |                                                                                                                                                                                                                                                       |
+| P0-3  | S1: create a sandbox dispute                       | In progress (you)    | `ds spike s1` ready; seller list returns 200 with 0 disputes. Waiting for the Route B payments and disputes                                                                                                                                           |
 | P0-4  | S2: fetch list and details, first fixtures         | Not started          |                                                                                                                                                                                                                                                       |
 | P0-5  | S3/S4: provide-evidence, accept-claim              | Not started          |                                                                                                                                                                                                                                                       |
 | P0-6  | S5: webhook + signature verification               | Not started          |                                                                                                                                                                                                                                                       |
@@ -34,6 +34,7 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 - `pnpm ds --help` prints usage.
 - Boundary and `process.env` rules were tested with deliberately bad files.
 - S0 tooling (2026-10-17): `requestToken`, error taxonomy, `redact` in `@ds/paypal` (5 tests); `ds spike s0` in the CLI.
+- S1 tooling (2026-10-17): `paypalGet` in `@ds/paypal` (2 tests), `ds spike s1`.
 - Not run: CI on GitHub (there is no remote yet), `docker compose up`, anything against PayPal, Supabase, Ollama or Render.
 - Deviations from the spec: `docs/decisions/0000-p0-1-scaffold-deviations.md`.
 

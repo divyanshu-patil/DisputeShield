@@ -24,3 +24,14 @@ Plan changes: enable Transaction search on the REST app before S6 (G5). disputes
   (API dispute creation) may work without the account manager ❓; try it in S1.
 Features recorded: Transaction search not enabled yet; other toggle names not recorded (need the dashboard).
 ```
+
+```text
+Spike: S1  Date: 2026-10-17  Result: IN PROGRESS (tooling ready, no dispute yet)
+What I ran: pnpm ds spike s1  (seller GET /v1/customer/disputes)
+What happened: HTTP 200, debug_id f11650201819d, body has an "items" array with 0 disputes.
+Route chosen: B (UI). Route A needs a buyer transaction id from a real payment either way, and the contract does not
+  specify the `extensions` body, so it would mean inventing fields (AGENTS.md rule 6). Route A stays open for later
+  scenarios; S0 showed the app holds `disputes/create` (Q1 still open).
+Contract changes: none.
+Plan changes: none.
+```
