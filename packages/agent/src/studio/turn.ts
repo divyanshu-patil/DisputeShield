@@ -1,13 +1,21 @@
 import { randomUUID } from "node:crypto";
 import type { StudioTurnRequest, StudioTurnResponse } from "@ds/schemas";
-import type { LlmClient, OllamaChatRequest, OllamaMessage, OllamaTool } from "../llm/types.js";
+import type {
+  LlmClient,
+  OllamaChatRequest,
+  OllamaMessage,
+  OllamaTool,
+} from "../llm/types.js";
 
 // Translates one AG Studio agent turn into an Ollama chat call and back. Pure functions plus a
 // small orchestrator. The browser adapter lives in packages/ui; the HTTP route lives in apps/api.
 
 function textOf(content: Array<{ type: string; text?: unknown }>): string {
   return content
-    .filter((p): p is { type: "text"; text: string } => p.type === "text" && typeof p.text === "string")
+    .filter(
+      (p): p is { type: "text"; text: string } =>
+        p.type === "text" && typeof p.text === "string",
+    )
     .map((p) => p.text)
     .join("\n");
 }
@@ -15,13 +23,18 @@ function textOf(content: Array<{ type: string; text?: unknown }>): string {
 function parseArgs(raw: string): Record<string, unknown> {
   try {
     const v: unknown = JSON.parse(raw || "{}");
-    return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+    return v && typeof v === "object" && !Array.isArray(v)
+      ? (v as Record<string, unknown>)
+      : {};
   } catch {
     return {};
   }
 }
 
-export function toOllamaChat(req: StudioTurnRequest, defaultModel: string): OllamaChatRequest {
+export function toOllamaChat(
+  req: StudioTurnRequest,
+  defaultModel: string,
+): OllamaChatRequest {
   const messages: OllamaMessage[] = [];
   const system: string[] = [];
   if (req.instructions) system.push(req.instructions);
@@ -33,9 +46,12 @@ export function toOllamaChat(req: StudioTurnRequest, defaultModel: string): Olla
     );
   }
   // Ollama has no tool_choice parameter ⚠️. Approximate it in the prompt.
-  if (req.toolChoice === "required") system.push("You must call one of the provided tools.");
-  if (req.toolChoice && typeof req.toolChoice === "object") system.push(`You must call the tool named "${req.toolChoice.name}".`);
-  if (system.length > 0) messages.push({ role: "system", content: system.join("\n\n") });
+  if (req.toolChoice === "required")
+    system.push("You must call one of the provided tools.");
+  if (req.toolChoice && typeof req.toolChoice === "object")
+    system.push(`You must call the tool named "${req.toolChoice.name}".`);
+  if (system.length > 0)
+    messages.push({ role: "system", content: system.join("\n\n") });
 
   const nameByCallId = new Map<string, string>();
   for (const item of req.input) {
@@ -44,14 +60,27 @@ export function toOllamaChat(req: StudioTurnRequest, defaultModel: string): Olla
       messages.push({ role: item.role, content: text });
     } else if (item.type === "function_call") {
       nameByCallId.set(item.callId, item.name);
-      const call = { function: { name: item.name, arguments: parseArgs(item.arguments) } };
+      const call = {
+        function: { name: item.name, arguments: parseArgs(item.arguments) },
+      };
       const last = messages[messages.length - 1];
       // Consecutive calls from one turn share one assistant message.
-      if (last && last.role === "assistant" && last.tool_calls && last.content === "") last.tool_calls.push(call);
-      else messages.push({ role: "assistant", content: "", tool_calls: [call] });
+      if (
+        last &&
+        last.role === "assistant" &&
+        last.tool_calls &&
+        last.content === ""
+      )
+        last.tool_calls.push(call);
+      else
+        messages.push({ role: "assistant", content: "", tool_calls: [call] });
     } else if (item.type === "function_call_output") {
       const toolName = nameByCallId.get(item.callId);
-      messages.push({ role: "tool", content: item.output, ...(toolName ? { tool_name: toolName } : {}) });
+      messages.push({
+        role: "tool",
+        content: item.output,
+        ...(toolName ? { tool_name: toolName } : {}),
+      });
     }
     // reasoning items are dropped
   }
@@ -61,7 +90,14 @@ export function toOllamaChat(req: StudioTurnRequest, defaultModel: string): Olla
       ? undefined
       : req.tools
           .filter((t) => (t.kind ?? "client") === "client")
-          .map((t) => ({ type: "function", function: { name: t.name, description: t.description, parameters: t.parameters } }));
+          .map((t) => ({
+            type: "function",
+            function: {
+              name: t.name,
+              description: t.description,
+              parameters: t.parameters,
+            },
+          }));
 
   return {
     model: req.model?.id || defaultModel,
@@ -111,13 +147,27 @@ export function fromOllamaChat(
     status: res.done_reason === "length" ? "incomplete" : "completed",
     ...(res.model ? { model: res.model } : {}),
     output,
-    ...(input !== undefined && out !== undefined ? { usage: { inputTokens: input, outputTokens: out, totalTokens: input + out } } : {}),
+    ...(input !== undefined && out !== undefined
+      ? {
+          usage: {
+            inputTokens: input,
+            outputTokens: out,
+            totalTokens: input + out,
+          },
+        }
+      : {}),
   };
 }
 
-export type StudioTurnHandler = (req: StudioTurnRequest, opts?: { signal?: AbortSignal }) => Promise<StudioTurnResponse>;
+export type StudioTurnHandler = (
+  req: StudioTurnRequest,
+  opts?: { signal?: AbortSignal },
+) => Promise<StudioTurnResponse>;
 
-export function createStudioTurnHandler(client: LlmClient, defaultModel: string): StudioTurnHandler {
+export function createStudioTurnHandler(
+  client: LlmClient,
+  defaultModel: string,
+): StudioTurnHandler {
   return async (req, opts) => {
     const chat = await client.chat(toOllamaChat(req, defaultModel), opts);
     return fromOllamaChat(chat);

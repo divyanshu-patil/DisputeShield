@@ -155,7 +155,11 @@ export async function draftEvidence(o: DraftOptions): Promise<DraftResult> {
       report = verifyDraft(draft, o.facts);
     }
     if (report.rejected.length > 0 || report.accepted.length === 0)
-      return fallback("verifier rejected statements after repair");
+      return fallback(
+        `verifier rejected statements after repair: ${report.rejected
+          .map((r) => `${r.reason} ${r.detail ?? ""}`)
+          .join("; ")}`.slice(0, 300),
+      );
     const origin: DraftOrigin =
       metrics.repairedParse + metrics.repairedVerifier > 0
         ? "MODEL_REPAIRED"

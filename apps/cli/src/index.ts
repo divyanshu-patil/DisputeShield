@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 import { Argument, Command } from "commander";
+import { evalLive } from "./commands/eval-live.js";
 import { runReplayCheck } from "./commands/replay-check.js";
 import { seed } from "./commands/seed.js";
 import { SPIKES, type SpikeOptions, runSpike } from "./commands/spike.js";
@@ -43,5 +44,13 @@ program
   .command("replay-check")
   .description("Check every fixture and scenario against @ds/schemas")
   .action(runReplayCheck);
+
+program
+  .command("eval:live")
+  .description(
+    "Run the drafter on the seeded demo facts with the live model; writes docs/evals/<date>.md",
+  )
+  .option("--runs <n>", "runs per scenario", "5")
+  .action((opts: { runs: string }) => evalLive(opts));
 
 await program.parseAsync();

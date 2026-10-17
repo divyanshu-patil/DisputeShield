@@ -135,6 +135,9 @@ importers:
       '@ds/agent':
         specifier: workspace:*
         version: link:../../packages/agent
+      '@ds/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@ds/db':
         specifier: workspace:*
         version: link:../../packages/db

@@ -1,0 +1,9 @@
+{
+  "factSet": "inr",
+  "extraFacts": [],
+  "statement": {
+    "text": "The order was refunded to the buyer.",
+    "factKeys": ["refund.exists"]
+  },
+  "expect": "UNKNOWN_FACT"
+}

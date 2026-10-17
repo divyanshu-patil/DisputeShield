@@ -27,11 +27,18 @@ export class LlmTimeoutError extends LlmError {
 }
 export class LlmUpstreamError extends LlmError {
   constructor(status: number, detail: string) {
-    super(`The LLM provider returned HTTP ${status}${detail ? `: ${detail}` : ""}`, "LLM_UPSTREAM", status);
+    super(
+      `The LLM provider returned HTTP ${status}${detail ? `: ${detail}` : ""}`,
+      "LLM_UPSTREAM",
+      status,
+    );
   }
 }
 export class LlmBadResponseError extends LlmError {
   constructor(detail: string) {
-    super(`The LLM answer could not be understood: ${detail}`, "LLM_BAD_RESPONSE");
+    super(
+      `The LLM answer could not be understood: ${detail}`,
+      "LLM_BAD_RESPONSE",
+    );
   }
 }

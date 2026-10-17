@@ -21,6 +21,14 @@
     {
       "text": "Tracking number 1Z999AA10123456784 is recorded on PayPal.",
       "factKeys": ["tracking.number", "tracking.on_paypal"]
+    },
+    {
+      "text": "The item was shipped to postal code 95131 per the seller's fulfilment records.",
+      "factKeys": ["fulfil.ship_to.postal_code"]
+    },
+    {
+      "text": "The Shipped-to postal code is 95131 per the seller's fulfilment records.",
+      "factKeys": ["fulfil.ship_to.postal_code"]
     }
   ]
 }

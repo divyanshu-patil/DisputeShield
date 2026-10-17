@@ -348,8 +348,37 @@ describe("verifier rules added for the adversarial eval (AC-VER-10, 11)", () => 
       ["derived.ship_address_match"],
       "OK",
     ],
+    [
+      "accepts_shipped_with_ship_to_record",
+      "The item was shipped to postal code 560001 per the seller's fulfilment records.",
+      ["fulfil.ship_to.postal_code"],
+      "OK",
+    ],
   ])("%s", (_name, text, keys, want) => {
     expect(check(text, keys)).toBe(want);
+  });
+
+  it("rejects_refunded_citing_refund_issued_no", () => {
+    const m = new Map(
+      ds001Facts()
+        .concat({
+          ...facts[0]!,
+          key: "refund.exists",
+          label: "Refund issued",
+          value: "No",
+          display: "No",
+        })
+        .map((f) => [f.key, f]),
+    );
+    expect(
+      checkStatement(
+        {
+          text: "The order was refunded in full.",
+          factKeys: ["refund.exists"],
+        },
+        m,
+      )?.reason,
+    ).toBe("UNKNOWN_FACT");
   });
 
   it("tokenises_carriers_to_one_canonical_name", () => {

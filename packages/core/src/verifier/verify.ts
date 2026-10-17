@@ -71,7 +71,10 @@ export function checkStatement(
       detail: "the text does not use any fact it cites",
     };
   for (const claim of CLAIM_WORDS) {
-    if (claim.re.test(text) && !s.factKeys.some(claim.needs)) {
+    if (
+      claim.re.test(text) &&
+      !s.factKeys.some((k) => claim.needs(k, facts.get(k)?.display ?? ""))
+    ) {
       return {
         reason: "UNKNOWN_FACT",
         detail: `"${claim.word}" needs a cited fact that shows it`,

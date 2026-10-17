@@ -5,7 +5,11 @@
  */
 export function extractJsonObject(text: string): unknown {
   const cleaned = text.replace(/```(?:json)?/gi, "");
-  for (let start = cleaned.indexOf("{"); start !== -1; start = cleaned.indexOf("{", start + 1)) {
+  for (
+    let start = cleaned.indexOf("{");
+    start !== -1;
+    start = cleaned.indexOf("{", start + 1)
+  ) {
     const end = matchingBrace(cleaned, start);
     if (end === -1) continue;
     try {

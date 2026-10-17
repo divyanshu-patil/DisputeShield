@@ -195,7 +195,7 @@ export function tokenMatches(t: Token, cited: Token[]): boolean {
  */
 export const CLAIM_WORDS: {
   re: RegExp;
-  needs: (key: string) => boolean;
+  needs: (key: string, display: string) => boolean;
   word: string;
 }[] = [
   {
@@ -205,12 +205,14 @@ export const CLAIM_WORDS: {
   },
   {
     re: /\brefund(?:ed)?\b/i,
-    needs: (k) => k.startsWith("refund."),
+    // "Refund issued: No" is a refund fact that shows the opposite.
+    needs: (k, d) => k.startsWith("refund.") && d !== "No",
     word: "refunded",
   },
   {
     re: /\bshipped\b/i,
-    needs: (k) => k === "fulfil.shipped_at",
+    // The seller's ship-to record is a shipment record too ("Shipped-to postal code").
+    needs: (k) => k === "fulfil.shipped_at" || k.startsWith("fulfil.ship_to."),
     word: "shipped",
   },
   {

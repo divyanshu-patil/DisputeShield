@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ds/agent": "workspace:*",
+    "@ds/core": "workspace:*",
     "@ds/db": "workspace:*",
     "@ds/fixtures": "workspace:*",
     "@ds/jobs": "workspace:*",
