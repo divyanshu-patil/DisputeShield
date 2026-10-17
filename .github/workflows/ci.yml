@@ -40,8 +40,7 @@ jobs:
       - run: pnpm turbo run build --filter=@ds/api --filter=@ds/workflows --filter=@ds/web
       - run: pnpm openapi:check
       - run: pnpm ds replay-check
-      # Enable when scripts/check-bundle-secrets.mjs exists.
-      # - run: node scripts/check-bundle-secrets.mjs
+      - run: node scripts/check-bundle-secrets.mjs
       - run: pnpm --filter @ds/web exec playwright install --with-deps chromium
       - run: pnpm test:e2e
         env: { E2E_DATABASE_URL: "postgres://ds:ds@localhost:5432/ds_test" }

@@ -13,11 +13,11 @@ export const TEST_ENV = {
   LOG_LEVEL: "silent",
 };
 
-export async function makeApp(overrides: Record<string, string> = {}, depsOverride?: Partial<Deps>) {
+export async function makeApp(overrides: Record<string, string> = {}, depsOverride?: Partial<Deps>, logStream?: { write(line: string): void }) {
   const env: Env = loadEnv({ ...TEST_ENV, ...overrides });
   const base = buildMemoryDeps(env.DS_MODE);
   const deps: Deps = { ...base, ...depsOverride };
-  const app: FastifyInstance = await buildServer({ env, deps, logger: false });
+  const app: FastifyInstance = await buildServer({ env, deps, logger: Boolean(logStream), logStream });
   return {
     app,
     env,

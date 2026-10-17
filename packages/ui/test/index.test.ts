@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { band, formatMoney, reasonLabel, timeLeft } from "../src/format.js";
+import {
+  band,
+  csvCell,
+  formatMoney,
+  reasonLabel,
+  timeLeft,
+} from "../src/format.js";
 
 describe("format", () => {
   const now = Date.parse("2026-10-18T00:00:00Z");
@@ -16,5 +22,16 @@ describe("format", () => {
     expect(reasonLabel("MERCHANDISE_OR_SERVICE_NOT_RECEIVED")).toBe(
       "Item not received",
     );
+  });
+});
+
+describe("csvCell", () => {
+  it("quotes, doubles quotes and defuses formulas", () => {
+    expect(csvCell('say "hi"')).toBe('"say ""hi"""');
+    expect(csvCell("=HYPERLINK(1)")).toBe(`"'=HYPERLINK(1)"`);
+    expect(csvCell("-1+2")).toBe(`"'-1+2"`);
+    expect(csvCell("@SUM")).toBe(`"'@SUM"`);
+    expect(csvCell(null)).toBe('""');
+    expect(csvCell("DS-001")).toBe('"DS-001"');
   });
 });

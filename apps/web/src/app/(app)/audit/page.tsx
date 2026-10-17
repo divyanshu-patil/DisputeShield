@@ -1,6 +1,6 @@
 "use client";
 import type { AuditRow } from "@ds/api-client";
-import { Button, type ColDef, DataGrid, ErrorNote, Skeleton, formatDateTime } from "@ds/ui";
+import { Button, type ColDef, DataGrid, ErrorNote, Skeleton, csvCell, formatDateTime } from "@ds/ui";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { api } from "../../../lib/api";
@@ -21,8 +21,7 @@ export default function AuditPage() {
   );
   const rows = audit.data?.items ?? [];
   function exportCsv() {
-    const esc = (v: string | null) => `"${(v ?? "").replaceAll('"', '""')}"`;
-    const csv = ["at,actor,action,dispute_id,flag_id,detail", ...rows.map((r) => [r.at, r.actor, r.action, r.disputeId, r.flagId, r.detail ? JSON.stringify(r.detail) : ""].map(esc).join(","))].join("\n");
+    const csv = ["at,actor,action,dispute_id,flag_id,detail", ...rows.map((r) => [r.at, r.actor, r.action, r.disputeId, r.flagId, r.detail ? JSON.stringify(r.detail) : ""].map(csvCell).join(","))].join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;

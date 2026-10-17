@@ -12,7 +12,7 @@ export async function registerPlugins(app: FastifyInstance, env: Env): Promise<v
 
   await app.register(helmet, { crossOriginResourcePolicy: { policy: "cross-origin" } });
   await app.register(cors, {
-    origin: env.WEB_ORIGIN,
+    origin: [env.WEB_ORIGIN], // a list, so other origins get no allow header at all (AC-API-08)
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });

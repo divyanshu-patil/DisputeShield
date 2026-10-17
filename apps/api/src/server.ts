@@ -12,9 +12,11 @@ export type BuildServerOptions = {
   deps: Deps;
   /** Tests pass `false` to silence logs. */
   logger?: boolean;
+  /** Tests pass a stream to read the log lines (log scrubbing, 09 section 8). */
+  logStream?: { write(line: string): void };
 };
 
-export async function buildServer({ env, deps, logger }: BuildServerOptions): Promise<FastifyInstance> {
+export async function buildServer({ env, deps, logger, logStream }: BuildServerOptions): Promise<FastifyInstance> {
   const app = Fastify({
     logger:
       logger === false
@@ -23,7 +25,7 @@ export async function buildServer({ env, deps, logger }: BuildServerOptions): Pr
             level: env.LOG_LEVEL,
             // Never log credentials or cookies (AGENTS.md rule 7).
             redact: ["req.headers.authorization", "req.headers.cookie", 'req.headers["x-cron-secret"]', "res.headers['set-cookie']"],
-            ...(env.NODE_ENV === "development" ? { transport: { target: "pino-pretty" } } : {}),
+            ...(logStream ? { stream: logStream } : env.NODE_ENV === "development" ? { transport: { target: "pino-pretty" } } : {}),
           },
     // Honour an upstream request id, else make one. Returned in every error body.
     genReqId: (req) => {

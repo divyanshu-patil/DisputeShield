@@ -94,3 +94,7 @@ export const ACTION_LABELS: Record<string, string> = {
   MANUAL: "Review",
   REVIEW: "Review",
 };
+
+/** One quoted CSV cell. A leading = + - @ tab or CR gets a ' so spreadsheets show it as text, not a formula. */
+export const csvCell = (v: string | null | undefined): string =>
+  `"${(v ?? "").replace(/^[=+\-@\t\r]/, "'$&").replaceAll('"', '""')}"`;
