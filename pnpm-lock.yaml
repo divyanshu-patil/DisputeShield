@@ -451,6 +451,9 @@ importers:
       '@ds/config-typescript':
         specifier: workspace:*
         version: link:../config-typescript
+      '@ds/fixtures':
+        specifier: workspace:*
+        version: link:../fixtures
       '@types/node':
         specifier: 'catalog:'
         version: 24.19.2

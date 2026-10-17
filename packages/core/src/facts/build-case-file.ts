@@ -52,12 +52,14 @@ export function buildCaseFile(input: CaseFileInput): Fact[] {
       key: "tracking.number",
       label: "Tracking number",
     });
-    if (csvCarrier)
-      byKey.set("tracking.carrier", {
-        ...csvCarrier,
-        key: "tracking.carrier",
-        label: "Carrier",
-      });
+  }
+  // Order trackers carry no carrier (S7), so the seller's file supplies it when PayPal has none.
+  if (!get("tracking.carrier") && csvCarrier) {
+    byKey.set("tracking.carrier", {
+      ...csvCarrier,
+      key: "tracking.carrier",
+      label: "Carrier",
+    });
   }
   // Derived facts cite their inputs in jsonPath (05 section 2.2).
   const derivedSrc = (keys: string[]): Source & { path: string } => ({

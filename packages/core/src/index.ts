@@ -7,6 +7,7 @@ export * from "./facts/extract-fulfilment.js";
 export * from "./facts/extract-order.js";
 export * from "./facts/extract-transaction.js";
 export * from "./facts/fact.js";
+export * from "./facts/normalise-dispute.js";
 export * from "./risk/evaluate.js";
 export * from "./state/case-machine.js";
 export * from "./state/submission-machine.js";
