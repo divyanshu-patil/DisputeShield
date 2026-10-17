@@ -112,8 +112,9 @@ What I ran: ngrok http 4000 -> pnpm dev (API :4000); dashboard webhook on /api/w
   CUSTOMER.DISPUTE.* events; dashboard Webhooks simulator; pnpm ds spike s5.
 What happened:
   - The first listener URL was /api/webhook (wrong path); fixed to /api/webhooks/paypal.
-  - Simulator "Send test" was delivered ~140 s after "queued". The delivered sample was CUSTOMER.DISPUTE.UPDATED
-    (dispute PP-000-042-663-135, 2018 dates), not the CREATED sample shown on the page.
+  - Simulator "Send test" (Disputes updated, corrected URL) was delivered ~3 s after "queued" per the page timestamps
+    (00:22:27 queued, 00:22:30 received). Sample dispute PP-000-042-663-135, 2018 dates. The earlier CREATED test
+    went to the wrong path and never arrived.
   - Headers: Paypal-Transmission-Id, -Transmission-Time, -Cert-Url (on api.paypal.com even in sandbox),
     -Auth-Algo SHA256withRSA, -Transmission-Sig, plus Paypal-Auth-Version v2 (not in the contract).
     Content-Length equals the raw body length; no content-encoding.
