@@ -65,9 +65,16 @@ P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`draf
 4. Still to fill in `.env`: `PAYPAL_SANDBOX_BUYER_EMAIL`, `RENDER_*` (P1-12).
 5. Approve the $24 sandbox order (S7/S8) at `https://www.sandbox.paypal.com/checkoutnow?token=5U925703JP3687631`, then run `pnpm ds spike s7 --order 5U925703JP3687631 --send` and `pnpm ds spike s8 --order 5U925703JP3687631 --send`.
 
+## Phase 4 — Quality (started 2026-10-18)
+
+- P4-1 done: Playwright e2e, 17 tests in replay mode against a production build (login, queue, case review and dry-run submit, needs-info CSV fix, accept claim, risk actions, health, axe on seven pages, 390 px layout). `pnpm test:e2e` (uses `ds_e2e`, override with `E2E_DATABASE_URL`); in CI.
+- P4-5 partial: `pnpm ds replay-check` (fixtures parse, no unredacted emails), in CI.
+- P4-6 done: README with a 5-command replay quickstart.
+- UI restyled to `DESIGN.md` (Geist, ink on near-white, hairlines, light and dark).
+
 ## Next
 
-P1-13 OpenAPI export, README quickstart, `ds seed:demo` / `replay-check` in the CLI, then Phase 4 tests. S7/S8 once the sandbox order is approved.
+P4-2 LLM eval suite, P4-3 webhook edge and security tests, P4-7 bug bash against `08-acceptance-criteria.md`. S7/S8 once the sandbox order is approved.
 
 ## Run it locally (replay mode)
 
