@@ -12,18 +12,35 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 | P0-4  | S2: fetch list and details, first fixtures         | Done (2026-10-17)                      | 3 disputes, details parse against `@ds/schemas` `PaypalDisputeDetails`; fixtures awaiting your read                                                                                                                                                                                                                               |
 | P0-5  | S3/S4: provide-evidence, accept-claim              | Done (2026-10-18)                      | S3: form A accepted (USPS), with a PNG part `file1`; carrier `OTHER` rejected. S4: accept-claim → RESOLVED, `dispute_outcome` RESOLVED_BUYER_FAVOUR / SELLER_ISSUED_REFUND                                                                                                                                                        |
 | P0-6  | S5: webhook + signature verification               | Partial (2026-10-18), polling fallback | ngrok delivery works (simulator); postback FAILURE for simulator and bad signature (200 + FAILURE). Sandbox emitted **no real dispute events** (dashboard Webhook Events log empty) despite Customer disputes on and new dispute PP-R-GSH-10193291. Gate G4 optional: 5-minute polling is the source of truth; webhook route kept |
-| P0-7  | S6/S7/S8: transaction search, orders, tracking     | Not started                            |                                                                                                                                                                                                                                                                                                                                   |
-| P0-8  | S9: Ollama Cloud model choice                      | Not started                            |                                                                                                                                                                                                                                                                                                                                   |
+| P0-7  | S6/S7/S8: transaction search, orders, tracking     | Partial (2026-10-18)                   | S6 PASS (shipping, protection), PARTIAL (cart). S7/S8 wait for you to approve the $24 sandbox order (see open items)                                                                                                                                                                                                              |
+| P0-8  | S9: Ollama Cloud model choice                      | Done (2026-10-18)                      | `gemma4:31b` chosen; drafts parse and pass the verifier first time (1.8–2.4 s). Log: `docs/decisions/0001-day0-spike-results.md`                                                                                                                                                                                                  |
 | P0-10 | Accounts: Supabase, Ollama Cloud, Render, APIMatic | In progress (you)                      | Supabase URL in `.env` (see open items)                                                                                                                                                                                                                                                                                           |
 | P0-9  | Contract update, go/no-go note                     | Not started                            |                                                                                                                                                                                                                                                                                                                                   |
 
 ## Phase 1 — Foundations
 
-| ID           | Task                                                     | Status              | Evidence                                                                    |
-| ------------ | -------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------- |
-| P1-0         | Adopt the starter (api, workflows, jobs, schemas, agent) | Done (2026-10-17)   | starter tests green; `/api/health` and `/api/openapi.json` answer in replay |
-| P1-1         | Shared configs, ESLint boundary rules, Vitest            | Done early, in P0-1 | `packages/config-eslint/test/boundaries.test.ts` (39 tests)                 |
-| P1-2 … P1-13 |                                                          | Not started         |                                                                             |
+| ID           | Task                                                                      | Status              | Evidence                                                                    |
+| ------------ | ------------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------- |
+| P1-0         | Adopt the starter (api, workflows, jobs, schemas, agent)                  | Done (2026-10-17)   | starter tests green; `/api/health` and `/api/openapi.json` answer in replay |
+| P1-1         | Shared configs, ESLint boundary rules, Vitest                             | Done early, in P0-1 | `packages/config-eslint/test/boundaries.test.ts` (39 tests)                 |
+| P1-2 … P1-11 | Schemas, db, job queue, gateways, webhook, sync, app shell, queue, health | Done (2026-10-18)   | `pnpm turbo run lint typecheck test`: 47/47 tasks                           |
+| P1-12        | Deploy skeleton (Render, Supabase, web host)                              | Waiting on you      | needs Render account and the Supabase session-pooler URL                    |
+| P1-13        | OpenAPI export                                                            | Not started         |                                                                             |
+
+## Phase 2 — Case engine (done 2026-10-18)
+
+P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`drafter.v1`), decision aid, collect/draft handlers shared by the Postgres worker and Render (`@ds/pipeline`), submission builders with dry-run, case workspace, approve/accept flow, CSV import. Checked in Chrome against local Postgres in replay mode: approve → dry run stored, exact request shown and audited.
+
+## Phase 3 — Risk and dashboards
+
+| ID                | Status            | Note                                                                                                           |
+| ----------------- | ----------------- | -------------------------------------------------------------------------------------------------------------- |
+| P3-1 … P3-4       | Done (2026-10-18) | risk rules, scan, Risk Radar with add-tracking/refund/dismiss, PII-free analytics views                        |
+| P3-5a             | Fallback          | AG Studio licence not active until the Nov 1 trial; Health page uses the same widgets as React views + AG Grid |
+| P3-5b/c           | Done              | Deadline runway and Verifier ledger views                                                                      |
+| P3-5d, P3-7, P3-8 | Skipped for now   | Dispute analyst, Case Copilot, PDF packet (plan marks 3-7/3-8 "only if on schedule")                           |
+| P3-6              | Done              | loading/empty/error states, dark mode, keyboard dialogs                                                        |
+| P3-10, P3-11      | Waiting on you    | Render and APIMatic accounts                                                                                   |
 
 ## P0-1 / P1-0 check record (2026-10-17, local, Node 24.10, pnpm 11.25.0)
 
@@ -45,8 +62,16 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 1. **`DATABASE_URL` and `DATABASE_URL_TEST` in `.env` use the Supabase transaction pooler (port 6543).** AGENTS.md rule 13 forbids it. Switch to the session pooler (same host, port 5432) or the direct URL. Point `DATABASE_URL_TEST` at the local `docker compose` database (`postgres://ds:ds@localhost:5432/ds_test`), not at Supabase, because tests will reset it.
 2. Replace `[COPYRIGHT HOLDER]` in `LICENSE`.
 3. Create the GitHub repo and add it as `origin` so CI can run.
-4. Still to fill in `.env`: `PAYPAL_WEBHOOK_ID` (S5), `PAYPAL_SANDBOX_BUYER_EMAIL`, `OLLAMA_API_KEY` + `LLM_MODEL` (S9), `RENDER_*` (P1-12).
+4. Still to fill in `.env`: `PAYPAL_SANDBOX_BUYER_EMAIL`, `RENDER_*` (P1-12).
+5. Approve the $24 sandbox order (S7/S8) at `https://www.sandbox.paypal.com/checkoutnow?token=5U925703JP3687631`, then run `pnpm ds spike s7 --order 5U925703JP3687631 --send` and `pnpm ds spike s8 --order 5U925703JP3687631 --send`.
 
 ## Next
 
-S6/S7/S8 (transaction search, orders, tracking), then S9 (Ollama; needs `OLLAMA_API_KEY` + `LLM_MODEL`). Open dispute for later tests: PP-R-GSH-10193291 (WAITING_FOR_SELLER_RESPONSE, all seller links). Set `PAYPAL_SANDBOX_BUYER_EMAIL` in `.env` to the US buyer account.
+P1-13 OpenAPI export, README quickstart, `ds seed:demo` / `replay-check` in the CLI, then Phase 4 tests. S7/S8 once the sandbox order is approved.
+
+## Run it locally (replay mode)
+
+```
+DATABASE_URL=postgres://ds:ds@localhost:5432/ds pnpm --filter @ds/api dev   # migrates and seeds the demo on an empty database
+pnpm --filter @ds/web dev                                                    # http://localhost:3000, sign in with DS_DEMO_ACCESS_CODE
+```
