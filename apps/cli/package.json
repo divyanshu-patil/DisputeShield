@@ -13,7 +13,11 @@
   },
   "dependencies": {
     "@ds/agent": "workspace:*",
+    "@ds/db": "workspace:*",
+    "@ds/fixtures": "workspace:*",
+    "@ds/jobs": "workspace:*",
     "@ds/paypal": "workspace:*",
+    "@ds/pipeline": "workspace:*",
     "@ds/schemas": "workspace:*",
     "commander": "15.0.0",
     "tsx": "catalog:",

@@ -37,8 +37,8 @@ describe("demo scenarios through the pipeline", () => {
       "DS-003": "READY",
       "DS-004": "READY",
     });
-    // The seed collects inline, so it must not also queue collect jobs (they would draft v2).
-    expect(queued.filter((j) => j.kind === "collect_case")).toEqual([]);
+    // The seed collects and drafts inline, so it must not also queue that work (it would draft v2).
+    expect(queued).toEqual([]);
     const ds1 = await p.caseFile("DS-001");
     expect(ds1.strength).toBe("STRONG");
     expect(ds1.facts.every((f) => f.sourcePayloadId && f.jsonPath)).toBe(true);

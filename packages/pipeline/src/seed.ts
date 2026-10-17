@@ -51,7 +51,7 @@ export async function seedDemo(o: {
   await o.pipeline.syncDisputes(false);
   const cases: Record<string, string> = {};
   for (const id of SCENARIO_IDS) {
-    const r = await o.pipeline.collectCase(id);
+    const r = await o.pipeline.collectCase(id, false);
     cases[id] = r.state;
     if (r.state === "READY") await o.pipeline.draftCase(r.caseId);
   }

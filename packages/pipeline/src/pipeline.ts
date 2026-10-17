@@ -269,8 +269,10 @@ export function createPipeline(d: PipelineDeps) {
     return { synced: ids.size };
   }
 
+  /** `queueDraft: false` when the caller drafts inline (the demo seed). */
   async function collectCase(
     disputeId: string,
+    queueDraft = true,
   ): Promise<{ caseId: string; state: string }> {
     const kase = await repos.cases.ensure(disputeId);
     await repos.cases.transition(kase.id, "COLLECT");
@@ -412,7 +414,7 @@ export function createPipeline(d: PipelineDeps) {
         disputeId,
         detail: { facts: facts.length, state, strength: a.strength },
       });
-      if (ready && a.kind !== "GENERIC") {
+      if (queueDraft && ready && a.kind !== "GENERIC") {
         await d.enqueue({
           kind: "draft_case",
           payload: { caseId: kase.id },

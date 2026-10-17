@@ -39,6 +39,7 @@ jobs:
       - run: pnpm turbo run lint typecheck test
       - run: pnpm turbo run build --filter=@ds/api --filter=@ds/workflows --filter=@ds/web
       - run: pnpm openapi:check
+      - run: pnpm ds replay-check
       # Enable when scripts/check-bundle-secrets.mjs exists.
       # - run: node scripts/check-bundle-secrets.mjs
       # Enable when e2e specs exist (P4-1).

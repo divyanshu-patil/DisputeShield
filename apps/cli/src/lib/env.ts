@@ -61,3 +61,38 @@ export function ollamaConfig(): {
     model: parsed.data.LLM_MODEL,
   };
 }
+
+const Seed = z.object({
+  DATABASE_URL: z.string().min(1),
+  DS_MODE: z.enum(["replay", "live"]).default("replay"),
+  DS_SUBMIT_MODE: z.enum(["dry-run", "live"]).default("dry-run"),
+  OLLAMA_API_KEY: z.string().min(1).optional(),
+  OLLAMA_HOST: z.string().url().default("https://ollama.com"),
+  LLM_MODEL: z.string().min(1).optional(),
+});
+
+/** Settings for `seed:demo`. Ollama is optional: without it drafts use the template fallback. */
+export function seedConfig(): {
+  databaseUrl: string;
+  mode: "replay" | "live";
+  submitMode: "dry-run" | "live";
+  ollama: { apiKey: string; host: string; model: string } | null;
+} {
+  if (existsSync(ROOT_ENV)) process.loadEnvFile(ROOT_ENV);
+  const parsed = Seed.safeParse(process.env);
+  if (!parsed.success) {
+    throw new Error(
+      `Missing or invalid in .env: ${parsed.error.issues.map((i) => i.path.join(".")).join(", ")}`,
+    );
+  }
+  const e = parsed.data;
+  return {
+    databaseUrl: e.DATABASE_URL,
+    mode: e.DS_MODE,
+    submitMode: e.DS_SUBMIT_MODE,
+    ollama:
+      e.OLLAMA_API_KEY && e.LLM_MODEL
+        ? { apiKey: e.OLLAMA_API_KEY, host: e.OLLAMA_HOST, model: e.LLM_MODEL }
+        : null,
+  };
+}

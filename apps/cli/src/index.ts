@@ -1,5 +1,7 @@
 #!/usr/bin/env tsx
 import { Argument, Command } from "commander";
+import { runReplayCheck } from "./commands/replay-check.js";
+import { seed } from "./commands/seed.js";
 import { SPIKES, type SpikeOptions, runSpike } from "./commands/spike.js";
 
 const program = new Command("ds").description(
@@ -28,5 +30,18 @@ program
     "send write requests (s3/s4/s7/s8); without it they are only printed",
   )
   .action((id: keyof typeof SPIKES, opts: SpikeOptions) => runSpike(id, opts));
+
+program
+  .command("seed:demo")
+  .description(
+    "Migrate, then reload the demo shop (DS-001..004, RISK-001..002)",
+  )
+  .option("--force", "with DS_MODE=live, wipe non-demo disputes too")
+  .action((opts: { force?: boolean }) => seed(opts));
+
+program
+  .command("replay-check")
+  .description("Check every fixture and scenario against @ds/schemas")
+  .action(runReplayCheck);
 
 await program.parseAsync();
