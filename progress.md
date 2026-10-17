@@ -1,0 +1,48 @@
+# Progress
+
+Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
+
+## Phase 0 — Spikes and set-up
+
+| ID    | Task                                               | Status            | Evidence                                                        |
+| ----- | -------------------------------------------------- | ----------------- | --------------------------------------------------------------- |
+| P0-1  | Turborepo skeleton, starter packages, CI, licence  | Done (2026-10-17) | see below                                                       |
+| P0-2  | S0: developer account, sandbox accounts, REST app  | In progress (you) | PayPal client ID and secret are in `.env`; token not tested yet |
+| P0-3  | S1: create a sandbox dispute                       | Not started       |                                                                 |
+| P0-4  | S2: fetch list and details, first fixtures         | Not started       |                                                                 |
+| P0-5  | S3/S4: provide-evidence, accept-claim              | Not started       |                                                                 |
+| P0-6  | S5: webhook + signature verification               | Not started       |                                                                 |
+| P0-7  | S6/S7/S8: transaction search, orders, tracking     | Not started       |                                                                 |
+| P0-8  | S9: Ollama Cloud model choice                      | Not started       |                                                                 |
+| P0-10 | Accounts: Supabase, Ollama Cloud, Render, APIMatic | In progress (you) | Supabase URL in `.env` (see open items)                         |
+| P0-9  | Contract update, go/no-go note                     | Not started       |                                                                 |
+
+## Phase 1 — Foundations
+
+| ID           | Task                                                     | Status              | Evidence                                                                    |
+| ------------ | -------------------------------------------------------- | ------------------- | --------------------------------------------------------------------------- |
+| P1-0         | Adopt the starter (api, workflows, jobs, schemas, agent) | Done (2026-10-17)   | starter tests green; `/api/health` and `/api/openapi.json` answer in replay |
+| P1-1         | Shared configs, ESLint boundary rules, Vitest            | Done early, in P0-1 | `packages/config-eslint/test/boundaries.test.ts` (39 tests)                 |
+| P1-2 … P1-13 |                                                          | Not started         |                                                                             |
+
+## P0-1 / P1-0 check record (2026-10-17, local, Node 24.10, pnpm 11.25.0)
+
+- `pnpm install && pnpm turbo run lint typecheck test`: 44/44 tasks pass.
+- Test counts: schemas 3, agent 26, api 44, jobs 6, workflows 6 (the same as the pack's numbers); config-eslint 39, web 2, every empty package 1.
+- `pnpm turbo run build --filter=@ds/api --filter=@ds/workflows --filter=@ds/web`: passes; writes `apps/api/dist/index.js` and `apps/workflows/dist/{index,trigger}.js`.
+- `pnpm dev`: web on :3000 renders "Dispute Shield"; api on :4000 answers `GET /api/health` (replay, dry-run, sandbox, database `not_configured`, llm `not_configured`); `GET :3000/api/health` reaches the API through the rewrite; `/api/openapi.json` is 200.
+- `pnpm ds --help` prints usage.
+- Boundary and `process.env` rules were tested with deliberately bad files.
+- Not run: CI on GitHub (there is no remote yet), `docker compose up`, anything against PayPal, Supabase, Ollama or Render.
+- Deviations from the spec: `docs/decisions/0000-p0-1-scaffold-deviations.md`.
+
+## Open items for you
+
+1. **`DATABASE_URL` and `DATABASE_URL_TEST` in `.env` use the Supabase transaction pooler (port 6543).** AGENTS.md rule 13 forbids it. Switch to the session pooler (same host, port 5432) or the direct URL. Point `DATABASE_URL_TEST` at the local `docker compose` database (`postgres://ds:ds@localhost:5432/ds_test`), not at Supabase, because tests will reset it.
+2. Replace `[COPYRIGHT HOLDER]` in `LICENSE`.
+3. Create the GitHub repo and add it as `origin` so CI can run.
+4. Still to fill in `.env`: `PAYPAL_WEBHOOK_ID` (S5), `PAYPAL_SANDBOX_BUYER_EMAIL`, `OLLAMA_API_KEY` + `LLM_MODEL` (S9), `RENDER_*` (P1-12).
+
+## Next
+
+P0-2 / S0: `pnpm ds spike s0` (token request, scopes, expiry; never prints the secret). Waiting for your go-ahead.
