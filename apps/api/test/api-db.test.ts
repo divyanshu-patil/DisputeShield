@@ -60,7 +60,10 @@ describe("case routes over the database", () => {
   });
   it("verify_mode_rejects_an_invented_value (AC-VER-12)", async () => {
     const res = await app.inject({ method: "POST", url: "/api/disputes/DS-003/draft", headers: { cookie }, payload: { mode: "verify", draft: { evidenceType: "PROOF_OF_REFUND", statements: [{ text: "A refund of USD 99.00 was issued to the buyer.", factKeys: ["refund.amount"] }], recommendation: { action: "FIGHT", rationale: [] } } } });
-    expect(res.json()).toMatchObject({ passed: false });
+    expect(res.json()).toMatchObject({ passed: false, draftId: null });
+    // The failing edit is not stored, so the passing draft is still the one that can be approved.
+    const file = await app.inject({ url: "/api/disputes/DS-003/case", headers: { cookie } });
+    expect(file.json<{ draft: { passed: boolean } }>().draft.passed).toBe(true);
   });
   it("csv_errors_come_back_with_lines", async () => {
     const res = await app.inject({ method: "POST", url: "/api/fulfilment/import", headers: { cookie }, payload: { csv: "bad,header\n" } });

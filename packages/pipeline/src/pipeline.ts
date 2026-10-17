@@ -661,6 +661,17 @@ export function createPipeline(d: PipelineDeps) {
     const { kase, facts, assessment } = await caseByDispute(disputeId);
     const report = verifyDraft(draft, facts);
     const passed = verifierPassed(report, assessment.checklist);
+    // 06 section 4: a failing edit is reported, not stored, so the previous passing version stays approvable.
+    if (!passed) {
+      await repos.audit.append({
+        actor: "owner",
+        action: "VERIFIER_FAILED",
+        caseId: kase.id,
+        disputeId,
+        detail: { rejected: report.rejected.length },
+      });
+      return { draftId: null, version: null, report, passed };
+    }
     const row = await repos.drafts.create({
       caseId: kase.id,
       origin: "HUMAN_EDIT",
@@ -673,7 +684,7 @@ export function createPipeline(d: PipelineDeps) {
     });
     await repos.audit.append({
       actor: "owner",
-      action: passed ? "DRAFT_EDITED" : "VERIFIER_FAILED",
+      action: "DRAFT_EDITED",
       caseId: kase.id,
       disputeId,
       detail: { version: row.version, rejected: report.rejected.length },

@@ -297,8 +297,8 @@ export function createApiClient(o: ClientOptions = {}) {
       }),
     verifyDraft: (id: string, draft: EvidenceDraft) =>
       post<{
-        draftId: string;
-        version: number;
+        draftId: string | null;
+        version: number | null;
         report: VerifierReport;
         passed: boolean;
       }>(`/api/disputes/${enc(id)}/draft`, { mode: "verify", draft }),
