@@ -49,4 +49,4 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 
 ## Next
 
-Read the S2 fixtures, approve the contract edits for 2.1/2.2. Then S3/S4 (provide-evidence, accept-claim). Set `PAYPAL_SANDBOX_BUYER_EMAIL` in `.env` to the new US buyer account.
+S3/S4 (provide-evidence, accept-claim). Set `PAYPAL_SANDBOX_BUYER_EMAIL` in `.env` to the new US buyer account.

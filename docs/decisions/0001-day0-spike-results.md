@@ -76,6 +76,6 @@ What happened: list 200, 3 disputes; all 3 details 200 and parse against @ds/sch
     refund_details.allowed_refund_amount, extensions {merchant_contacted, buyer_contacted_time}.
   Fixtures: packages/fixtures/paypal/disputes/{list.sandbox, PP-R-*.details}.json, redacted (parties synthetic,
   payer_id/merchant_id masked); 0 of 7 real party values found in them.
-Contract changes: proposed (2.1, 2.2, Q10); not applied until approved.
+Contract changes: 2.1 response shape, 2.2 field shapes and observed links/options, Q10 narrowed (approved and applied 2026-10-17).
 Plan changes: none.
 ```

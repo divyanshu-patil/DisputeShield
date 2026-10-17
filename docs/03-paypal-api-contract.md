@@ -31,10 +31,12 @@ Failure modes to handle: `401` (refresh once, then `AuthError`; the token endpoi
 | `start_time` | filter by creation time ✅ |
 | `disputed_transaction_id` | find the dispute for one transaction ✅ |
 | `page`, `page_size`, `next_page_token` | pagination; prefer `next_page_token` when present ✅ |
-| `dispute_state` | filter by state ✅ (accepted values ❓ confirm in S2) |
-| `create_time_before`, `create_time_after`, `update_time_before`, `update_time_after` | ✅ |
+| `dispute_state` | filter by state ✅ (accepted values ❓; S2 saw `REQUIRED_ACTION` in responses, filter not tried) |
+| `create_time_before`, `create_time_after`, `update_time_before`, `update_time_after` | ✅ (`update_time_after` with an ISO timestamp used in S2) |
 
 Use `update_time_after` for incremental sync, with a 10 minute overlap, and de-duplicate by `dispute_id`.
+
+Response (S2, fixture `paypal/disputes/list.sandbox.json`): `items[]` with `dispute_id`, `create_time`, `update_time`, `reason`, `status`, `dispute_state`, `dispute_life_cycle_stage`, `dispute_channel`, `dispute_amount`, `seller_response_due_date`, `disputed_transactions[]` (`buyer_transaction_id`, `buyer.payer_id`, `seller.merchant_id` only) and `links` (`self` only); top-level `links` (`self`, `first`). New disputes appeared in the list 2 to 10 minutes after filing. ✅
 
 ### 2.2 Dispute details
 
@@ -47,17 +49,24 @@ Fields we read:
 | `dispute_id` | primary key |
 | `reason` | picks the evidence checklist |
 | `status` | `OPEN`, `WAITING_FOR_SELLER_RESPONSE`, `WAITING_FOR_BUYER_RESPONSE`, `UNDER_REVIEW`, `RESOLVED` ✅ |
-| `dispute_state` | coarse state ✅ (values ❓) |
+| `dispute_state` | coarse state ✅ (values ❓; seen: `REQUIRED_ACTION`) |
 | `dispute_life_cycle_stage` | `INQUIRY`, `CHARGEBACK`, `PRE_ARBITRATION`, `ARBITRATION` ✅ |
-| `dispute_amount` {currency_code, value} | amount at risk ⚠️ shape |
-| `disputed_transactions[]` | transaction ID, seller details, items ⚠️ shape; confirm in S2 |
+| `dispute_amount` {currency_code, value} | amount at risk; `value` is a string ✅ (S2) |
+| `disputed_transactions[]` | `buyer_transaction_id`, `seller_transaction_id`, `create_time`, `transaction_status` (seen `HELD`), `gross_amount`, `buyer` {email, payer_id, name}, `seller` {email, merchant_id, name}, `items[]` {item_name, item_description, item_quantity (string), reason, item_type (seen `PRODUCT`)}, `seller_protection_eligible`, `seller_protection_type` ✅ (S2) |
 | `seller_response_due_date` | deadline ✅ |
 | `evidences` | what has already been submitted ✅ |
 | `allowed_response_options` | which actions and offer types are currently valid ✅ |
 | `links` | HATEOAS links; **the presence of a link is the authorisation to attempt that action** ✅ |
-| `messages` | buyer and seller messages ⚠️ |
+| `messages` | `[]` of {posted_by (seen `BUYER`), time_posted, content} ✅ (S2) |
 
 Design rule: never offer or attempt an action whose HATEOAS link is absent. `LinkMissing` is a first-class error.
+
+Observed in S2 (INQUIRY, `WAITING_FOR_SELLER_RESPONSE`, item not received; fixtures `paypal/disputes/PP-R-*.details.json`) ✅:
+- `links`: `self` (GET); `accept_claim`, `provide_evidence`, `send_message`, `escalate`, `make_offer` (POST).
+- `allowed_response_options`: `accept_claim.accept_claim_types` [`PARTIAL_REFUND`, `REFUND`], `make_offer.offer_types` [`REFUND`].
+- `evidences[]`: `CREATE` (source `SUBMITTED_BY_BUYER`, `notes`) and `PROOF_OF_FULFILLMENT` (source `REQUESTED_FROM_SELLER`), each with `date` and `dispute_life_cycle_stage`.
+- `seller_response_due_date` is filing time + 20 days. `dispute_channel` `INTERNAL`.
+- Present but not used: `fund_movements[]` (seen `HOLD_PLACED` / `DEBIT` / `RECEIVER`), `offer.buyer_requested_amount`, `refund_details.allowed_refund_amount`, `extensions` {merchant_contacted, buyer_contacted_time}.
 
 ### 2.3 Provide evidence
 
@@ -203,6 +212,6 @@ Webhook endpoint (ours): `POST <API_ORIGIN>/api/webhooks/paypal` on the Fastify 
 | Q11 | Which Ollama Cloud model parses JSON reliably and supports tool calls; is API access on the free plan? | S9 | drafter, analyst, copilot |
 | Q12 | Does the PayPal webhook still reach and verify on a Render free instance after idle (cold start), and does PayPal retry? | S5, S11 | hosted real-time story |
 | Q9 | Webhook failed-verification code and retry count | S5 | none (designed around) |
-| Q10 | Are all `dispute_state` and `status` values captured? | S2 | state mapping |
+| Q10 | Are all `dispute_state` and `status` values captured? (S2: only INQUIRY / `REQUIRED_ACTION` / `WAITING_FOR_SELLER_RESPONSE`, `UNDER_REVIEW` once; later stages pending S3/S4) | S2, S3, S4 | state mapping |
 
 Each answer is written back into the relevant section above, with the date and the fixture that proves it, and the ❓ is removed.
