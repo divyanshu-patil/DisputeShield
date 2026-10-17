@@ -35,3 +35,21 @@ Route chosen: B (UI). Route A needs a buyer transaction id from a real payment e
 Contract changes: none.
 Plan changes: none.
 ```
+
+```text
+Spike: S1  Date: 2026-10-17  Result: PASS (Route B, UI)
+What I ran: sandbox UI as the buyer, then pnpm ds spike s1
+What happened:
+  - The first personal sandbox account (India: bank YES BANK) could not Send: "Your account is not supported for this
+    action". A new US personal sandbox account worked.
+  - 3 goods-and-services payments from the US buyer to the business account, paid by Visa (card, not balance):
+    $48.00 (DS-1001), $129.00 (DS-1002), $36.00 (DS-1003).
+  - 3 disputes via Activity -> payment -> "Report a problem" -> "I haven't received the item or service":
+    PP-R-QBT-10193246 ($48, issue type "haven't received tracking info"),
+    PP-R-VDG-10193247 ($129, same), PP-R-AUY-10193248 ($36, "item hasn't reached me").
+  - Seller GET /v1/customer/disputes (debug_id f6362072cc92d): 2 of 3 visible within ~8 minutes.
+    Observed: status WAITING_FOR_SELLER_RESPONSE and UNDER_REVIEW; reason MERCHANDISE_OR_SERVICE_NOT_RECEIVED;
+    dispute_id has the form PP-R-XXX-NNNNNNNN.
+Contract changes: proposed (Route B steps, US buyer note, observed status/reason values); not applied until approved.
+Plan changes: buyer account must be US (or another country that allows personal Send). Route A (API) not tried.
+```
