@@ -127,3 +127,27 @@ What happened:
   Fixtures: paypal/webhooks/simulator.customer-dispute-updated.{body,headers}.json (redacted).
 Still needed for PASS: a real (non-simulator) event that verifies with SUCCESS.
 ```
+
+```text
+Spike: S3 (continued)  Date: 2026-10-18  Result: PASS (file part)
+What I ran: pnpm ds spike s3 --dispute PP-R-VDG-10193247 [--carrier OTHER] --file --send
+What happened:
+  - carrier_name OTHER: HTTP 400 INVALID_REQUEST [CARRIER_NAME_IS_INVALID] (debug_id f9948717625cc). Q3: OTHER is
+    rejected as a plain carrier name.
+  - USPS + a 1x1 PNG as multipart part `file1`: HTTP 200 (debug_id f14565841237d). Re-fetch: the seller evidence has
+    documents[] {name "proof-of-shipment.png", url …/v2/content/documents/…/download}. Form A with file parts works.
+  - Both INR disputes later showed WAITING_FOR_BUYER_RESPONSE with links self, accept_claim, send_message, escalate.
+
+Spike: S4 (continued)  Date: 2026-10-18  Result: PASS
+  PP-R-AUY-10193248 became RESOLVED (dispute_state RESOLVED) with dispute_outcome {outcome_code RESOLVED_BUYER_FAVOUR,
+  outcome_reason SELLER_ISSUED_REFUND, amount_refunded 36.00 USD}; links only self.
+  Fixture: paypal/disputes/PP-R-AUY-10193248.resolved.details.json.
+
+Spike: S5 (continued)  Date: 2026-10-18  Result: no real event yet
+  - Dashboard check: webhook URL, ID (matches .env) and the three dispute events correct; Transaction search on
+    (token now has reporting/search/read); "Customer disputes" feature was OFF and was switched ON.
+  - send-message: POST …/send-message {"message": "…"} → HTTP 200 (debug_id f947680bed9c6), body {links:[detail]}.
+  - Developer Dashboard → Event Logs → Webhook Events: "No data" for the last 30 days, also after the message.
+    PayPal has not emitted any real CUSTOMER.DISPUTE.* event for this app; simulator events do arrive.
+  - A second simulator test (00:48:41 IST) was not delivered within 10 minutes (ngrok and API had been restarted).
+```

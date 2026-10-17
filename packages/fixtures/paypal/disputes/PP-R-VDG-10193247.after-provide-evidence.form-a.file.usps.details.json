@@ -1,0 +1,121 @@
+{
+  "dispute_id": "PP-R-VDG-10193247",
+  "create_time": "2026-10-17T13:04:19.951Z",
+  "update_time": "2026-10-17T18:55:47.110Z",
+  "disputed_transactions": [
+    {
+      "buyer_transaction_id": "883999676N0484120",
+      "seller_transaction_id": "2UE21765H5395474W",
+      "create_time": "2026-10-17T12:54:46.000Z",
+      "transaction_status": "HELD",
+      "gross_amount": {
+        "currency_code": "USD",
+        "value": "129.00"
+      },
+      "buyer": {
+        "email": "buyer@example.com",
+        "payer_id": "3ZCxxxxxxxxxx",
+        "name": "Jordan Avery"
+      },
+      "seller": {
+        "email": "seller@example.com",
+        "merchant_id": "BTFxxxxxxxxxx",
+        "name": "Hearthside Ceramics"
+      },
+      "items": [
+        {
+          "item_name": "Wireless headphons",
+          "item_description": "Wireless headphons",
+          "item_quantity": "1",
+          "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+          "item_type": "PRODUCT"
+        }
+      ],
+      "seller_protection_eligible": true,
+      "seller_protection_type": "EXPANDED_SELLER_PROTECTION"
+    }
+  ],
+  "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+  "status": "UNDER_REVIEW",
+  "dispute_amount": {
+    "currency_code": "USD",
+    "value": "129.00"
+  },
+  "dispute_state": "UNDER_PAYPAL_REVIEW",
+  "fund_movements": [
+    {
+      "party": "RECEIVER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "122.71"
+      },
+      "initiated_time": "2026-10-17T13:07:34.000Z",
+      "type": "DEBIT",
+      "reason": "HOLD_PLACED"
+    }
+  ],
+  "dispute_life_cycle_stage": "INQUIRY",
+  "dispute_channel": "INTERNAL",
+  "messages": [
+    {
+      "posted_by": "BUYER",
+      "time_posted": "2026-10-17T13:04:19.951Z",
+      "content": "I ordered wireless headphones (order DS-1002) on Oct 17 and paid $129.00. The seller has not shared any tracking information and the item has not arrived."
+    }
+  ],
+  "extensions": {
+    "buyer_contacted_time": "2026-10-17T13:04:19.333Z"
+  },
+  "evidences": [
+    {
+      "evidence_type": "CREATE",
+      "notes": "I ordered wireless headphones (order DS-1002) on Oct 17 and paid $129.00. The seller has not shared any tracking information and the item has not arrived.",
+      "source": "SUBMITTED_BY_BUYER",
+      "date": "2026-10-17T13:04:19.951Z",
+      "dispute_life_cycle_stage": "INQUIRY"
+    },
+    {
+      "evidence_type": "PROOF_OF_FULFILLMENT",
+      "evidence_info": {
+        "tracking_info": [
+          {
+            "carrier_name": "USPS",
+            "tracking_number": "9400111899223817565432"
+          }
+        ]
+      },
+      "documents": [
+        {
+          "name": "proof-of-shipment.png",
+          "url": "https://api-m.sandbox.paypal.com/v2/content/documents/DIS-010-11f1-ca5c-5cc4f650-88d5-63fa3565858e/files/1/download"
+        }
+      ],
+      "notes": "Shipped on 2026-10-17 with USPS. Tracking 9400111899223817565432.",
+      "source": "SUBMITTED_BY_SELLER",
+      "date": "2026-10-17T18:55:47.110Z",
+      "action_info": {
+        "action": "PROVIDE_EVIDENCE"
+      },
+      "dispute_life_cycle_stage": "INQUIRY"
+    }
+  ],
+  "offer": {
+    "buyer_requested_amount": {
+      "currency_code": "USD",
+      "value": "129.00"
+    }
+  },
+  "refund_details": {
+    "allowed_refund_amount": {
+      "currency_code": "USD",
+      "value": "129.00"
+    }
+  },
+  "links": [
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-VDG-10193247",
+      "rel": "self",
+      "method": "GET"
+    }
+  ]
+}

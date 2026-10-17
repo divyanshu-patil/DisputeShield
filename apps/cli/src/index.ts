@@ -14,6 +14,8 @@ program
     "--dispute <id>",
     "dispute id for s3/s4 (defaults to the S1 disputes)",
   )
+  .option("--carrier <name>", "s3: carrier_name (default USPS)")
+  .option("--file", "s3: attach a 1x1 PNG as a document part")
   .option(
     "--send",
     "send write requests (s3/s4); without it they are only printed",

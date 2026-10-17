@@ -1,0 +1,179 @@
+{
+  "dispute_id": "PP-R-AUY-10193248",
+  "create_time": "2026-10-17T13:07:37.838Z",
+  "update_time": "2026-10-17T13:19:27.828Z",
+  "disputed_transactions": [
+    {
+      "buyer_transaction_id": "3DX45652S6383154N",
+      "seller_transaction_id": "1U8154933L670010R",
+      "create_time": "2026-10-17T12:56:12.000Z",
+      "transaction_status": "REFUNDED",
+      "gross_amount": {
+        "currency_code": "USD",
+        "value": "36.00"
+      },
+      "buyer": {
+        "email": "buyer@example.com",
+        "payer_id": "3ZCxxxxxxxxxx",
+        "name": "Jordan Avery"
+      },
+      "seller": {
+        "email": "seller@example.com",
+        "merchant_id": "BTFxxxxxxxxxx",
+        "name": "Hearthside Ceramics"
+      },
+      "items": [
+        {
+          "item_name": "Linen tote bag",
+          "item_description": "Linen tote bag",
+          "item_quantity": "1",
+          "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+          "item_type": "PRODUCT"
+        }
+      ],
+      "seller_protection_eligible": true,
+      "seller_protection_type": "EXPANDED_SELLER_PROTECTION"
+    }
+  ],
+  "reason": "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+  "status": "RESOLVED",
+  "dispute_amount": {
+    "currency_code": "USD",
+    "value": "36.00"
+  },
+  "dispute_state": "RESOLVED",
+  "dispute_outcome": {
+    "outcome_code": "RESOLVED_BUYER_FAVOUR",
+    "outcome_reason": "SELLER_ISSUED_REFUND",
+    "amount_refunded": {
+      "currency_code": "USD",
+      "value": "36.00"
+    }
+  },
+  "money_movements": [
+    {
+      "affected_party": "SELLER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "36.00"
+      },
+      "initiated_time": "2026-10-17T13:17:36.204Z",
+      "type": "DEBIT",
+      "reason": "DISPUTE_SETTLEMENT"
+    },
+    {
+      "affected_party": "SELLER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "2.01"
+      },
+      "initiated_time": "2026-10-17T13:17:36.204Z",
+      "type": "DEBIT",
+      "reason": "DISPUTE_SETTLEMENT_FEE"
+    },
+    {
+      "affected_party": "BUYER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "36.00"
+      },
+      "initiated_time": "2026-10-17T13:17:36.204Z",
+      "type": "CREDIT",
+      "reason": "DISPUTE_SETTLEMENT"
+    }
+  ],
+  "fund_movements": [
+    {
+      "party": "RECEIVER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "33.99"
+      },
+      "initiated_time": "2026-10-17T13:11:04.000Z",
+      "type": "DEBIT",
+      "reason": "HOLD_PLACED"
+    },
+    {
+      "party": "SELLER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "36.00"
+      },
+      "initiated_time": "2026-10-17T13:17:36.204Z",
+      "type": "DEBIT",
+      "reason": "DISPUTE_SETTLEMENT"
+    },
+    {
+      "party": "BUYER",
+      "amount": {
+        "currency_code": "USD",
+        "value": "36.00"
+      },
+      "initiated_time": "2026-10-17T13:17:36.204Z",
+      "type": "CREDIT",
+      "reason": "DISPUTE_SETTLEMENT"
+    }
+  ],
+  "dispute_life_cycle_stage": "INQUIRY",
+  "dispute_channel": "INTERNAL",
+  "messages": [
+    {
+      "posted_by": "BUYER",
+      "time_posted": "2026-10-17T13:07:37.838Z",
+      "content": "I ordered a linen tote bag (order DS-1003) on Oct 17 and paid $36.00. It was supposed to arrive but it never reached me."
+    }
+  ],
+  "extensions": {
+    "merchant_contacted": false,
+    "buyer_contacted_time": "2026-10-17T13:07:37.151Z"
+  },
+  "evidences": [
+    {
+      "evidence_type": "CREATE",
+      "notes": "I ordered a linen tote bag (order DS-1003) on Oct 17 and paid $36.00. It was supposed to arrive but it never reached me.",
+      "source": "SUBMITTED_BY_BUYER",
+      "date": "2026-10-17T13:07:37.838Z",
+      "dispute_life_cycle_stage": "INQUIRY"
+    },
+    {
+      "evidence_type": "OTHER",
+      "notes": "Refunding in full: order DS-1003 was not delivered.",
+      "source": "SUBMITTED_BY_SELLER",
+      "date": "2026-10-17T13:17:36.306Z",
+      "action_info": {
+        "action": "ACCEPT_CLAIM",
+        "response_option": "REFUND"
+      },
+      "dispute_life_cycle_stage": "INQUIRY"
+    }
+  ],
+  "offer": {
+    "buyer_requested_amount": {
+      "currency_code": "USD",
+      "value": "36.00"
+    }
+  },
+  "refund_details": {
+    "allowed_refund_amount": {
+      "currency_code": "USD",
+      "value": "36.00"
+    },
+    "transactions": [
+      {
+        "id": "4RK28438509138452",
+        "gross_amount": {
+          "currency_code": "USD",
+          "value": "36.00"
+        },
+        "create_time": "2026-10-17T13:17:35.000Z"
+      }
+    ]
+  },
+  "links": [
+    {
+      "href": "https://api-m.sandbox.paypal.com/v1/customer/disputes/PP-R-AUY-10193248",
+      "rel": "self",
+      "method": "GET"
+    }
+  ]
+}

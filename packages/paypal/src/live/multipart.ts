@@ -13,11 +13,20 @@ export type EvidenceInput = {
   }[];
 };
 
-export function evidenceFormA(input: EvidenceInput): FormData {
+export type EvidenceFile = { name: string; type: string; data: Uint8Array };
+
+/** Form A. Document parts are named `file1`, `file2`, … ⚠️ (guide example from memory; S3 checks it). */
+export function evidenceFormA(
+  input: EvidenceInput,
+  files: EvidenceFile[] = [],
+): FormData {
   const form = new FormData();
   form.append(
     "input",
     new Blob([JSON.stringify(input)], { type: "application/json" }),
+  );
+  files.forEach((f, i) =>
+    form.append(`file${i + 1}`, new Blob([f.data], { type: f.type }), f.name),
   );
   return form;
 }

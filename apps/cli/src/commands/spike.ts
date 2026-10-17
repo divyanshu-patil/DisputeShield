@@ -153,7 +153,18 @@ async function s2(): Promise<void> {
   }
 }
 
-export type SpikeOptions = { dispute?: string; send?: boolean };
+export type SpikeOptions = {
+  dispute?: string;
+  send?: boolean;
+  carrier?: string;
+  file?: boolean;
+};
+
+// 1x1 transparent PNG: the smallest valid image, for the file-part test in S3.
+const TINY_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+  "base64",
+);
 
 /** Fetches details and checks the HATEOAS link before any write (contract 2.2 design rule). */
 async function detailsWithLink(id: string, rel: string, accessToken: string) {
@@ -215,30 +226,44 @@ async function write(
 
 /** S3: provide-evidence, multipart form A (contract 2.3, Q2/Q3). Default: the $48 INR dispute. */
 function s3(opts: SpikeOptions): Promise<void> {
+  const carrier = opts.carrier ?? "USPS";
   const input: EvidenceInput = {
     evidences: [
       {
         evidence_type: "PROOF_OF_FULFILLMENT",
         evidence_info: {
           tracking_info: [
-            { carrier_name: "USPS", tracking_number: "9400111899223817565432" },
+            {
+              carrier_name: carrier,
+              tracking_number: "9400111899223817565432",
+            },
           ],
         },
-        notes:
-          "Order DS-1001 shipped by USPS on 2026-10-17. Tracking 9400111899223817565432.",
+        notes: `Shipped on 2026-10-17 with ${carrier}. Tracking 9400111899223817565432.`,
       },
     ],
   };
+  const files = opts.file
+    ? [{ name: "proof-of-shipment.png", type: "image/png", data: TINY_PNG }]
+    : [];
   return write(
     opts,
-    "provide-evidence.form-a",
+    `provide-evidence.form-a${opts.file ? ".file" : ""}.${carrier.toLowerCase()}`,
     opts.dispute ?? "PP-R-QBT-10193246",
     "provide_evidence",
     () => ({
       show: {
-        multipart: { input: { contentType: "application/json", json: input } },
+        multipart: {
+          input: { contentType: "application/json", json: input },
+          ...Object.fromEntries(
+            files.map((f, n) => [
+              `file${n + 1}`,
+              `${f.name} (${f.type}, ${f.data.length} bytes)`,
+            ]),
+          ),
+        },
       },
-      send: evidenceFormA(input),
+      send: evidenceFormA(input, files),
     }),
   );
 }
