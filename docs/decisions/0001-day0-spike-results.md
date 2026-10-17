@@ -79,3 +79,29 @@ What happened: list 200, 3 disputes; all 3 details 200 and parse against @ds/sch
 Contract changes: 2.1 response shape, 2.2 field shapes and observed links/options, Q10 narrowed (approved and applied 2026-10-17).
 Plan changes: none.
 ```
+
+```text
+Spike: S3  Date: 2026-10-17  Result: PASS (form A, no file)
+What I ran: pnpm ds spike s3 --send  (PP-R-QBT-10193246, $48 INR, WAITING_FOR_SELLER_RESPONSE, require-evidence not needed)
+Request: POST {links[rel=provide_evidence].href}, multipart/form-data with one part `input` (application/json):
+  {"evidences":[{"evidence_type":"PROOF_OF_FULFILLMENT","evidence_info":{"tracking_info":[{"carrier_name":"USPS",
+  "tracking_number":"…"}]},"notes":"…"}]}
+What happened: HTTP 200, debug_id ca4bf9548ee19, body {links:[{rel:"detail",method:"GET"}]}.
+  Re-fetch: evidence present with source SUBMITTED_BY_SELLER, evidence_info.tracking_info as sent,
+  action_info.action PROVIDE_EVIDENCE. status UNDER_REVIEW, dispute_state UNDER_PAYPAL_REVIEW, links only self.
+  A few minutes later the list showed status WAITING_FOR_BUYER_RESPONSE.
+Not tried: form B, file parts, carrier OTHER (the dispute left the state that allows evidence after one call).
+Contract changes: proposed (2.3, Q2 answered for form A, Q3 USPS accepted); not applied until approved.
+Plan changes: multipart.ts uses form A. File parts still unverified; try them on the next INR dispute.
+
+Spike: S4  Date: 2026-10-17  Result: PARTIAL (2xx and refund issued; not RESOLVED yet)
+What I ran: pnpm ds spike s4 --send  (PP-R-AUY-10193248, $36 INR)
+Request: POST {links[rel=accept_claim].href}, JSON {"note":"…","accept_claim_type":"REFUND"}; no accept_claim_reason.
+What happened: HTTP 200, debug_id ca4bf95900a12, body {links:[{rel:"detail",method:"GET"}]}.
+  Re-fetch: evidence OTHER from SUBMITTED_BY_SELLER with action_info {action ACCEPT_CLAIM, response_option REFUND};
+  refund_details.transactions[] {id, gross_amount 36.00, create_time}; fund_movements DISPUTE_SETTLEMENT debit and
+  credit 36.00; new key money_movements; status UNDER_REVIEW, dispute_state UNDER_PAYPAL_REVIEW, links only self.
+  Still UNDER_REVIEW minutes later; re-check for RESOLVED and dispute_outcome.
+Contract changes: proposed (2.4, Q5: accept_claim_reason not required for REFUND); not applied until approved.
+Plan changes: treat accept-claim as "refund issued, resolution pending"; the sync job must pick up RESOLVED later.
+```
