@@ -1,8 +1,11 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import {
+  type EvidenceInput,
   PayPalError,
   SANDBOX_BASE_URL,
+  evidenceFormA,
   paypalGet,
+  paypalRequest,
   redact,
   requestToken,
 } from "@ds/paypal";
@@ -150,11 +153,122 @@ async function s2(): Promise<void> {
   }
 }
 
-export const SPIKES = { s0, s1, s2 } as const;
+export type SpikeOptions = { dispute?: string; send?: boolean };
 
-export async function runSpike(id: keyof typeof SPIKES): Promise<void> {
+/** Fetches details and checks the HATEOAS link before any write (contract 2.2 design rule). */
+async function detailsWithLink(id: string, rel: string, accessToken: string) {
+  const res = await paypalGet(
+    `/v1/customer/disputes/${encodeURIComponent(id)}`,
+    accessToken,
+  );
+  const d = PaypalDisputeDetails.parse(res.body);
+  console.log(
+    `${id}: status=${d.status} stage=${d.dispute_life_cycle_stage ?? "-"} links=${d.links.map((l) => l.rel).join(",")}`,
+  );
+  return { d, link: d.links.find((l) => l.rel === rel) };
+}
+
+/** Writes are shown first and sent only with --send. */
+async function write(
+  opts: SpikeOptions,
+  label: string,
+  id: string,
+  rel: string,
+  body: (link: string) => { show: unknown; send: unknown },
+): Promise<void> {
+  const token = await requestToken(paypalCredentials());
+  const { link } = await detailsWithLink(id, rel, token.accessToken);
+  if (!link) {
+    console.log(`FAIL LinkMissing: no "${rel}" link on ${id}; not sending`);
+    return void (process.exitCode = 1);
+  }
+  const path = link.href.replace(SANDBOX_BASE_URL, "");
+  const { show, send } = body(link.href);
+  console.log(`${link.method} ${link.href}`);
+  console.log(JSON.stringify(show, null, 2));
+  if (!opts.send) {
+    console.log("DRY RUN: not sent. Re-run with --send to send it.");
+    return;
+  }
+  const res = await paypalRequest("POST", path, token.accessToken, send);
+  console.log(
+    `PASS HTTP ${res.status}${res.debugId ? ` (debug_id ${res.debugId})` : ""}`,
+  );
+  console.log(
+    `fixture: ${saveFixture(`responses/${label}.json`, res.body ?? null)}`,
+  );
+  const after = await paypalGet(
+    `/v1/customer/disputes/${encodeURIComponent(id)}`,
+    token.accessToken,
+  );
+  const d = PaypalDisputeDetails.parse(after.body);
+  console.log(
+    `after: status=${d.status} stage=${d.dispute_life_cycle_stage ?? "-"} state=${d.dispute_state ?? "-"} links=${d.links.map((l) => l.rel).join(",")}`,
+  );
+  console.log(
+    `after: evidences=${(d.evidences ?? []).map((e) => e.evidence_type).join(",")}`,
+  );
+  console.log(
+    `fixture: ${saveFixture(`disputes/${id}.after-${label}.details.json`, after.body)}`,
+  );
+}
+
+/** S3: provide-evidence, multipart form A (contract 2.3, Q2/Q3). Default: the $48 INR dispute. */
+function s3(opts: SpikeOptions): Promise<void> {
+  const input: EvidenceInput = {
+    evidences: [
+      {
+        evidence_type: "PROOF_OF_FULFILLMENT",
+        evidence_info: {
+          tracking_info: [
+            { carrier_name: "USPS", tracking_number: "9400111899223817565432" },
+          ],
+        },
+        notes:
+          "Order DS-1001 shipped by USPS on 2026-10-17. Tracking 9400111899223817565432.",
+      },
+    ],
+  };
+  return write(
+    opts,
+    "provide-evidence.form-a",
+    opts.dispute ?? "PP-R-QBT-10193246",
+    "provide_evidence",
+    () => ({
+      show: {
+        multipart: { input: { contentType: "application/json", json: input } },
+      },
+      send: evidenceFormA(input),
+    }),
+  );
+}
+
+/** S4: accept-claim with REFUND (contract 2.4, Q5). Default: the $36 INR dispute. */
+function s4(opts: SpikeOptions): Promise<void> {
+  const body = {
+    note: "Refunding in full: order DS-1003 was not delivered.",
+    accept_claim_type: "REFUND",
+  };
+  return write(
+    opts,
+    "accept-claim.refund",
+    opts.dispute ?? "PP-R-AUY-10193248",
+    "accept_claim",
+    () => ({ show: { json: body }, send: body }),
+  );
+}
+
+export const SPIKES: Record<
+  "s0" | "s1" | "s2" | "s3" | "s4",
+  (opts: SpikeOptions) => Promise<void>
+> = { s0, s1, s2, s3, s4 };
+
+export async function runSpike(
+  id: keyof typeof SPIKES,
+  opts: SpikeOptions = {},
+): Promise<void> {
   try {
-    await SPIKES[id]();
+    await SPIKES[id](opts);
   } catch (err) {
     if (err instanceof PayPalError) {
       console.error(

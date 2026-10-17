@@ -30,7 +30,18 @@ type ErrorBody = {
   name?: unknown;
   message?: unknown;
   debug_id?: unknown;
+  details?: unknown;
 };
+
+/** REST validation details as `ISSUE@field` codes; descriptions are dropped (they can echo input). */
+function detailCodes(details: unknown): string[] {
+  if (!Array.isArray(details)) return [];
+  return details.flatMap((d: { issue?: unknown; field?: unknown }) =>
+    typeof d?.issue === "string"
+      ? [typeof d.field === "string" ? `${d.issue}@${d.field}` : d.issue]
+      : [],
+  );
+}
 
 /** Maps a failed PayPal response to a typed error. Reads OAuth (`error`) and REST (`name`) error bodies. */
 export function paypalErrorFrom(
@@ -44,7 +55,8 @@ export function paypalErrorFrom(
   const parts = [b.error ?? b.name, b.error_description ?? b.message].filter(
     (p): p is string => typeof p === "string",
   );
-  const message = `PayPal HTTP ${res.status}${parts.length > 0 ? `: ${parts.join(": ")}` : ""}`;
+  const codes = detailCodes(b.details);
+  const message = `PayPal HTTP ${res.status}${parts.length > 0 ? `: ${parts.join(": ")}` : ""}${codes.length > 0 ? ` [${codes.join(", ")}]` : ""}`;
   if (res.status === 401) return new AuthError(message, 401, debugId);
   if (res.status === 403) return new PermissionError(message, 403, debugId);
   if (res.status === 429) {
