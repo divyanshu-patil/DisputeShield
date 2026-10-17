@@ -114,6 +114,9 @@ importers:
       '@ds/paypal':
         specifier: workspace:*
         version: link:../../packages/paypal
+      '@ds/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       commander:
         specifier: 15.0.0
         version: 15.0.0

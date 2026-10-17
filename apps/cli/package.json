@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ds/paypal": "workspace:*",
+    "@ds/schemas": "workspace:*",
     "commander": "15.0.0",
     "tsx": "catalog:",
     "zod": "catalog:"

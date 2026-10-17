@@ -83,4 +83,24 @@ describe("redact", () => {
       expires_in: 3,
     });
   });
+  it("replaces_dispute_parties_and_masks_account_ids", () => {
+    const out = redact({
+      buyer: { name: "Real Name", email: "r@x.com", payer_id: "3ZCPBP8VKH5FQ" },
+      seller: { name: "Shop", email: "s@x.com", merchant_id: "BTFAD4QTSSHM6" },
+      buyer_transaction_id: "6N175353601156814",
+    });
+    expect(out).toEqual({
+      buyer: {
+        name: "Jordan Avery",
+        email: "buyer@example.com",
+        payer_id: "3ZCxxxxxxxxxx",
+      },
+      seller: {
+        name: "Hearthside Ceramics",
+        email: "seller@example.com",
+        merchant_id: "BTFxxxxxxxxxx",
+      },
+      buyer_transaction_id: "6N175353601156814",
+    });
+  });
 });

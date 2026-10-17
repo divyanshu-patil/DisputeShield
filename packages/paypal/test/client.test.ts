@@ -3,14 +3,12 @@ import { PermissionError, SANDBOX_BASE_URL, paypalGet } from "../src/index.js";
 
 describe("paypalGet", () => {
   it("sends_the_bearer_token_to_the_sandbox_host", async () => {
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ items: [] }), {
-          status: 200,
-          headers: { "paypal-debug-id": "dbg-2" },
-        }),
-      );
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ items: [] }), {
+        status: 200,
+        headers: { "paypal-debug-id": "dbg-2" },
+      }),
+    );
     await expect(
       paypalGet("/v1/customer/disputes", "tok", fetchMock),
     ).resolves.toEqual({
@@ -26,18 +24,16 @@ describe("paypalGet", () => {
   });
 
   it("maps_403_to_permission_error", async () => {
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            name: "NOT_AUTHORIZED",
-            message: "Authorization failed",
-            debug_id: "dbg-3",
-          }),
-          { status: 403 },
-        ),
-      );
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          name: "NOT_AUTHORIZED",
+          message: "Authorization failed",
+          debug_id: "dbg-3",
+        }),
+        { status: 403 },
+      ),
+    );
     await expect(
       paypalGet("/v1/customer/disputes", "tok", fetchMock),
     ).rejects.toMatchObject({

@@ -6,6 +6,7 @@ import {
   redact,
   requestToken,
 } from "@ds/paypal";
+import { PaypalDisputeDetails, PaypalDisputeList } from "@ds/schemas";
 import { z } from "zod";
 import { paypalCredentials } from "../lib/env.js";
 
@@ -101,7 +102,55 @@ async function s1(): Promise<void> {
   }
 }
 
-export const SPIKES = { s0, s1 } as const;
+/**
+ * S2: list (with update_time_after) and details for every dispute; parse them against the draft
+ * schemas and save redacted fixtures. Prints only enums, ids and field presence.
+ */
+async function s2(): Promise<void> {
+  const token = await requestToken(paypalCredentials());
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const res = await paypalGet(
+    `/v1/customer/disputes?update_time_after=${encodeURIComponent(since)}`,
+    token.accessToken,
+  );
+  const list = PaypalDisputeList.safeParse(res.body);
+  console.log(
+    `list HTTP ${res.status}: ${list.success ? `${list.data.items.length} dispute(s), parses` : `DOES NOT PARSE: ${list.error.message}`}`,
+  );
+  console.log(
+    `fixture: ${saveFixture("disputes/list.sandbox.json", res.body)}`,
+  );
+  if (!list.success) return void (process.exitCode = 1);
+
+  for (const { dispute_id } of list.data.items) {
+    const d = await paypalGet(
+      `/v1/customer/disputes/${encodeURIComponent(dispute_id)}`,
+      token.accessToken,
+    );
+    const parsed = PaypalDisputeDetails.safeParse(d.body);
+    const file = saveFixture(`disputes/${dispute_id}.details.json`, d.body);
+    if (!parsed.success) {
+      console.log(
+        `${dispute_id}: DOES NOT PARSE (${file}): ${parsed.error.message}`,
+      );
+      process.exitCode = 1;
+      continue;
+    }
+    const x = parsed.data;
+    console.log(
+      [
+        `${dispute_id}  status=${x.status} state=${x.dispute_state ?? "-"} stage=${x.dispute_life_cycle_stage ?? "-"}`,
+        `  reason=${x.reason} amount=${x.dispute_amount.value} ${x.dispute_amount.currency_code} due=${x.seller_response_due_date ?? "absent"}`,
+        `  links: ${x.links.map((l) => l.rel).join(", ")}`,
+        `  allowed_response_options: ${Object.keys(x.allowed_response_options ?? {}).join(", ") || "none"}`,
+        `  messages: ${x.messages?.length ?? 0}, evidences: ${(x.evidences ?? []).map((e) => e.evidence_type).join(", ") || "none"}`,
+        `  fixture: ${file}`,
+      ].join("\n"),
+    );
+  }
+}
+
+export const SPIKES = { s0, s1, s2 } as const;
 
 export async function runSpike(id: keyof typeof SPIKES): Promise<void> {
   try {
