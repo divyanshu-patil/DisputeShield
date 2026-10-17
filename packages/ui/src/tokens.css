@@ -1,0 +1,77 @@
+/* Design tokens (06 section 11). Every colour in the app and in the AG Grid theme comes from here. */
+:root {
+  color-scheme: light;
+  --ds-bg: #f6f7f9;
+  --ds-surface: #ffffff;
+  --ds-surface-2: #f0f2f5;
+  --ds-line: #dfe3e8;
+  --ds-text: #17202b;
+  --ds-muted: #5b6673;
+  --ds-accent: #2f5bd3;
+  --ds-accent-text: #ffffff;
+  --ds-accent-soft: #e7edfc;
+  --ds-ok: #1c7a46;
+  --ds-ok-soft: #e3f4ea;
+  --ds-warn: #9a5b00;
+  --ds-warn-soft: #fdf1dc;
+  --ds-danger: #b42318;
+  --ds-danger-soft: #fde8e6;
+  --ds-info: #24619c;
+  --ds-info-soft: #e4effa;
+  --ds-radius: 8px;
+  --ds-font:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --ds-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ds-bg: #0f141a;
+    --ds-surface: #161d25;
+    --ds-surface-2: #1d2630;
+    --ds-line: #2c3743;
+    --ds-text: #e6ebf0;
+    --ds-muted: #9aa6b2;
+    --ds-accent: #7ea2ff;
+    --ds-accent-text: #0b1220;
+    --ds-accent-soft: #1d2a4a;
+    --ds-ok: #5fd08f;
+    --ds-ok-soft: #13301f;
+    --ds-warn: #f0b355;
+    --ds-warn-soft: #34260f;
+    --ds-danger: #ff8a7f;
+    --ds-danger-soft: #3a1714;
+    --ds-info: #7fb7ec;
+    --ds-info-soft: #132a40;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ds-bg: #0f141a;
+  --ds-surface: #161d25;
+  --ds-surface-2: #1d2630;
+  --ds-line: #2c3743;
+  --ds-text: #e6ebf0;
+  --ds-muted: #9aa6b2;
+  --ds-accent: #7ea2ff;
+  --ds-accent-text: #0b1220;
+  --ds-accent-soft: #1d2a4a;
+  --ds-ok: #5fd08f;
+  --ds-ok-soft: #13301f;
+  --ds-warn: #f0b355;
+  --ds-warn-soft: #34260f;
+  --ds-danger: #ff8a7f;
+  --ds-danger-soft: #3a1714;
+  --ds-info: #7fb7ec;
+  --ds-info-soft: #132a40;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

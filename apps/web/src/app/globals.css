@@ -1,1 +1,21 @@
 @import "tailwindcss";
+@import "@ds/ui/tokens.css";
+
+/* Tailwind scans the shared components too. */
+@source "../../../../packages/ui/src";
+
+html,
+body {
+  background: var(--ds-bg);
+  color: var(--ds-text);
+  font-family: var(--ds-font);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ds-accent);
+  outline-offset: 2px;
+}
+
+a {
+  color: var(--ds-accent);
+}

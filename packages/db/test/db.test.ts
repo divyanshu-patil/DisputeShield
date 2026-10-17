@@ -237,7 +237,9 @@ describe("repos", () => {
         await ctx.sql`select column_name from information_schema.columns where table_name = ${view} and table_schema = current_schema() order by ordinal_position`;
       expect(cols.map((c) => c["column_name"])).toEqual(allow[view]);
     }
-    expect((await repos.analytics.view("disputes")).length).toBeGreaterThan(0);
+    const rows = await repos.analytics.view("disputes");
+    expect(rows.length).toBeGreaterThan(0);
+    expect(typeof rows[0]?.amount_minor).toBe("number");
   });
 
   it("enables_rls_on_every_table (AC-DB-03)", async () => {

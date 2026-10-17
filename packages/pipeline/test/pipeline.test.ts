@@ -37,6 +37,8 @@ describe("demo scenarios through the pipeline", () => {
       "DS-003": "READY",
       "DS-004": "READY",
     });
+    // The seed collects inline, so it must not also queue collect jobs (they would draft v2).
+    expect(queued.filter((j) => j.kind === "collect_case")).toEqual([]);
     const ds1 = await p.caseFile("DS-001");
     expect(ds1.strength).toBe("STRONG");
     expect(ds1.facts.every((f) => f.sourcePayloadId && f.jsonPath)).toBe(true);
@@ -128,5 +130,11 @@ describe("demo scenarios through the pipeline", () => {
     expect(r.errors.map((e) => e.column)).toEqual(
       expect.arrayContaining(["paypal_transaction_id", "shipped_at"]),
     );
+  });
+
+  it("reseeds_after_a_sync (Reload demo data)", async () => {
+    await p.syncDisputes();
+    const again = await seedDemo({ repos, pipeline: p, data, mode: "replay" });
+    expect(again.cases).toEqual(seeded.cases);
   });
 });

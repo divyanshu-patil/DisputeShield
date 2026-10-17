@@ -158,8 +158,10 @@ export function createPipeline(d: PipelineDeps) {
 
   // ---- jobs ----
 
+  /** `queueCollect: false` when the caller collects inline (the demo seed), so the worker does not redo it. */
   async function syncDispute(
     disputeId: string,
+    queueCollect = true,
   ): Promise<{ caseId: string | null }> {
     const now = clock();
     const res = await gateway.getDispute(disputeId);
@@ -183,11 +185,12 @@ export function createPipeline(d: PipelineDeps) {
         caseId: kase.id,
         disputeId,
       });
-      await d.enqueue({
-        kind: "collect_case",
-        payload: { disputeId },
-        dedupeKey: `collect_case:${disputeId}`,
-      });
+      if (queueCollect)
+        await d.enqueue({
+          kind: "collect_case",
+          payload: { disputeId },
+          dedupeKey: `collect_case:${disputeId}`,
+        });
     }
     if (!kase) return { caseId: null };
     const subs = await repos.submissions.byCase(kase.id);
@@ -229,7 +232,9 @@ export function createPipeline(d: PipelineDeps) {
     return { caseId: kase.id };
   }
 
-  async function syncDisputes(): Promise<{ synced: number }> {
+  async function syncDisputes(
+    queueCollect = true,
+  ): Promise<{ synced: number }> {
     const started = clock();
     const cursor = await repos.settings.get<string>("sync.last_dispute_cursor");
     const after = cursor
@@ -250,7 +255,7 @@ export function createPipeline(d: PipelineDeps) {
         : undefined;
       if (!token) break;
     }
-    for (const id of ids) await syncDispute(id);
+    for (const id of ids) await syncDispute(id, queueCollect);
     for (const c of await repos.cases.listOpenPastDue(started)) {
       await repos.cases.transition(c.caseId, "DEADLINE_PASSED");
       await repos.audit.append({
@@ -674,63 +679,77 @@ export function createPipeline(d: PipelineDeps) {
     return { draftId: row.id, version: row.version, report, passed };
   }
 
-  async function approve(
+  /** The exact request an approval would store and send (06 section 4: "Say what will happen"). */
+  async function buildSnapshot(
     disputeId: string,
     input:
-      | { action: "PROVIDE_EVIDENCE"; draftId: string }
+      | { action: "PROVIDE_EVIDENCE"; draftId?: string }
       | { action: "ACCEPT_CLAIM"; comment?: string },
   ) {
     const { kase, dispute, facts } = await caseByDispute(disputeId);
     const due = isoOf(dispute.sellerResponseDue);
     if (due && Date.parse(due) <= clock().getTime())
       throw new ServiceError("CONFLICT", "The response deadline has passed.");
-    let snapshot: Record<string, unknown>;
-    let draftId: string | null = null;
-    if (input.action === "PROVIDE_EVIDENCE") {
-      if (!dispute.allowedActions.includes("provide_evidence"))
-        throw new ServiceError(
-          "CONFLICT",
-          "PayPal offers no provide_evidence link for this dispute (LinkMissing).",
-        );
-      if (kase.state !== "READY")
-        throw new ServiceError("CONFLICT", `Case is ${kase.state}, not READY.`);
-      const latest = await repos.drafts.latest(kase.id);
-      if (!latest || latest.id !== input.draftId)
-        throw new ServiceError(
-          "CONFLICT",
-          "Only the latest draft version can be approved.",
-        );
-      if (!latest.verifierPassed)
-        throw new ServiceError(
-          "CONFLICT",
-          "The verifier has not passed this draft.",
-        );
-      const type = (latest.content as EvidenceDraft).evidenceType;
-      if (type !== "PROOF_OF_FULFILLMENT" && type !== "PROOF_OF_REFUND")
-        throw new ServiceError(
-          "CONFLICT",
-          `Evidence type ${type} cannot be sent from Dispute Shield.`,
-        );
-      snapshot = {
-        method: "POST",
-        path: `/v1/customer/disputes/${disputeId}/provide-evidence`,
-        contentType: "multipart/form-data",
-        input: buildProvideEvidence(type, facts, latest.notesText),
-      };
-      draftId = latest.id;
-    } else {
+    if (input.action === "ACCEPT_CLAIM") {
       if (!dispute.allowedActions.includes("accept_claim"))
         throw new ServiceError(
           "CONFLICT",
           "PayPal offers no accept_claim link for this dispute (LinkMissing).",
         );
-      snapshot = {
-        method: "POST",
-        path: `/v1/customer/disputes/${disputeId}/accept-claim`,
-        contentType: "application/json",
-        input: buildAcceptClaim(input.comment),
+      return {
+        kase,
+        draftId: null,
+        snapshot: {
+          method: "POST",
+          path: `/v1/customer/disputes/${disputeId}/accept-claim`,
+          contentType: "application/json",
+          input: buildAcceptClaim(input.comment),
+        },
       };
     }
+    if (!dispute.allowedActions.includes("provide_evidence"))
+      throw new ServiceError(
+        "CONFLICT",
+        "PayPal offers no provide_evidence link for this dispute (LinkMissing).",
+      );
+    if (kase.state !== "READY")
+      throw new ServiceError("CONFLICT", `Case is ${kase.state}, not READY.`);
+    const latest = await repos.drafts.latest(kase.id);
+    if (!latest || (input.draftId && latest.id !== input.draftId))
+      throw new ServiceError(
+        "CONFLICT",
+        "Only the latest draft version can be approved.",
+      );
+    if (!latest.verifierPassed)
+      throw new ServiceError(
+        "CONFLICT",
+        "The verifier has not passed this draft.",
+      );
+    const type = (latest.content as EvidenceDraft).evidenceType;
+    if (type !== "PROOF_OF_FULFILLMENT" && type !== "PROOF_OF_REFUND")
+      throw new ServiceError(
+        "CONFLICT",
+        `Evidence type ${type} cannot be sent from Dispute Shield.`,
+      );
+    return {
+      kase,
+      draftId: latest.id,
+      snapshot: {
+        method: "POST",
+        path: `/v1/customer/disputes/${disputeId}/provide-evidence`,
+        contentType: "multipart/form-data",
+        input: buildProvideEvidence(type, facts, latest.notesText),
+      },
+    };
+  }
+
+  async function approve(
+    disputeId: string,
+    input:
+      | { action: "PROVIDE_EVIDENCE"; draftId: string }
+      | { action: "ACCEPT_CLAIM"; comment?: string },
+  ) {
+    const { kase, draftId, snapshot } = await buildSnapshot(disputeId, input);
     await repos.cases
       .transition(
         kase.id,
@@ -988,9 +1007,13 @@ export function createPipeline(d: PipelineDeps) {
                 body as Parameters<PayPalGateway["addTracking"]>[1],
                 { requestId: key },
               )
-            : await gateway.refundCapture(t.captureId, body as { note_to_payer: string }, {
-                requestId: key,
-              });
+            : await gateway.refundCapture(
+                t.captureId,
+                body as { note_to_payer: string },
+                {
+                  requestId: key,
+                },
+              );
         await repos.submissions.finish(row.id, "SENT", {
           status: res.status,
           body: res.body,
@@ -1047,6 +1070,12 @@ export function createPipeline(d: PipelineDeps) {
     scanTransactions,
     caseFile,
     payload,
+    async preview(
+      disputeId: string,
+      input: Parameters<typeof buildSnapshot>[1],
+    ) {
+      return (await buildSnapshot(disputeId, input)).snapshot;
+    },
     verifyEdit,
     approve,
     submit,

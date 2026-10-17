@@ -14,6 +14,7 @@ const draftBody = z.discriminatedUnion("mode", [
   z.object({ mode: z.literal("generate") }),
   z.object({ mode: z.literal("verify"), draft: EvidenceDraft }),
 ]);
+const previewQuery = z.object({ action: z.enum(["PROVIDE_EVIDENCE", "ACCEPT_CLAIM"]), comment: z.string().max(500).optional() });
 const approveBody = z.discriminatedUnion("action", [
   z.object({ action: z.literal("PROVIDE_EVIDENCE"), draftId: z.string().uuid(), confirm: z.literal(true) }),
   z.object({ action: z.literal("ACCEPT_CLAIM"), comment: z.string().max(500).optional(), confirm: z.literal(true) }),
@@ -67,6 +68,18 @@ export function caseRoutes(app: FastifyInstance, deps: Deps): void {
   app.post("/disputes/:id/submit", { ...secured, schema: r("Send the approved submission to PayPal, or store it in dry-run") }, async (req) => {
     const { id } = parse(idParams, req.params);
     return requireServices(deps).pipeline.submit(id);
+  });
+
+  app.get("/disputes/:id/preview", { ...secured, schema: r("The exact request approving would send (no side effects)", { querystring: previewQuery }) }, async (req) => {
+    const { id } = parse(idParams, req.params);
+    const q = parse(previewQuery, req.query);
+    return requireServices(deps).pipeline.preview(id, q.action === "ACCEPT_CLAIM" ? { action: q.action, ...(q.comment ? { comment: q.comment } : {}) } : { action: q.action });
+  });
+
+  app.post("/disputes/sync", { ...secured, schema: doc({ summary: "Sync all disputes from PayPal (Sync now)", tags: ["disputes"], secured: true, response: { 202: Ok, 401: ErrorBody } }) }, async (_req, reply) => {
+    requireServices(deps);
+    await deps.jobs.enqueue({ kind: "sync_disputes", payload: {}, dedupeKey: "sync_disputes" });
+    return reply.code(202).send({ ok: true });
   });
 
   app.get("/payloads/:id", { ...secured, schema: r("Raw PayPal payload behind a fact (redacted)") }, async (req) => {

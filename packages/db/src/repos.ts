@@ -680,7 +680,15 @@ export function createRepos(db: Db) {
       const rows = await db.execute(
         sql.raw(`select * from ${name} limit 5000`),
       );
-      return [...rows];
+      // postgres.js returns bigint and numeric as strings; the dashboards need numbers.
+      return rows.map((r) =>
+        Object.fromEntries(
+          Object.entries(r).map(([k, v]) => [
+            k,
+            NUMERIC_COLUMNS.has(k) && v !== null ? Number(v) : v,
+          ]),
+        ),
+      );
     },
   };
 
@@ -689,6 +697,10 @@ export function createRepos(db: Db) {
     async reset() {
       await db.execute(
         sql`TRUNCATE paypal_events, raw_payloads, disputes, cases, facts, drafts, submissions, transactions, fulfilment_records, risk_flags, jobs CASCADE`,
+      );
+      // Sync and scan cursors would hide the re-seeded data; thresholds are kept.
+      await db.execute(
+        sql`DELETE FROM settings WHERE key IN ('sync.last_dispute_cursor', 'risk.last_scan_at')`,
       );
     },
     async nonFixtureDisputes(ids: string[]): Promise<number> {
@@ -729,6 +741,12 @@ export function createRepos(db: Db) {
     health,
   };
 }
+
+const NUMERIC_COLUMNS = new Set([
+  "amount_minor",
+  "hours_to_due",
+  "order_value_minor",
+]);
 
 export const ANALYTICS_VIEWS = {
   disputes: "v_analytics_disputes",
