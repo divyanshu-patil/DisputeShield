@@ -105,3 +105,24 @@ What happened: HTTP 200, debug_id ca4bf95900a12, body {links:[{rel:"detail",meth
 Contract changes: proposed (2.4, Q5: accept_claim_reason not required for REFUND); not applied until approved.
 Plan changes: treat accept-claim as "refund issued, resolution pending"; the sync job must pick up RESOLVED later.
 ```
+
+```text
+Spike: S5  Date: 2026-10-18  Result: IN PROGRESS (delivery works; simulator event does not verify, as documented)
+What I ran: ngrok http 4000 -> pnpm dev (API :4000); dashboard webhook on /api/webhooks/paypal for the three
+  CUSTOMER.DISPUTE.* events; dashboard Webhooks simulator; pnpm ds spike s5.
+What happened:
+  - The first listener URL was /api/webhook (wrong path); fixed to /api/webhooks/paypal.
+  - Simulator "Send test" was delivered ~140 s after "queued". The delivered sample was CUSTOMER.DISPUTE.UPDATED
+    (dispute PP-000-042-663-135, 2018 dates), not the CREATED sample shown on the page.
+  - Headers: Paypal-Transmission-Id, -Transmission-Time, -Cert-Url (on api.paypal.com even in sandbox),
+    -Auth-Algo SHA256withRSA, -Transmission-Sig, plus Paypal-Auth-Version v2 (not in the contract).
+    Content-Length equals the raw body length; no content-encoding.
+  - Event body: id (WH-…), event_type, event_version 1.0, create_time, resource_type "dispute", summary,
+    resource (a dispute with dispute_id, status, links …), links (self, resend) on api.paypal.com.
+  - verify-webhook-signature: HTTP 200 {"verification_status":"FAILURE"} for the simulator event as received
+    (debug_id f234482b59432) and with a broken signature (debug_id f23448248f608). Q9: the postback answers
+    200 + FAILURE for a bad signature, not an error code.
+  - Our route answered 400 WEBHOOK_UNVERIFIED (replay verifier), as designed.
+  Fixtures: paypal/webhooks/simulator.customer-dispute-updated.{body,headers}.json (redacted).
+Still needed for PASS: a real (non-simulator) event that verifies with SUCCESS.
+```
