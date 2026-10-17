@@ -11,7 +11,7 @@ import {
 } from "@ds/paypal";
 import { PaypalDisputeDetails, PaypalDisputeList } from "@ds/schemas";
 import { z } from "zod";
-import { paypalCredentials } from "../lib/env.js";
+import { paypalCredentials, paypalWebhookId } from "../lib/env.js";
 
 // Day-0 spikes (docs/11-risks-and-day0-spikes.md). Never print secrets or tokens.
 
@@ -258,10 +258,102 @@ function s4(opts: SpikeOptions): Promise<void> {
   );
 }
 
+// ngrok's local inspector keeps every tunnelled request byte for byte; S5 reads PayPal's deliveries from it.
+const NGROK_INSPECTOR = "http://127.0.0.1:4040/api/requests/http?limit=100";
+const WEBHOOK_HEADERS = [
+  "paypal-transmission-id",
+  "paypal-transmission-time",
+  "paypal-cert-url",
+  "paypal-auth-algo",
+  "paypal-transmission-sig",
+] as const;
+const Captured = z.object({
+  requests: z.array(
+    z.object({
+      start: z.string(),
+      request: z.object({
+        uri: z.string(),
+        headers: z.record(z.string(), z.array(z.string())),
+        raw: z.string(),
+      }),
+    }),
+  ),
+});
+
+/**
+ * S5: verify captured PayPal webhook deliveries with the postback API (contract 3), once as received and
+ * once with a broken signature (Q9). Saves redacted body/header fixtures per event type.
+ */
+async function s5(): Promise<void> {
+  const res = await fetch(NGROK_INSPECTOR).catch(() => undefined);
+  if (!res?.ok)
+    throw new Error(
+      "ngrok inspector not reachable on :4040; is `ngrok http 4000` running?",
+    );
+  const deliveries = Captured.parse(await res.json()).requests.filter(
+    (r) =>
+      r.request.uri.startsWith("/api/webhooks/paypal") &&
+      r.request.headers["Paypal-Transmission-Id"],
+  );
+  console.log(`${deliveries.length} PayPal webhook deliveries captured`);
+  if (deliveries.length === 0) return void (process.exitCode = 1);
+
+  const token = await requestToken(paypalCredentials());
+  const webhookId = paypalWebhookId();
+  const seen = new Set<string>();
+  for (const d of deliveries) {
+    const raw = Buffer.from(d.request.raw, "base64").toString("utf8");
+    const body = raw.slice(raw.indexOf("\r\n\r\n") + 4);
+    const h = Object.fromEntries(
+      Object.entries(d.request.headers).map(([k, v]) => [
+        k.toLowerCase(),
+        v[0] ?? "",
+      ]),
+    );
+    const event = z
+      .object({ id: z.string(), event_type: z.string() })
+      .loose()
+      .parse(JSON.parse(body));
+    if (seen.has(event.id)) continue;
+    seen.add(event.id);
+
+    const verify = async (sig: string): Promise<string> => {
+      // Built by hand so webhook_event keeps the exact bytes PayPal signed.
+      const J = JSON.stringify;
+      const payload = `{"auth_algo":${J(h["paypal-auth-algo"])},"cert_url":${J(h["paypal-cert-url"])},"transmission_id":${J(h["paypal-transmission-id"])},"transmission_sig":${J(sig)},"transmission_time":${J(h["paypal-transmission-time"])},"webhook_id":${J(webhookId)},"webhook_event":${body}}`;
+      try {
+        const r = await paypalRequest(
+          "POST",
+          "/v1/notifications/verify-webhook-signature",
+          token.accessToken,
+          payload,
+        );
+        return `HTTP ${r.status} ${JSON.stringify(r.body)}${r.debugId ? ` (debug_id ${r.debugId})` : ""}`;
+      } catch (err) {
+        if (err instanceof PayPalError)
+          return `${err.message}${err.debugId ? ` (debug_id ${err.debugId})` : ""}`;
+        throw err;
+      }
+    };
+    const sig = h["paypal-transmission-sig"] ?? "";
+    const broken = (sig[0] === "A" ? "B" : "A") + sig.slice(1);
+    const slug = event.event_type.toLowerCase().replaceAll(".", "-");
+    console.log(`${d.start} ${event.event_type} ${event.id}`);
+    console.log(`  verify as received: ${await verify(sig)}`);
+    console.log(`  verify bad sig:     ${await verify(broken)}`);
+    console.log(
+      `  fixture: ${saveFixture(`webhooks/${slug}.body.json`, JSON.parse(body))}`,
+    );
+    console.log(
+      `  fixture: ${saveFixture(`webhooks/${slug}.headers.json`, Object.fromEntries(WEBHOOK_HEADERS.map((k) => [k, h[k] ?? null])))}`,
+    );
+  }
+}
+
 export const SPIKES: Record<
-  "s0" | "s1" | "s2" | "s3" | "s4",
+  "s0" | "s1" | "s2" | "s3" | "s4" | "s5",
   (opts: SpikeOptions) => Promise<void>
-> = { s0, s1, s2, s3, s4 };
+> = { s0, s1, s2, s3, s4, s5 };
 
 export async function runSpike(
   id: keyof typeof SPIKES,

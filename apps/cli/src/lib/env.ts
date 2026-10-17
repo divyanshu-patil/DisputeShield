@@ -27,3 +27,11 @@ export function paypalCredentials(): {
     clientSecret: parsed.data.PAYPAL_CLIENT_SECRET,
   };
 }
+
+/** PAYPAL_WEBHOOK_ID for spike S5 (signature verification postback). */
+export function paypalWebhookId(): string {
+  if (existsSync(ROOT_ENV)) process.loadEnvFile(ROOT_ENV);
+  const id = z.string().min(1).safeParse(process.env["PAYPAL_WEBHOOK_ID"]);
+  if (!id.success) throw new Error("Missing in .env: PAYPAL_WEBHOOK_ID");
+  return id.data;
+}

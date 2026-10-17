@@ -5,7 +5,7 @@ export type RawResponse = { status: number; body: unknown; debugId?: string };
 
 /**
  * Authenticated call against the sandbox. A FormData body is sent as multipart (fetch sets the boundary);
- * any other body is sent as JSON. Retries, token refresh, PayPal-Request-Id and the recorder come in P1-5.
+ * a string is sent as-is as JSON; any other body is JSON-serialised. Retries, token refresh, PayPal-Request-Id and the recorder come in P1-5.
  */
 export async function paypalRequest(
   method: "GET" | "POST",
@@ -22,7 +22,8 @@ export async function paypalRequest(
   if (body instanceof FormData) payload = body;
   else if (body !== undefined) {
     headers["content-type"] = "application/json";
-    payload = JSON.stringify(body);
+    // A string is pre-serialised JSON, sent byte for byte (webhook verification embeds the raw event).
+    payload = typeof body === "string" ? body : JSON.stringify(body);
   }
   const res = await doFetch(`${SANDBOX_BASE_URL}${path}`, {
     method,
