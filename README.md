@@ -1,159 +1,54 @@
-# Turborepo starter
+# Dispute Shield — agent pack
 
-This Turborepo starter is maintained by the Turborepo core team.
+Planning and build documents for **Dispute Shield**, idea #1 from the PayPal AI Hackathon ideation: an open-source dispute desk for small PayPal sellers that (1) responds to disputes with citation-backed, verifier-checked evidence and (2) flags order gaps that cause disputes. Built as a **Turborepo** monorepo.
 
-## Using this example
+Hackathon: "Build What's Next with PayPal and AI" (Devpost). Deadline 12 Nov 2026 12:00 pm PST = **13 Nov 01:30 IST**. The plan targets submitting by **Wed 11 Nov ≈ 12:00 IST**. Pack written Sat 17 Oct 2026.
 
-Run the following command:
+## How to use
 
-```sh
-npx create-turbo@latest
-```
+Copy `AGENTS.md` and `CLAUDE.md` to the repo root and everything else into `docs/`. Then give your coding agent the prompts in `12-start-prompt.md`, one phase at a time.
 
-## What's inside?
+## Reading order
 
-This Turborepo includes the following packages/apps:
+| # | File | Read it to learn |
+| --- | --- | --- |
+| – | `AGENTS.md` | rules every coding agent must follow |
+| 1 | `01-product-brief.md` | the user, the problem, scope, prize targets, demo data |
+| 2 | `architecture.md` | system design, flows (mermaid), state machines, decisions (ADR-001…012) |
+| 3 | `02-monorepo-structure.md` | the full Turborepo tree, configs, env vars, CI |
+| 4 | `03-paypal-api-contract.md` | **what PayPal calls we may use**, with verified / unverified marks |
+| 5 | `04-data-model.md` | Postgres tables, indexes, state machines |
+| 6 | `05-evidence-engine-spec.md` | facts, checklists, drafter, verifier, decision aid, risk rules |
+| 7 | `06-ui-spec.md` | screens, components, AG Grid and AG Studio usage |
+| 8 | `07-implementation-plan.md` | phases, dated tasks, go/no-go, MoSCoW |
+| 9 | `08-acceptance-criteria.md` | Given/When/Then with IDs |
+| 10 | `09-test-plan.md` | unit, contract, integration, eval, e2e, security |
+| 11 | `10-demo-and-submission.md` | video storyboard, Devpost text, submission checklist |
+| 12 | `11-risks-and-day0-spikes.md` | spikes S0–S10, risk register, go/no-go record |
+| 13 | `12-start-prompt.md` | prompts to drive the agent |
 
-### Apps and Packages
+## Verification marks used everywhere
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- ✅ read in an official source on 2026-10-17
+- ⚠️ from memory or a third-party source; verify in the sandbox before depending on it
+- ❓ unverified or the sources conflict; a spike must settle it
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+Nothing in the pack states a statistic, a win rate or a rival-free claim without a source. Judgements (risk likelihood, hour estimates, strength rubric, risk thresholds) are the author's and are labelled as such.
 
-### Utilities
+## The five findings that change the plan
 
-This Turborepo has some additional tools already setup for you:
+1. **Sandbox disputes may not be scriptable.** The create-dispute endpoint needs buyer scopes that PayPal's account manager must add. Fallback: pay by credit card in the sandbox and open the dispute from the buyer UI. Spike S1 decides this on Day 0.
+2. **Only three evidence types are used** (`PROOF_OF_FULFILLMENT`, `PROOF_OF_REFUND`, `OTHER`), so the product is honestly scoped to item-not-received and refund-proof cases.
+3. **The documentation conflicts on the `provide-evidence` multipart format** (guide vs schema). Spike S3 settles it; dry-run is the safe default.
+4. **`@paypal/agent-toolkit` has no evidence-upload or accept-claim tools**, so those use our own REST client. That is also where the technical depth is.
+5. **AG Studio trial timing.** A 45-day trial must start on or after 1 Nov to cover the 1–15 Dec judging window.
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+Also note: the official rules say judges may judge from the text, images and video alone, that **Presentation** is one of five equally weighted criteria, and that the submission cannot be changed after the deadline.
 
-### Build
+## Not in this pack (needs your input)
 
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo build
-pnpm exec turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+- Your name/organisation for the licence file and Devpost.
+- Eligibility check against the official rules (country, age, team).
+- Sourced statistics for the Potential Impact story.
+- Choice of LLM provider and key.
+- Hosting account (Vercel + Neon, or alternatives) and retention terms through 15 Dec.
