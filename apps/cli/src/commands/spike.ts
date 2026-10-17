@@ -2,9 +2,11 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import {
   PayPalError,
   SANDBOX_BASE_URL,
+  paypalGet,
   redact,
   requestToken,
 } from "@ds/paypal";
+import { z } from "zod";
 import { paypalCredentials } from "../lib/env.js";
 
 // Day-0 spikes (docs/11-risks-and-day0-spikes.md). Never print secrets or tokens.
@@ -51,7 +53,55 @@ async function s0(): Promise<void> {
   );
 }
 
-export const SPIKES = { s0 } as const;
+// The list response shape is what S2 records; read it leniently here.
+const DisputeList = z
+  .object({
+    items: z
+      .array(z.object({ dispute_id: z.string() }).passthrough())
+      .optional(),
+  })
+  .passthrough();
+const text = (v: unknown): string => (typeof v === "string" ? v : "?");
+
+/** S1 pass check: the seller can see at least one dispute (GET /v1/customer/disputes, contract 2.1). */
+async function s1(): Promise<void> {
+  const token = await requestToken(paypalCredentials());
+  const res = await paypalGet("/v1/customer/disputes", token.accessToken);
+  const list = DisputeList.safeParse(res.body);
+  const debug = res.debugId ? ` (debug_id ${res.debugId})` : "";
+  if (!list.success || !list.data.items) {
+    const keys =
+      res.body && typeof res.body === "object"
+        ? Object.keys(res.body).join(", ")
+        : typeof res.body;
+    console.log(
+      `HTTP ${res.status}${debug}: no "items" array in the response; top-level keys: ${keys}`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+  const items = list.data.items;
+  console.log(
+    `HTTP ${res.status}${debug}: ${items.length} dispute(s) visible to the seller`,
+  );
+  for (const d of items) {
+    console.log(
+      `  ${d.dispute_id}  status=${text(d["status"])}  reason=${text(d["reason"])}  created=${text(d["create_time"])}`,
+    );
+  }
+  if (items.length === 0) {
+    console.log(
+      "FAIL no disputes yet: open one as the buyer (Route B), wait a few minutes, re-run",
+    );
+    process.exitCode = 1;
+  } else {
+    console.log(
+      "PASS the seller can read disputes; next: ds spike s2 saves them as fixtures",
+    );
+  }
+}
+
+export const SPIKES = { s0, s1 } as const;
 
 export async function runSpike(id: keyof typeof SPIKES): Promise<void> {
   try {

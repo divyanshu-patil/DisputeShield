@@ -21,17 +21,15 @@ const json = (
 
 describe("requestToken", () => {
   it("posts_client_credentials_to_the_sandbox_and_parses_scopes", async () => {
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(
-        json(200, {
-          access_token: "A21AAtoken",
-          token_type: "Bearer",
-          expires_in: 32400,
-          scope: "s/one s/two",
-          nonce: "n",
-        }),
-      );
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      json(200, {
+        access_token: "A21AAtoken",
+        token_type: "Bearer",
+        expires_in: 32400,
+        scope: "s/one s/two",
+        nonce: "n",
+      }),
+    );
     const token = await requestToken(creds, fetchMock);
     expect(token).toMatchObject({
       accessToken: "A21AAtoken",
@@ -52,18 +50,16 @@ describe("requestToken", () => {
     [403, PermissionError],
     [429, RateLimited],
   ])("maps_http_%i_to_a_typed_error_with_debug_id", async (status, type) => {
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(
-        json(
-          status,
-          {
-            error: "invalid_client",
-            error_description: "Client Authentication failed",
-          },
-          { "paypal-debug-id": "dbg-1" },
-        ),
-      );
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      json(
+        status,
+        {
+          error: "invalid_client",
+          error_description: "Client Authentication failed",
+        },
+        { "paypal-debug-id": "dbg-1" },
+      ),
+    );
     const err: unknown = await requestToken(creds, fetchMock).catch(
       (e: unknown) => e,
     );
