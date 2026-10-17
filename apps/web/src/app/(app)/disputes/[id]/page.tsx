@@ -21,6 +21,7 @@ import {
   formatMoney,
   reasonLabel,
   stageLabel,
+  stateLabel,
   useToast,
 } from "@ds/ui";
 import Link from "next/link";
@@ -47,7 +48,6 @@ export default function CasePage() {
   const { id } = useParams<{ id: string }>();
   const disputeId = decodeURIComponent(id);
   const toast = useToast();
-  const mode = useShell().health?.mode ?? "replay";
   const file = useData(() => api.caseFile(disputeId), [disputeId]);
   const audit = useData(() => api.audit(disputeId), [disputeId]);
   const [hover, setHover] = useState<string | null>(null);
@@ -88,8 +88,14 @@ export default function CasePage() {
       await Promise.all([file.reload(), audit.reload()]);
     } catch (e) {
       toast(msg(e), "danger");
+      return;
     } finally {
       setBusy(null);
+    }
+    // The job runs in the background without changing the case state, so refresh for a short while.
+    for (let i = 0; i < 8; i++) {
+      await new Promise((r) => setTimeout(r, 2500));
+      await Promise.all([file.reload(), audit.reload()]);
     }
   }
 
@@ -105,7 +111,7 @@ export default function CasePage() {
     : overdue
       ? "The deadline has passed."
       : state !== "READY"
-        ? `The case is ${state.toLowerCase().replace("_", " ")}.`
+        ? `Case state: ${stateLabel(state)}.`
         : !c.draft
           ? "No draft yet."
           : !c.draft.passed
@@ -120,7 +126,7 @@ export default function CasePage() {
           <Link href="/disputes" className="text-xs no-underline">
             ← Disputes
           </Link>
-          <h1 className="flex flex-wrap items-center gap-2 text-xl font-semibold">
+          <h1 className="flex flex-wrap items-center gap-2">
             <span className="font-mono">{d.id}</span>
             <span className="text-[var(--ds-muted)]">·</span>
             <span>{reasonLabel(d.reason)}</span>
@@ -133,7 +139,6 @@ export default function CasePage() {
             <Countdown dueAt={d.sellerResponseDue} />
           </div>
         </div>
-        <ModeBanner dataMode={mode} submitMode={c.submitMode} />
       </div>
 
       <StateBanner c={c} onRecollect={() => void act("collect", () => api.collect(disputeId), "Re-collecting facts…")} busy={busy === "collect"} />
@@ -183,12 +188,14 @@ export default function CasePage() {
                       <dl className="space-y-1">
                         {facts.map((f) => (
                           <div key={f.key} className={`flex items-start gap-2 rounded px-1.5 py-1 text-sm ${hover === f.key ? "bg-[var(--ds-accent-soft)]" : ""}`}>
-                            <dt className="w-36 shrink-0 text-[var(--ds-muted)]">{f.label}</dt>
-                            <dd className="min-w-0 flex-1 break-words tabular-nums">{f.display}</dd>
-                            <Badge tone={f.confidence === "PAYPAL" ? "info" : f.confidence === "SELLER_UPLOAD" ? "warn" : "neutral"}>{SOURCE[f.confidence]}</Badge>
-                            <button type="button" onClick={() => void openSource(f.key)} className="text-xs" aria-label={`View source of ${f.label}`}>
-                              source
-                            </button>
+                            <dt className="w-28 shrink-0 text-[var(--ds-muted)] sm:w-36">{f.label}</dt>
+                            <dd className="flex min-w-0 flex-1 items-start gap-2">
+                              <span className="min-w-0 flex-1 break-words tabular-nums">{f.display}</span>
+                              <Badge tone={f.confidence === "PAYPAL" ? "info" : f.confidence === "SELLER_UPLOAD" ? "warn" : "neutral"}>{SOURCE[f.confidence]}</Badge>
+                              <button type="button" onClick={() => void openSource(f.key)} className="text-xs" aria-label={`View source of ${f.label}`}>
+                                source
+                              </button>
+                            </dd>
                           </div>
                         ))}
                       </dl>
@@ -352,10 +359,10 @@ function DecisionPanel({ c }: { c: CaseFile }) {
           <Badge tone={tone} className="text-sm">
             {ACTION_LABELS[d.recommended] ?? d.recommended}
           </Badge>
-          <span className="text-[var(--ds-muted)]">
-            · At risk {formatMoney(d.amountAtRisk.minor, d.amountAtRisk.currency)} · {d.costOfFighting}
-          </span>
         </div>
+        <p className="text-[var(--ds-muted)]">
+          At risk {formatMoney(d.amountAtRisk.minor, d.amountAtRisk.currency)}. {d.costOfFighting}
+        </p>
         <ul className="list-disc space-y-1 pl-5">
           {d.because.map((b) => (
             <li key={b}>{b}</li>
@@ -448,7 +455,7 @@ function DraftPanel({ c, disputeId, hover, setHover, openSource, onChanged }: { 
     >
       <div className="space-y-3 text-sm">
         <p className="text-xs text-[var(--ds-muted)]">
-          {origin} · {accepted.length} of {total} statements verified · {draft.content.evidenceType.replaceAll("_", " ").toLowerCase()}
+          {origin}. {accepted.length} of {total} statements verified ({draft.content.evidenceType.replaceAll("_", " ").toLowerCase()}).
         </p>
         {editing ? (
           <div className="space-y-3">
@@ -462,7 +469,7 @@ function DraftPanel({ c, disputeId, hover, setHover, openSource, onChanged }: { 
                   rows={2}
                   value={s.text}
                   onChange={(e) => setEditing(editing.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))}
-                  className="w-full rounded-[var(--ds-radius)] border border-[var(--ds-line)] bg-[var(--ds-bg)] p-2 text-sm"
+                  className="ds-input w-full py-2"
                 />
                 <div className="flex items-center gap-1">
                   {s.factKeys.map((k) => (
@@ -477,7 +484,7 @@ function DraftPanel({ c, disputeId, hover, setHover, openSource, onChanged }: { 
             {lastCheck && !lastCheck.passed ? (
               <ErrorNote>
                 {lastCheck.rejected.length > 0
-                  ? lastCheck.rejected.map((r) => `"${r.statement.text.slice(0, 60)}…" — ${r.reason.replaceAll("_", " ").toLowerCase()}${r.detail ? `: ${r.detail}` : ""}`).join(" | ")
+                  ? lastCheck.rejected.map((r) => `"${r.statement.text.slice(0, 60)}…": ${r.reason.replaceAll("_", " ").toLowerCase()}${r.detail ? `: ${r.detail}` : ""}`).join(" | ")
                   : "At least one statement is needed."}
               </ErrorNote>
             ) : null}

@@ -1,72 +1,104 @@
-/* Design tokens (06 section 11). Every colour in the app and in the AG Grid theme comes from here. */
+/* Design tokens from DESIGN.md (Vercel-inspired: ink on near-white, hairlines, stacked soft shadows, blue
+   as the single accent and the success colour). Every colour in the app and in the AG Grid theme comes
+   from here. Deviations, for WCAG AA on small text: muted text is #666 (DESIGN's #888 is 3.5:1 on white),
+   the light-mode accent is link-deep #0761d1 (#0070f3 is 4.0:1 on the page), and blue badges use a lighter
+   tint (#e5efff). */
 :root {
   color-scheme: light;
-  --ds-bg: #f6f7f9;
-  --ds-surface: #ffffff;
-  --ds-surface-2: #f0f2f5;
-  --ds-line: #dfe3e8;
-  --ds-text: #17202b;
-  --ds-muted: #5b6673;
-  --ds-accent: #2f5bd3;
+  --ds-bg: #fafafa; /* canvas-soft: page */
+  --ds-surface: #ffffff; /* canvas: cards, dialogs */
+  --ds-surface-2: #f5f5f5; /* canvas-soft-2: insets, hovers */
+  --ds-line: #ebebeb; /* hairline */
+  --ds-line-strong: #a1a1a1;
+  --ds-text: #171717; /* ink */
+  --ds-body: #4d4d4d;
+  --ds-muted: #666666;
+  --ds-primary: #171717; /* primary buttons */
+  --ds-primary-text: #ffffff;
+  --ds-accent: #0761d1; /* links, focus, selection */
   --ds-accent-text: #ffffff;
-  --ds-accent-soft: #e7edfc;
-  --ds-ok: #1c7a46;
-  --ds-ok-soft: #e3f4ea;
-  --ds-warn: #9a5b00;
-  --ds-warn-soft: #fdf1dc;
-  --ds-danger: #b42318;
-  --ds-danger-soft: #fde8e6;
-  --ds-info: #24619c;
-  --ds-info-soft: #e4effa;
-  --ds-radius: 8px;
+  --ds-accent-soft: #e5efff;
+  --ds-ok: #0761d1; /* success is blue in this system */
+  --ds-ok-soft: #e5efff;
+  --ds-warn: #ab570a;
+  --ds-warn-soft: #ffefcf;
+  --ds-danger: #c50000;
+  --ds-danger-soft: #f7d4d6;
+  --ds-info: #0761d1;
+  --ds-info-soft: #e5efff;
+  --ds-radius: 6px; /* controls: buttons, inputs, menus */
+  --ds-radius-card: 8px;
+  --ds-radius-lg: 12px; /* dialogs */
+  --ds-ring: 0 0 0 1px #00000014;
+  --ds-shadow-2: 0 1px 1px #00000005, 0 2px 2px #0000000a, var(--ds-ring);
+  --ds-shadow-4: 0 2px 2px #0000000a, 0 8px 16px -4px #0000000a, var(--ds-ring);
+  --ds-shadow-5:
+    0 1px 1px #00000005, 0 8px 16px -4px #0000000a, 0 24px 32px -8px #0000000f,
+    var(--ds-ring);
   --ds-font:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  --ds-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    var(--font-geist-sans, Geist), Inter, system-ui, -apple-system, sans-serif;
+  --ds-mono:
+    var(--font-geist-mono, "Geist Mono"), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --ds-bg: #0f141a;
-    --ds-surface: #161d25;
-    --ds-surface-2: #1d2630;
-    --ds-line: #2c3743;
-    --ds-text: #e6ebf0;
-    --ds-muted: #9aa6b2;
-    --ds-accent: #7ea2ff;
-    --ds-accent-text: #0b1220;
-    --ds-accent-soft: #1d2a4a;
-    --ds-ok: #5fd08f;
-    --ds-ok-soft: #13301f;
-    --ds-warn: #f0b355;
-    --ds-warn-soft: #34260f;
-    --ds-danger: #ff8a7f;
-    --ds-danger-soft: #3a1714;
-    --ds-info: #7fb7ec;
-    --ds-info-soft: #132a40;
+    --ds-bg: #0a0a0a;
+    --ds-surface: #111111;
+    --ds-surface-2: #1a1a1a;
+    --ds-line: #2e2e2e;
+    --ds-line-strong: #454545;
+    --ds-text: #ededed;
+    --ds-body: #a1a1a1;
+    --ds-muted: #8f8f8f;
+    --ds-primary: #ededed;
+    --ds-primary-text: #0a0a0a;
+    --ds-accent: #52a8ff;
+    --ds-accent-text: #0a0a0a;
+    --ds-accent-soft: #0f2a4a;
+    --ds-ok: #52a8ff;
+    --ds-ok-soft: #0f2a4a;
+    --ds-warn: #f5a623;
+    --ds-warn-soft: #362a10;
+    --ds-danger: #ff6166;
+    --ds-danger-soft: #3c1618;
+    --ds-info: #52a8ff;
+    --ds-info-soft: #0f2a4a;
+    --ds-ring: 0 0 0 1px #ffffff17;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --ds-bg: #0f141a;
-  --ds-surface: #161d25;
-  --ds-surface-2: #1d2630;
-  --ds-line: #2c3743;
-  --ds-text: #e6ebf0;
-  --ds-muted: #9aa6b2;
-  --ds-accent: #7ea2ff;
-  --ds-accent-text: #0b1220;
-  --ds-accent-soft: #1d2a4a;
-  --ds-ok: #5fd08f;
-  --ds-ok-soft: #13301f;
-  --ds-warn: #f0b355;
-  --ds-warn-soft: #34260f;
-  --ds-danger: #ff8a7f;
-  --ds-danger-soft: #3a1714;
-  --ds-info: #7fb7ec;
-  --ds-info-soft: #132a40;
+  --ds-bg: #0a0a0a;
+  --ds-surface: #111111;
+  --ds-surface-2: #1a1a1a;
+  --ds-line: #2e2e2e;
+  --ds-line-strong: #454545;
+  --ds-text: #ededed;
+  --ds-body: #a1a1a1;
+  --ds-muted: #8f8f8f;
+  --ds-primary: #ededed;
+  --ds-primary-text: #0a0a0a;
+  --ds-accent: #52a8ff;
+  --ds-accent-text: #0a0a0a;
+  --ds-accent-soft: #0f2a4a;
+  --ds-ok: #52a8ff;
+  --ds-ok-soft: #0f2a4a;
+  --ds-warn: #f5a623;
+  --ds-warn-soft: #362a10;
+  --ds-danger: #ff6166;
+  --ds-danger-soft: #3c1618;
+  --ds-info: #52a8ff;
+  --ds-info-soft: #0f2a4a;
+  --ds-ring: 0 0 0 1px #ffffff17;
+}
+
+::selection {
+  background: var(--ds-text);
+  color: var(--ds-bg);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -13,19 +13,16 @@ export function ModeBanner({
   submitMode: "dry-run" | "live";
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5" aria-label="Mode">
+    <div className="flex items-center gap-1.5" aria-label="Mode">
       <Badge
-        tone={dataMode === "live" ? "accent" : "info"}
+        tone={dataMode === "live" ? "accent" : "neutral"}
         title={
           dataMode === "live"
             ? "Data comes from the PayPal sandbox"
             : "Recorded sandbox data; nothing is fetched from PayPal"
         }
       >
-        Data:{" "}
-        {dataMode === "live"
-          ? "LIVE SANDBOX"
-          : "REPLAY (recorded sandbox data)"}
+        {dataMode === "live" ? "Live sandbox" : "Replay data"}
       </Badge>
       <Badge
         tone={submitMode === "live" ? "danger" : "ok"}
@@ -35,7 +32,7 @@ export function ModeBanner({
             : "Approved submissions are stored, not sent"
         }
       >
-        Submit: {submitMode === "live" ? "SENDS TO SANDBOX" : "DRY RUN"}
+        {submitMode === "live" ? "Sends to sandbox" : "Dry run"}
       </Badge>
     </div>
   );

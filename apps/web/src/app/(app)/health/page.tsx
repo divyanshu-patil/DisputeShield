@@ -42,12 +42,12 @@ export default function HealthPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Dispute health</h1>
+        <h1>Dispute health</h1>
         <p className="text-sm text-[var(--ds-muted)]">How disputes are trending, and how often the verifier had to step in. No buyer data is used on this page.</p>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Stat label="Open disputes" value={open.length} />
-        <Stat label="Money at risk" value={byCur.map(([c, m]) => formatMoney(m, c)).join(" · ") || "—"} />
+        <Stat label="Money at risk" value={byCur.map(([c, m]) => formatMoney(m, c)).join(", ") || "-"} />
         <Stat label="Due within 24 h" value={due24} tone={due24 ? "danger" : undefined} />
       </div>
       <Card title="Deadline runway (next 14 days)">

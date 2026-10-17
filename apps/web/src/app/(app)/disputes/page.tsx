@@ -66,7 +66,7 @@ function Queue() {
       { headerName: "Stage", field: "stage", valueFormatter: (p) => stageLabel(String(p.value)), minWidth: 100 },
       { headerName: "Evidence strength", field: "strength", minWidth: 210, cellRenderer: (p: { data?: QueueRow }) => (p.data ? <StrengthMeter strength={p.data.strength} /> : null) },
       { headerName: "Case state", field: "caseState", minWidth: 140, cellRenderer: (p: { data?: QueueRow }) => (p.data ? <StatePill state={p.data.caseState} /> : null), getQuickFilterText: (p) => stateLabel(p.data.caseState) },
-      { headerName: "Recommended", field: "recommendedAction", minWidth: 120, valueFormatter: (p) => (p.value ? (ACTION_LABELS[String(p.value)] ?? String(p.value)) : "—") },
+      { headerName: "Recommended", field: "recommendedAction", minWidth: 120, valueFormatter: (p) => (p.value ? (ACTION_LABELS[String(p.value)] ?? String(p.value)) : "-") },
     ],
     [],
   );
@@ -88,7 +88,7 @@ function Queue() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Disputes</h1>
+          <h1>Disputes</h1>
           <p className="text-sm text-[var(--ds-muted)]">Nearest deadline first. Last synced {formatDateTime(health?.lastSyncAt)}.</p>
         </div>
         <Button onClick={() => void syncAll()} busy={syncing} disabled={all.length === 0}>
@@ -99,7 +99,7 @@ function Queue() {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Needs action" value={open.length} />
         <Stat label="Due within 24 h" value={due24} tone={due24 > 0 ? "danger" : undefined} />
-        <Stat label="Amount at risk" value={atRisk.length ? atRisk.map(([c, m]) => formatMoney(m, c)).join(" · ") : "—"} />
+        <Stat label="Amount at risk" value={atRisk.length ? atRisk.map(([c, m]) => formatMoney(m, c)).join(", ") : "-"} />
         <Stat label="Submitted, awaiting outcome" value={awaiting} />
       </div>
 
@@ -111,9 +111,9 @@ function Queue() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onBlur={() => setParam("q", text)}
-          className="w-56 rounded-[var(--ds-radius)] border border-[var(--ds-line)] bg-[var(--ds-surface)] px-3 py-1.5 text-sm"
+          className="ds-input w-56"
         />
-        <select aria-label="Case state" value={stateFilter} onChange={(e) => setParam("state", e.target.value)} className="rounded-[var(--ds-radius)] border border-[var(--ds-line)] bg-[var(--ds-surface)] px-2 py-1.5 text-sm">
+        <select aria-label="Case state" value={stateFilter} onChange={(e) => setParam("state", e.target.value)} className="ds-input">
           <option value="">All states</option>
           {states.map((s) => (
             <option key={s} value={s}>
@@ -121,7 +121,7 @@ function Queue() {
             </option>
           ))}
         </select>
-        <select aria-label="Reason" value={reasonFilter} onChange={(e) => setParam("reason", e.target.value)} className="rounded-[var(--ds-radius)] border border-[var(--ds-line)] bg-[var(--ds-surface)] px-2 py-1.5 text-sm">
+        <select aria-label="Reason" value={reasonFilter} onChange={(e) => setParam("reason", e.target.value)} className="ds-input">
           <option value="">All reasons</option>
           {reasons.map((r) => (
             <option key={r} value={r}>

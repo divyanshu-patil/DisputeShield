@@ -14,7 +14,7 @@ export default function AuditPage() {
       { headerName: "Time", field: "at", valueFormatter: (p) => formatDateTime(p.value as string), minWidth: 170, sort: "desc" },
       { headerName: "Actor", field: "actor", minWidth: 90 },
       { headerName: "Action", field: "action", minWidth: 170 },
-      { headerName: "Dispute", field: "disputeId", minWidth: 120, cellRenderer: (p: { value?: string | null }) => (p.value ? <Link href={`/disputes/${encodeURIComponent(p.value)}`}>{p.value}</Link> : "—") },
+      { headerName: "Dispute", field: "disputeId", minWidth: 120, cellRenderer: (p: { value?: string | null }) => (p.value ? <Link href={`/disputes/${encodeURIComponent(p.value)}`}>{p.value}</Link> : "-") },
       { headerName: "Detail", field: "detail", flex: 3, minWidth: 260, valueFormatter: (p) => (p.value ? JSON.stringify(p.value) : "") },
     ],
     [],
@@ -34,11 +34,11 @@ export default function AuditPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Audit trail</h1>
+          <h1>Audit trail</h1>
           <p className="text-sm text-[var(--ds-muted)]">Every approval, submission and change, newest first. Append-only: entries cannot be edited or deleted.</p>
         </div>
         <div className="flex gap-2">
-          <input type="search" aria-label="Filter audit" placeholder="Filter…" value={q} onChange={(e) => setQ(e.target.value)} className="w-48 rounded-[var(--ds-radius)] border border-[var(--ds-line)] bg-[var(--ds-surface)] px-3 py-1.5 text-sm" />
+          <input type="search" aria-label="Filter audit" placeholder="Filter…" value={q} onChange={(e) => setQ(e.target.value)} className="ds-input w-48" />
           <Button onClick={exportCsv} disabled={rows.length === 0}>
             Export CSV
           </Button>

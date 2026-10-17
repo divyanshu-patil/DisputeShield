@@ -61,7 +61,7 @@ export function DeadlineRunwayView({
     <svg
       viewBox={`0 0 ${W} ${H}`}
       className="w-full"
-      role="img"
+      role="group"
       aria-label={`Deadline runway: ${open.length} open disputes over the next 14 days`}
     >
       <line

@@ -42,7 +42,7 @@ export default function SetupPage() {
   );
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Setup &amp; health</h1>
+      <h1>Setup &amp; health</h1>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title="Modes and connections">
           <dl className="text-sm">
@@ -50,7 +50,7 @@ export default function SetupPage() {
             {row("Submit mode", <Badge tone={s.submitMode === "live" ? "danger" : "ok"}>{s.submitMode === "live" ? "Sends to sandbox" : "Dry run"}</Badge>)}
             {row("PayPal environment", "Sandbox (always)")}
             {row("PayPal app", s.paypalConfigured ? "Configured (ID hidden)" : "Not configured")}
-            {row("Webhook", s.webhookConfigured ? "Configured (ID hidden)" : "Not configured — polling every 5 minutes is the source of truth")}
+            {row("Webhook", s.webhookConfigured ? "Configured (ID hidden)" : "Not configured. Polling every 5 minutes is the source of truth.")}
             {row("Last webhook", formatDateTime(health?.lastWebhookAt))}
             {row("Last sync", formatDateTime(health?.lastSyncAt))}
             {row("Database", <Badge tone={tone(health?.database)}>{health?.database ?? "…"}</Badge>)}
@@ -63,15 +63,15 @@ export default function SetupPage() {
             <div className="space-y-3 text-sm">
               <label className="flex items-center justify-between gap-3">
                 <span>Flag no tracking after (hours)</span>
-                <input type="number" min={1} max={720} value={th.noTrackingAfterHours} onChange={(e) => setTh({ ...th, noTrackingAfterHours: Number(e.target.value) })} className="w-24 rounded border border-[var(--ds-line)] bg-[var(--ds-bg)] px-2 py-1 text-right" />
+                <input type="number" min={1} max={720} value={th.noTrackingAfterHours} onChange={(e) => setTh({ ...th, noTrackingAfterHours: Number(e.target.value) })} className="ds-input w-24 text-right tabular-nums" />
               </label>
               <label className="flex items-center justify-between gap-3">
                 <span>Tracking stalled after (days)</span>
-                <input type="number" min={1} max={60} value={th.stuckTrackingDays} onChange={(e) => setTh({ ...th, stuckTrackingDays: Number(e.target.value) })} className="w-24 rounded border border-[var(--ds-line)] bg-[var(--ds-bg)] px-2 py-1 text-right" />
+                <input type="number" min={1} max={60} value={th.stuckTrackingDays} onChange={(e) => setTh({ ...th, stuckTrackingDays: Number(e.target.value) })} className="ds-input w-24 text-right tabular-nums" />
               </label>
               <label className="flex items-center justify-between gap-3">
                 <span>High value from (USD)</span>
-                <input type="number" min={1} step={1} value={th.highValueMinor / 100} onChange={(e) => setTh({ ...th, highValueMinor: Math.round(Number(e.target.value) * 100) })} className="w-24 rounded border border-[var(--ds-line)] bg-[var(--ds-bg)] px-2 py-1 text-right" />
+                <input type="number" min={1} step={1} value={th.highValueMinor / 100} onChange={(e) => setTh({ ...th, highValueMinor: Math.round(Number(e.target.value) * 100) })} className="ds-input w-24 text-right tabular-nums" />
               </label>
               <Button variant="primary" size="sm" busy={saving} onClick={() => void save()}>
                 Save thresholds

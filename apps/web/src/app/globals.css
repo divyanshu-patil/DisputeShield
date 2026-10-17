@@ -4,18 +4,73 @@
 /* Tailwind scans the shared components too. */
 @source "../../../../packages/ui/src";
 
-html,
-body {
-  background: var(--ds-bg);
-  color: var(--ds-text);
-  font-family: var(--ds-font);
+/* Base element styles sit in a layer so Tailwind utilities on an element always win. */
+@layer base {
+  html,
+  body {
+    background: var(--ds-bg);
+    color: var(--ds-text);
+    font-family: var(--ds-font);
+    font-size: 14px;
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+  }
+
+  code,
+  pre,
+  .font-mono {
+    letter-spacing: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ds-accent);
+    outline-offset: 2px;
+  }
+
+  a {
+    color: var(--ds-accent);
+    text-underline-offset: 3px;
+  }
 }
 
-:focus-visible {
-  outline: 2px solid var(--ds-accent);
-  outline-offset: 2px;
+/* DESIGN.md form-input: hairline, 6px radius, accent focus ring. Textareas grow from the same rule. */
+@layer components {
+  .ds-input {
+    min-height: 36px;
+    border: 1px solid var(--ds-line);
+    border-radius: var(--ds-radius);
+    background: var(--ds-surface);
+    color: var(--ds-text);
+    padding: 0 12px;
+    font-size: 14px;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  textarea.ds-input {
+    padding: 8px 12px;
+    line-height: 20px;
+  }
+  .ds-input:hover {
+    border-color: var(--ds-line-strong);
+  }
+  .ds-input:focus-visible {
+    outline: none;
+    border-color: var(--ds-accent);
+    box-shadow: 0 0 0 3px var(--ds-accent-soft);
+  }
+  .ds-input::placeholder {
+    color: var(--ds-muted);
+  }
 }
 
-a {
-  color: var(--ds-accent);
+/* DESIGN.md data table: uppercase mono caption headers. */
+.ag-header-cell-text {
+  text-transform: uppercase;
 }

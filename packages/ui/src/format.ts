@@ -42,7 +42,7 @@ export function timeLeft(
 }
 
 export function formatDateTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const t = Date.parse(iso);
   return Number.isNaN(t)
     ? iso

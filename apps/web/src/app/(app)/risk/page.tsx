@@ -56,7 +56,7 @@ export default function RiskPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Risk radar</h1>
+          <h1>Risk radar</h1>
           <p className="text-sm text-[var(--ds-muted)]">Gaps in recent payments, found before they become disputes. Data may be up to 3 hours old (PayPal Transaction Search). Last scan {formatDateTime(settings.data?.lastScanAt)}.</p>
         </div>
         <Button onClick={() => void scan()} busy={scanning}>
@@ -169,11 +169,11 @@ function FlagModal({ flag, action, dry, onClose, onDone }: { flag: RiskFlag; act
           <>
             <label className="block space-y-1">
               <span>Tracking number</span>
-              <input value={tracking} onChange={(e) => setTracking(e.target.value.trim())} className="w-full rounded border border-[var(--ds-line)] bg-[var(--ds-bg)] px-2 py-1.5 font-mono" />
+              <input value={tracking} onChange={(e) => setTracking(e.target.value.trim())} className="ds-input w-full font-mono" />
             </label>
             <label className="block space-y-1">
               <span>Carrier</span>
-              <select value={carrier} onChange={(e) => setCarrier(e.target.value)} className="w-full rounded border border-[var(--ds-line)] bg-[var(--ds-bg)] px-2 py-1.5">
+              <select value={carrier} onChange={(e) => setCarrier(e.target.value)} className="ds-input w-full">
                 {["USPS", "UPS", "FEDEX", "DHL"].map((c) => (
                   <option key={c}>{c}</option>
                 ))}
@@ -188,13 +188,13 @@ function FlagModal({ flag, action, dry, onClose, onDone }: { flag: RiskFlag; act
             </p>
             <label className="block space-y-1">
               <span>Type {amount} to confirm</span>
-              <input value={typed} onChange={(e) => setTyped(e.target.value)} className="w-full rounded border border-[var(--ds-line)] bg-[var(--ds-bg)] px-2 py-1.5" />
+              <input value={typed} onChange={(e) => setTyped(e.target.value)} className="ds-input w-full" />
             </label>
           </>
         ) : (
           <label className="block space-y-1">
             <span>Reason</span>
-            <select value={reason} onChange={(e) => setReason(e.target.value)} className="w-full rounded border border-[var(--ds-line)] bg-[var(--ds-bg)] px-2 py-1.5">
+            <select value={reason} onChange={(e) => setReason(e.target.value)} className="ds-input w-full">
               <option>Handled elsewhere</option>
               <option>Not a risk</option>
               <option>Test order</option>

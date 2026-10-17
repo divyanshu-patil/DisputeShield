@@ -18,13 +18,13 @@ const cx = (...c: (string | false | null | undefined)[]) =>
 type Variant = "primary" | "secondary" | "danger" | "ghost";
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "bg-[var(--ds-accent)] text-[var(--ds-accent-text)] border-transparent hover:opacity-90",
+    "bg-[var(--ds-primary)] text-[var(--ds-primary-text)] border-transparent hover:opacity-85",
   secondary:
     "bg-[var(--ds-surface)] text-[var(--ds-text)] border-[var(--ds-line)] hover:bg-[var(--ds-surface-2)]",
   danger:
-    "bg-[var(--ds-danger)] text-white border-transparent hover:opacity-90",
+    "bg-[var(--ds-danger)] text-white border-transparent hover:opacity-85",
   ghost:
-    "bg-transparent text-[var(--ds-text)] border-transparent hover:bg-[var(--ds-surface-2)]",
+    "bg-transparent text-[var(--ds-body)] border-transparent hover:bg-[var(--ds-surface-2)] hover:text-[var(--ds-text)]",
 };
 
 export function Button({
@@ -46,8 +46,8 @@ export function Button({
       disabled={disabled || busy}
       aria-busy={busy || undefined}
       className={cx(
-        "inline-flex items-center justify-center gap-2 rounded-[var(--ds-radius)] border font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-accent)] disabled:cursor-not-allowed disabled:opacity-50",
-        size === "sm" ? "px-2.5 py-1 text-xs" : "px-3.5 py-2 text-sm",
+        "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--ds-radius)] border font-medium tracking-[-0.01em] transition active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-accent)] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0",
+        size === "sm" ? "h-7 px-2.5 text-[13px]" : "h-9 px-3.5 text-sm",
         VARIANTS[variant],
         className,
       )}
@@ -61,7 +61,7 @@ export function Button({
 export type Tone = "neutral" | "ok" | "warn" | "danger" | "info" | "accent";
 const TONES: Record<Tone, string> = {
   neutral:
-    "bg-[var(--ds-surface-2)] text-[var(--ds-muted)] border-[var(--ds-line)]",
+    "bg-[var(--ds-surface-2)] text-[var(--ds-body)] border-[var(--ds-line)]",
   ok: "bg-[var(--ds-ok-soft)] text-[var(--ds-ok)] border-transparent",
   warn: "bg-[var(--ds-warn-soft)] text-[var(--ds-warn)] border-transparent",
   danger:
@@ -86,7 +86,7 @@ export function Badge({
     <span
       title={title}
       className={cx(
-        "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium",
+        "inline-flex h-5 items-center gap-1 whitespace-nowrap rounded-full border px-2 text-xs font-medium",
         TONES[tone],
         className,
       )}
@@ -110,14 +110,16 @@ export function Card({
   return (
     <section
       className={cx(
-        "rounded-[var(--ds-radius)] border border-[var(--ds-line)] bg-[var(--ds-surface)] p-4",
+        "rounded-[var(--ds-radius-card)] bg-[var(--ds-surface)] p-5 shadow-[var(--ds-shadow-2)]",
         className,
       )}
     >
       {title || actions ? (
-        <header className="mb-3 flex items-center justify-between gap-2">
+        <header className="mb-4 flex items-center justify-between gap-2">
           {title ? (
-            <h2 className="text-sm font-semibold">{title}</h2>
+            <h2 className="text-[15px] font-semibold tracking-[-0.02em]">
+              {title}
+            </h2>
           ) : (
             <span />
           )}
@@ -141,11 +143,11 @@ export function Stat({
   tone?: Tone;
 }) {
   return (
-    <div className="rounded-[var(--ds-radius)] border border-[var(--ds-line)] bg-[var(--ds-surface)] p-4">
-      <div className="text-xs text-[var(--ds-muted)]">{label}</div>
+    <div className="rounded-[var(--ds-radius-card)] bg-[var(--ds-surface)] p-5 shadow-[var(--ds-shadow-2)]">
+      <div className="text-[13px] text-[var(--ds-body)]">{label}</div>
       <div
         className={cx(
-          "mt-1 text-2xl font-semibold tabular-nums",
+          "mt-2 text-2xl font-semibold tracking-[-0.04em] tabular-nums",
           tone === "danger" && "text-[var(--ds-danger)]",
           tone === "warn" && "text-[var(--ds-warn)]",
         )}
@@ -178,7 +180,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-[var(--ds-radius)] border border-dashed border-[var(--ds-line)] p-10 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface-2)] p-12 text-center">
       <p className="font-medium">{title}</p>
       {children ? (
         <div className="max-w-md text-sm text-[var(--ds-muted)]">
@@ -194,7 +196,7 @@ export function ErrorNote({ children }: { children: ReactNode }) {
   return (
     <div
       role="alert"
-      className="rounded-[var(--ds-radius)] border border-transparent bg-[var(--ds-danger-soft)] px-3 py-2 text-sm text-[var(--ds-danger)]"
+      className="rounded-[var(--ds-radius)] bg-[var(--ds-danger-soft)] px-3 py-2 text-sm text-[var(--ds-danger)]"
     >
       {children}
     </div>
@@ -207,7 +209,7 @@ export function Skeleton({ rows = 5 }: { rows?: number }) {
       {Array.from({ length: rows }, (_, i) => (
         <div
           key={i}
-          className="h-9 animate-pulse rounded bg-[var(--ds-surface-2)]"
+          className="h-9 animate-pulse rounded-[var(--ds-radius)] bg-[var(--ds-surface-2)]"
         />
       ))}
     </div>
@@ -243,14 +245,16 @@ export function Modal({
       onClose={onClose}
       aria-label={title}
       className={cx(
-        "m-auto w-[calc(100%-2rem)] rounded-[var(--ds-radius)] border border-[var(--ds-line)] bg-[var(--ds-surface)] p-0 text-[var(--ds-text)] backdrop:bg-black/50",
+        "m-auto w-[calc(100%-2rem)] rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface)] p-0 text-[var(--ds-text)] shadow-[var(--ds-shadow-5)] backdrop:bg-black/40 backdrop:backdrop-blur-[2px]",
         wide ? "max-w-3xl" : "max-w-lg",
       )}
     >
       {open ? (
         <div className="flex max-h-[85vh] flex-col">
-          <header className="flex items-center justify-between border-b border-[var(--ds-line)] px-4 py-3">
-            <h2 className="font-semibold">{title}</h2>
+          <header className="flex items-center justify-between px-6 pt-5 pb-3">
+            <h2 className="text-lg font-semibold tracking-[-0.03em]">
+              {title}
+            </h2>
             <Button
               variant="ghost"
               size="sm"
@@ -260,9 +264,9 @@ export function Modal({
               ✕
             </Button>
           </header>
-          <div className="overflow-y-auto px-4 py-3">{children}</div>
+          <div className="overflow-y-auto px-6 pb-5">{children}</div>
           {footer ? (
-            <footer className="flex justify-end gap-2 border-t border-[var(--ds-line)] px-4 py-3">
+            <footer className="flex justify-end gap-2 rounded-b-[var(--ds-radius-lg)] border-t border-[var(--ds-line)] bg-[var(--ds-bg)] px-6 py-3">
               {footer}
             </footer>
           ) : null}
@@ -295,12 +299,14 @@ export function Drawer({
       ref={ref}
       onClose={onClose}
       aria-label={title}
-      className="ml-auto mr-0 mt-0 mb-0 h-full max-h-none w-full max-w-xl border-l border-[var(--ds-line)] bg-[var(--ds-surface)] p-0 text-[var(--ds-text)] backdrop:bg-black/40"
+      className="ml-auto mr-0 mt-0 mb-0 h-full max-h-none w-full max-w-xl bg-[var(--ds-surface)] p-0 text-[var(--ds-text)] shadow-[var(--ds-shadow-5)] backdrop:bg-black/30"
     >
       {open ? (
         <div className="flex h-full flex-col">
-          <header className="flex items-center justify-between border-b border-[var(--ds-line)] px-4 py-3">
-            <h2 className="font-semibold">{title}</h2>
+          <header className="flex items-center justify-between border-b border-[var(--ds-line)] px-5 py-4">
+            <h2 className="text-[15px] font-semibold tracking-[-0.02em]">
+              {title}
+            </h2>
             <Button
               variant="ghost"
               size="sm"
@@ -310,7 +316,7 @@ export function Drawer({
               ✕
             </Button>
           </header>
-          <div className="flex-1 overflow-y-auto p-4">{children}</div>
+          <div className="flex-1 overflow-y-auto p-5">{children}</div>
         </div>
       ) : null}
     </dialog>
@@ -338,9 +344,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className={cx(
-              "pointer-events-auto rounded-[var(--ds-radius)] border px-3 py-2 text-sm shadow-lg",
-              TONES[t.tone],
-              "border-[var(--ds-line)]",
+              "pointer-events-auto rounded-[var(--ds-radius-card)] bg-[var(--ds-surface)] px-4 py-3 text-sm shadow-[var(--ds-shadow-4)]",
+              t.tone === "danger" && "text-[var(--ds-danger)]",
+              t.tone === "warn" && "text-[var(--ds-warn)]",
             )}
           >
             {t.text}

@@ -42,6 +42,9 @@ jobs:
       - run: pnpm ds replay-check
       # Enable when scripts/check-bundle-secrets.mjs exists.
       # - run: node scripts/check-bundle-secrets.mjs
-      # Enable when e2e specs exist (P4-1).
-      # - run: pnpm --filter @ds/web exec playwright install --with-deps chromium
-      # - run: pnpm test:e2e
+      - run: pnpm --filter @ds/web exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+        env: { E2E_DATABASE_URL: "postgres://ds:ds@localhost:5432/ds_test" }
+      - uses: actions/upload-artifact@v5
+        if: failure()
+        with: { name: playwright-traces, path: apps/web/test-results, retention-days: 7 }

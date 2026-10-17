@@ -28,7 +28,7 @@ function ThemeToggle() {
   return (
     <button
       type="button"
-      className="rounded px-2 py-1 text-xs text-[var(--ds-muted)] hover:bg-[var(--ds-surface-2)]"
+      className="h-7 rounded-[var(--ds-radius)] px-2 text-[13px] text-[var(--ds-body)] hover:bg-[var(--ds-surface-2)] hover:text-[var(--ds-text)]"
       aria-label={`Theme: ${theme}. Switch to ${next}`}
       onClick={() => {
         if (next === "system") delete document.documentElement.dataset.theme;
@@ -52,10 +52,10 @@ function DeadlineTicker({ rows }: { rows: QueueRow[] }) {
   const next = rows
     .filter((r) => OPEN.has(r.caseState) && r.sellerResponseDue && Date.parse(r.sellerResponseDue) > now)
     .sort((a, b) => Date.parse(a.sellerResponseDue ?? "") - Date.parse(b.sellerResponseDue ?? ""))[0];
-  if (!next) return <span className="text-xs text-[var(--ds-muted)]">No open deadlines</span>;
+  if (!next) return <span className="text-[13px] text-[var(--ds-muted)]">No open deadlines</span>;
   const urgent = Date.parse(next.sellerResponseDue ?? "") - now < 24 * 3_600_000;
   return (
-    <Link href={`/disputes/${encodeURIComponent(next.id)}`} className={`text-xs tabular-nums no-underline ${urgent ? "font-semibold text-[var(--ds-danger)]" : "text-[var(--ds-muted)]"}`}>
+    <Link href={`/disputes/${encodeURIComponent(next.id)}`} className={`text-[13px] tabular-nums no-underline ${urgent ? "font-medium text-[var(--ds-danger)]" : "text-[var(--ds-body)]"}`}>
       Next deadline: {next.id} in {timeLeft(next.sellerResponseDue, now)}
     </Link>
   );
@@ -76,12 +76,12 @@ export function Shell({ children }: { children: ReactNode }) {
     <ToastProvider>
       <HealthCtx.Provider value={{ health: health.data, reloadQueue: () => void queue.reload() }}>
         <div className="min-h-screen">
-          <header className="sticky top-0 z-30 border-b border-[var(--ds-line)] bg-[var(--ds-surface)]">
-            <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2">
-              <Link href="/disputes" className="font-semibold text-[var(--ds-text)] no-underline">
+          <header className="sticky top-0 z-30 border-b border-[var(--ds-line)] bg-[var(--ds-surface)]/90 backdrop-blur">
+            <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-6 px-4 sm:px-6 lg:h-16 lg:flex-nowrap">
+              <Link href="/disputes" className="flex h-14 items-center text-[15px] font-semibold tracking-[-0.03em] text-[var(--ds-text)] no-underline lg:h-auto">
                 Dispute Shield
               </Link>
-              <nav aria-label="Main" className="flex flex-wrap gap-1">
+              <nav aria-label="Main" className="order-last -mx-1 flex w-full gap-1 overflow-x-auto pb-2 lg:order-none lg:mx-0 lg:w-auto lg:overflow-visible lg:pb-0">
                 {NAV.map(([href, label]) => {
                   const active = path === href || path.startsWith(`${href}/`);
                   return (
@@ -89,23 +89,25 @@ export function Shell({ children }: { children: ReactNode }) {
                       key={href}
                       href={href}
                       aria-current={active ? "page" : undefined}
-                      className={`rounded px-2.5 py-1 text-sm no-underline ${active ? "bg-[var(--ds-accent-soft)] font-medium text-[var(--ds-accent)]" : "text-[var(--ds-muted)] hover:bg-[var(--ds-surface-2)] hover:text-[var(--ds-text)]"}`}
+                      className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm tracking-[-0.02em] no-underline ${active ? "bg-[var(--ds-surface-2)] font-medium text-[var(--ds-text)]" : "text-[var(--ds-body)] hover:text-[var(--ds-text)]"}`}
                     >
                       {label}
                     </Link>
                   );
                 })}
               </nav>
-              <div className="ml-auto flex flex-wrap items-center gap-3">
-                <DeadlineTicker rows={queue.data?.items ?? []} />
+              <div className="ml-auto flex items-center gap-3">
+                <span className="hidden xl:inline">
+                  <DeadlineTicker rows={queue.data?.items ?? []} />
+                </span>
                 {health.data ? <ModeBanner dataMode={health.data.mode} submitMode={health.data.submitMode} /> : null}
-                <span className="rounded border border-[var(--ds-line)] px-1.5 py-0.5 text-[11px] text-[var(--ds-muted)]" title="Times are shown in this time zone">
+                <span className="hidden font-mono text-xs text-[var(--ds-muted)] 2xl:inline" title="Times are shown in this time zone">
                   {tz}
                 </span>
                 <ThemeToggle />
                 <button
                   type="button"
-                  className="text-xs text-[var(--ds-muted)] hover:underline"
+                  className="h-7 rounded-[var(--ds-radius)] px-2 text-[13px] text-[var(--ds-body)] hover:bg-[var(--ds-surface-2)] hover:text-[var(--ds-text)]"
                   onClick={() => void api.logout().finally(() => window.location.assign("/login"))}
                 >
                   Sign out
@@ -113,7 +115,7 @@ export function Shell({ children }: { children: ReactNode }) {
               </div>
             </div>
           </header>
-          <main className="mx-auto max-w-[1400px] px-4 py-5">{children}</main>
+          <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6">{children}</main>
         </div>
       </HealthCtx.Provider>
     </ToastProvider>

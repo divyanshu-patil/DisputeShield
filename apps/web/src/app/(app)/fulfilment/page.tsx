@@ -69,7 +69,7 @@ export default function FulfilmentPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Fulfilment records</h1>
+        <h1>Fulfilment records</h1>
         <p className="text-sm text-[var(--ds-muted)]">Your shipping records fill gaps PayPal does not have. Your file is your record; PayPal tracking is the authority when both exist.</p>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -94,7 +94,7 @@ export default function FulfilmentPage() {
             <label className="sr-only" htmlFor="csv-text">
               CSV text
             </label>
-            <textarea id="csv-text" rows={5} value={text} onChange={(e) => setText(e.target.value)} className="mt-2 w-full rounded border border-[var(--ds-line)] bg-[var(--ds-bg)] p-2 font-mono text-xs" />
+            <textarea id="csv-text" rows={5} value={text} onChange={(e) => setText(e.target.value)} className="ds-input mt-2 w-full py-2 font-mono text-xs" />
             <Button size="sm" variant="primary" busy={busy} disabled={!text.trim()} onClick={() => void upload(text)}>
               Import
             </Button>
