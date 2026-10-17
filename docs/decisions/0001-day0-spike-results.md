@@ -19,7 +19,7 @@ What happened: HTTP 200. token_type Bearer, expires_in 32400 (9 h), 29 scopes, f
   app_id, expires_in, nonce, scope (space-separated). Fixture: packages/fixtures/paypal/oauth/token.json (redacted).
   Present: disputes/update-seller, disputes/read-seller, disputes/read-buyer, disputes/create, payments/refund,
   applications/webhooks. Missing: reporting/search/read (Transaction search).
-Contract changes: proposed (section 1 and base URL to ✅); not applied until approved.
+Contract changes: base URL and section 1 token row to ✅, observed lifetime, granted scopes, 401 body shape (approved and applied 2026-10-17).
 Plan changes: enable Transaction search on the REST app before S6 (G5). disputes/create is present, so S1 route A
   (API dispute creation) may work without the account manager ❓; try it in S1.
 Features recorded: Transaction search not enabled yet; other toggle names not recorded (need the dashboard).

@@ -7,18 +7,18 @@ Legend (same as `architecture.md`):
 - ⚠️ from memory or a third-party source; verify in the sandbox before depending on it
 - ❓ unverified or conflicting; a spike must settle it (see `11-risks-and-day0-spikes.md`)
 
-PayPal's documentation is at developer.paypal.com (Disputes API v1, Transaction Search API v1, Orders API v2, Webhooks). Base URL for this project is hard-coded to the sandbox: `https://api-m.sandbox.paypal.com` ⚠️ (host name from memory; confirm in S0). There is no production URL in the code.
+PayPal's documentation is at developer.paypal.com (Disputes API v1, Transaction Search API v1, Orders API v2, Webhooks). Base URL for this project is hard-coded to the sandbox: `https://api-m.sandbox.paypal.com` ✅ (confirmed in the sandbox by spike S0 on 2026-10-17, fixture `paypal/oauth/token.json`). There is no production URL in the code.
 
 ## 1. Authentication
 
 | Item | Contract | Status |
 | --- | --- | --- |
-| Token | `POST /v1/oauth2/token`, HTTP Basic with client ID and secret, body `grant_type=client_credentials` | ⚠️ |
-| Lifetime | Sandbox tokens last roughly 3 to 8 hours; cache with an expiry margin, refresh on 401 | ✅ (toolkit docs) |
-| Scopes used | Dispute read: part of the app's default dispute access. Dispute update (seller): `https://uri.paypal.com/services/disputes/update-seller`. Transaction search: `https://uri.paypal.com/services/reporting/search/read` | ✅ |
+| Token | `POST /v1/oauth2/token`, HTTP Basic with client ID and secret, body `grant_type=client_credentials`. Response: `access_token`, `token_type` (`Bearer`), `expires_in` (seconds), `scope` (space-separated), `app_id`, `nonce` | ✅ (sandbox S0, 2026-10-17, fixture `paypal/oauth/token.json`) |
+| Lifetime | Sandbox tokens last roughly 3 to 8 hours; cache with an expiry margin, refresh on 401. Observed in S0: `expires_in` 32400 (9 h) | ✅ (toolkit docs; observed S0) |
+| Scopes used | Dispute read: part of the app's default dispute access (S0 also granted `disputes/read-seller`). Dispute update (seller): `https://uri.paypal.com/services/disputes/update-seller` (granted in S0). Transaction search: `https://uri.paypal.com/services/reporting/search/read` (not granted in S0 until Transaction search is enabled) | ✅ |
 | App features | The REST app must have **Transaction search** enabled; dispute features must be enabled on the sandbox business account | ✅ / ❓ exact toggle names |
 
-Failure modes to handle: `401` (refresh once, then `AuthError`), `403` (`PermissionError` with the missing scope or feature in the message when PayPal names it), `429` (`RateLimited`, honour `Retry-After` if present ⚠️).
+Failure modes to handle: `401` (refresh once, then `AuthError`; the token endpoint answers bad credentials with `{ "error": "invalid_client", "error_description": "Client Authentication failed" }` and a debug id, observed in S0 attempt 1), `403` (`PermissionError` with the missing scope or feature in the message when PayPal names it), `429` (`RateLimited`, honour `Retry-After` if present ⚠️).
 
 ## 2. Disputes API (`/v1/customer/disputes`)
 
