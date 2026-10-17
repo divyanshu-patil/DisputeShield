@@ -1,3 +1,4 @@
+import { cpSync } from "node:fs";
 import { defineConfig } from "tsup";
 
 // Internal @ds/* packages are consumed as TypeScript source (ADR-002), so they are
@@ -11,5 +12,5 @@ export default defineConfig({
   clean: true,
   noExternal: [/^@ds\//],
   // Migrations run at startup from dist/drizzle (packages/db/src/migrate.ts).
-  onSuccess: "cp -R ../../packages/db/drizzle dist/drizzle",
+  onSuccess: async () => cpSync("../../packages/db/drizzle", "dist/drizzle", { recursive: true }),
 });

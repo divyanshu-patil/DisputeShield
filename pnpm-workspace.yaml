@@ -10,10 +10,16 @@ allowBuilds:
 # Versions shared by many packages, pinned once.
 catalog:
   "@renderinc/sdk": 1.2.0
-  "@types/node": 24.19.2
+  "@types/node": 24.19.1
   eslint: 9.39.5
-  tsup: 9.0.0
+  tsup: 8.5.1
   tsx: 4.23.15
   typescript: 5.9.3
-  vitest: 5.0.5
-  zod: 4.6.7
+  vitest: 5.0.3
+  zod: 4.6.5
+
+# eslint-config-next brings its own typescript-eslint; one copy, or ESLint refuses the duplicate plugin.
+overrides:
+  typescript-eslint: 8.71.0
+  "@typescript-eslint/eslint-plugin": 8.71.0
+  "@typescript-eslint/parser": 8.71.0
