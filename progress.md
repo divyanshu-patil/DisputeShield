@@ -70,13 +70,15 @@ P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`draf
 - P4-1 done: Playwright e2e, 17 tests in replay mode against a production build (login, queue, case review and dry-run submit, needs-info CSV fix, accept claim, risk actions, health, axe on seven pages, 390 px layout). `pnpm test:e2e` (uses `ds_e2e`, override with `E2E_DATABASE_URL`); in CI.
 - P4-2 done: deterministic eval (5 golden, 15 adversarial, template fallback) in `pnpm test`/`pnpm eval`, so a missed adversarial case fails CI; live eval `pnpm ds eval:live` writes `docs/evals/<date>.md`. 2026-10-18 with `gemma4:31b`: schema-valid 100%, accepted after repair 100%, 0 injection leaks, no fabrication in manual review. The eval added verifier rules: carrier tokens, buyer-statement and "received" claims, cited fact must be used, instruction text rejected; and fixed "shipped" (ship-to record) and "refunded" ("Refund issued: No").
 - P4-3 done: webhook bad signature, duplicate, oversized and out-of-order; job retries (db, jobs, workflows tests); security tests for CORS allow-list, log scrubbing, Studio read-only tools, CSV formula cells; `scripts/check-bundle-secrets.mjs` in CI. RLS is on for all 13 tables; the one `sql.raw` takes a view name from a fixed list; the only `dangerouslySetInnerHTML` is the constant theme script.
+- P4-7 first pass: mapped the 106 Must criteria to tests. Added the dry-run write spy (AC-NFR-09), core coverage gate at 90% lines (94.5%, AC-NFR-06), `Retry-After` (AC-API-05), Health error state (AC-UI-05), eval table in the README (AC-AI-02). Manual or hosting items left: AC-NFR-03 (queue timing), AC-DB-04 and P4-4 (hosted demo), AC-AI-05 and AC-DEMO/SUBMIT (video, Devpost).
+- Dependency pins moved to releases at least 14 days old (AGENTS.md rule 7); tsup is 8.5.1; turbo's agent-guidance block is off.
 - P4-5 partial: `pnpm ds replay-check` (fixtures parse, no unredacted emails), in CI.
 - P4-6 done: README with a 5-command replay quickstart.
 - UI restyled to `DESIGN.md` (Geist, ink on near-white, hairlines, light and dark).
 
 ## Next
 
-P4-7 bug bash against `08-acceptance-criteria.md`. S7/S8 once the sandbox order is approved.
+P4-4 hosted deploy (needs the Supabase session-pooler URL and a Render account), demo video and Devpost text. S7/S8 once the sandbox order is approved.
 
 ## Run it locally (replay mode)
 

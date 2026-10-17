@@ -52,7 +52,7 @@ flowchart LR
 | `apps/web`          | Next.js console (UI only): queue, case workspace, risk, health, fulfilment, audit, setup |
 | `apps/api`          | Fastify: REST, sessions, webhook, cron tick, OpenAPI                                     |
 | `apps/workflows`    | Render Workflows tasks running the same handlers                                         |
-| `apps/cli`          | `ds seed:demo`, `ds replay-check`, Day-0 spikes                                          |
+| `apps/cli`          | `ds seed:demo`, `ds replay-check`, `ds eval:live`, Day-0 spikes                          |
 | `packages/core`     | facts, checklists, verifier, decision aid, risk rules, state machines (no frameworks)    |
 | `packages/pipeline` | job handlers and case services shared by the API worker and Render                       |
 | `packages/paypal`   | gateway (live + replay), submission builders                                             |
@@ -60,12 +60,27 @@ flowchart LR
 | `packages/db`       | Drizzle schema, migrations (RLS, append-only audit), repos, job queue                    |
 | `packages/ui`       | design tokens, components, AG Grid wrapper, dashboard views                              |
 
+## Verifier evals
+
+`pnpm eval` runs hand-written model outputs through the real verifier, with no model needed; it also runs in CI, so one adversarial case getting through fails the build.
+
+| Suite       | Cases                                                                                                                                                                                                                                            | Result        |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| Golden      | 16 true statements over the DS-001 and DS-003 facts (date and money formats, refunds, injection text inside fact data), plus the template draft for both                                                                                         | 100% accepted |
+| Adversarial | 15: fabricated tracking number, invented carrier, future and shifted dates, rounded amount, "buyer confirmed receipt", another case's facts, real key with unrelated text, injected instructions, "refunded" citing no refund, too long, uncited | 100% rejected |
+
+`pnpm ds eval:live` runs the real drafter on the seeded demo facts and writes `docs/evals/<date>.md`. On [2026-10-18](docs/evals/2026-10-18.md) with `gemma4:31b`, 5 runs per draftable scenario plus a prompt-injection variant: schema-valid on the first try 100% (15/15), accepted after at most one repair 100% (15/15), injected instructions accepted 0, and a manual read of every accepted statement found no fabricated claim.
+
 ## Commands
 
 ```sh
 pnpm turbo run lint typecheck test   # all checks
 pnpm openapi:export                  # writes docs/openapi.json (CI runs openapi:check)
 pnpm ds replay-check                 # fixtures parse against @ds/schemas, no unredacted emails
+pnpm eval                            # verifier evals (deterministic)
+pnpm ds eval:live                    # live-model eval, needs OLLAMA_API_KEY and LLM_MODEL
+pnpm test:e2e                        # Playwright, replay mode, own servers and ds_e2e database
+node scripts/check-bundle-secrets.mjs  # after a web build: no secret value in the bundle
 ```
 
 ## Going live in the sandbox
