@@ -53,3 +53,29 @@ What happened:
 Contract changes: proposed (Route B steps, US buyer note, observed status/reason values); not applied until approved.
 Plan changes: buyer account must be US (or another country that allows personal Send). Route A (API) not tried.
 ```
+
+```text
+Spike: S2  Date: 2026-10-17  Result: PASS
+What I ran: pnpm ds spike s2  (list with update_time_after, then details for each dispute)
+What happened: list 200, 3 disputes; all 3 details 200 and parse against @ds/schemas PaypalDisputeDetails.
+  Observed (all 3, INR, a few minutes after filing):
+  - status WAITING_FOR_SELLER_RESPONSE (S1 briefly saw UNDER_REVIEW on one); dispute_state REQUIRED_ACTION;
+    dispute_life_cycle_stage INQUIRY; dispute_channel INTERNAL; reason MERCHANDISE_OR_SERVICE_NOT_RECEIVED
+    (also per item in disputed_transactions[].items[].reason).
+  - dispute_amount and gross_amount are {currency_code, value: string}.
+  - disputed_transactions[]: buyer_transaction_id, seller_transaction_id, create_time, transaction_status (HELD),
+    gross_amount, buyer {email, payer_id, name}, seller {email, merchant_id, name}, items[] {item_name,
+    item_description, item_quantity (string), reason, item_type PRODUCT}, seller_protection_eligible,
+    seller_protection_type EXPANDED_SELLER_PROTECTION.
+  - links (details): self GET, accept_claim, provide_evidence, send_message, escalate, make_offer (POST).
+    List items carry only self.
+  - allowed_response_options: accept_claim.accept_claim_types [PARTIAL_REFUND, REFUND], make_offer.offer_types [REFUND].
+  - seller_response_due_date present (filing + 20 days). messages[] {posted_by BUYER, time_posted, content}.
+  - evidences[]: CREATE (SUBMITTED_BY_BUYER, notes) and PROOF_OF_FULFILLMENT (REQUESTED_FROM_SELLER).
+  - Also present, not in the contract: fund_movements[] (HOLD_PLACED DEBIT), offer.buyer_requested_amount,
+    refund_details.allowed_refund_amount, extensions {merchant_contacted, buyer_contacted_time}.
+  Fixtures: packages/fixtures/paypal/disputes/{list.sandbox, PP-R-*.details}.json, redacted (parties synthetic,
+  payer_id/merchant_id masked); 0 of 7 real party values found in them.
+Contract changes: proposed (2.1, 2.2, Q10); not applied until approved.
+Plan changes: none.
+```

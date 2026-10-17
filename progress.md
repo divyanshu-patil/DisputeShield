@@ -9,7 +9,7 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 | P0-1  | Turborepo skeleton, starter packages, CI, licence  | Done (2026-10-17)    | see below                                                                                                                                                                                                                                             |
 | P0-2  | S0: developer account, sandbox accounts, REST app  | Partial (2026-10-17) | token 200, 29 scopes, `disputes/update-seller` present; **`reporting/search/read` missing** (enable Transaction search). Log: `docs/decisions/0001-day0-spike-results.md`; fixture `paypal/oauth/token.json` (human-read); contract section 1 updated |
 | P0-3  | S1: create a sandbox dispute                       | Done (2026-10-17)    | Route B with a US buyer: 3 payments, 3 item-not-received disputes; seller list shows them (`WAITING_FOR_SELLER_RESPONSE`, `UNDER_REVIEW`). Log: `docs/decisions/0001-day0-spike-results.md`                                                           |
-| P0-4  | S2: fetch list and details, first fixtures         | Not started          |                                                                                                                                                                                                                                                       |
+| P0-4  | S2: fetch list and details, first fixtures         | Done (2026-10-17)    | 3 disputes, details parse against `@ds/schemas` `PaypalDisputeDetails`; fixtures awaiting your read                                                                                                                                                   |
 | P0-5  | S3/S4: provide-evidence, accept-claim              | Not started          |                                                                                                                                                                                                                                                       |
 | P0-6  | S5: webhook + signature verification               | Not started          |                                                                                                                                                                                                                                                       |
 | P0-7  | S6/S7/S8: transaction search, orders, tracking     | Not started          |                                                                                                                                                                                                                                                       |
@@ -35,6 +35,7 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 - Boundary and `process.env` rules were tested with deliberately bad files.
 - S0 tooling (2026-10-17): `requestToken`, error taxonomy, `redact` in `@ds/paypal` (5 tests); `ds spike s0` in the CLI.
 - S1 tooling (2026-10-17): `paypalGet` in `@ds/paypal` (2 tests), `ds spike s1`.
+- S2 tooling (2026-10-17): `PaypalDisputeDetails`/`PaypalDisputeList` schemas, party-aware `redact`, `ds spike s2`.
 - Not run: CI on GitHub (there is no remote yet), `docker compose up`, anything against PayPal, Supabase, Ollama or Render.
 - Deviations from the spec: `docs/decisions/0000-p0-1-scaffold-deviations.md`.
 
@@ -48,4 +49,4 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 
 ## Next
 
-S2 (`ds spike s2`: list and details, first fixtures). Set `PAYPAL_SANDBOX_BUYER_EMAIL` in `.env` to the new US buyer account.
+Read the S2 fixtures, approve the contract edits for 2.1/2.2. Then S3/S4 (provide-evidence, accept-claim). Set `PAYPAL_SANDBOX_BUYER_EMAIL` in `.env` to the new US buyer account.
