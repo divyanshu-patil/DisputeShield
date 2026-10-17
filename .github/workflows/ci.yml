@@ -38,8 +38,7 @@ jobs:
       # - run: pnpm db:migrate
       - run: pnpm turbo run lint typecheck test
       - run: pnpm turbo run build --filter=@ds/api --filter=@ds/workflows --filter=@ds/web
-      # Enable when apps/api has the OpenAPI scripts (P1-13).
-      # - run: pnpm openapi:check
+      - run: pnpm openapi:check
       # Enable when scripts/check-bundle-secrets.mjs exists.
       # - run: node scripts/check-bundle-secrets.mjs
       # Enable when e2e specs exist (P4-1).

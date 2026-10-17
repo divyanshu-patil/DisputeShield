@@ -9,7 +9,9 @@
     "start": "node dist/index.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "openapi:export": "tsx src/openapi-export.ts",
+    "openapi:check": "tsx src/openapi-export.ts --check"
   },
   "dependencies": {
     "@ds/agent": "workspace:*",

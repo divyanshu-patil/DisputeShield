@@ -1,0 +1,4 @@
+# generated; openapi:check compares it byte for byte
+docs/openapi.json
+# hand-formatted contract tables
+docs/03-paypal-api-contract.md
