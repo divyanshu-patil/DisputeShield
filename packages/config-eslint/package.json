@@ -1,0 +1,29 @@
+{
+  "name": "@ds/config-eslint",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./base": "./base.mjs",
+    "./next": "./next.mjs",
+    "./boundaries": "./boundaries.mjs"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "eslint-config-next": "16.3.6",
+    "typescript-eslint": "8.71.2"
+  },
+  "peerDependencies": {
+    "eslint": "^9"
+  },
+  "devDependencies": {
+    "@ds/config-typescript": "workspace:*",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

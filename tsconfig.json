@@ -1,0 +1,1 @@
+{ "extends": "@ds/config-typescript/base.json", "files": [], "references": [] }

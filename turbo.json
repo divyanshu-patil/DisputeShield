@@ -1,21 +1,89 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
+  "envMode": "strict",
+  "globalDependencies": ["tsconfig.json", ".env.example"],
+  "globalEnv": [
+    "NODE_ENV",
+    "DS_MODE",
+    "DS_SUBMIT_MODE",
+    "DS_JOB_BACKEND",
+    "DS_SCENARIO",
+    "PAYPAL_ENV",
+    "LLM_MODEL",
+    "OLLAMA_HOST",
+    "WEB_ORIGIN",
+    "API_ORIGIN",
+    "DS_NO_TRACKING_AFTER_HOURS",
+    "DS_STUCK_TRACKING_DAYS",
+    "DS_HIGH_VALUE_THRESHOLD",
+    "DS_HIGH_VALUE_CURRENCY"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "check-types": {
-      "dependsOn": ["^check-types"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "PAYPAL_CLIENT_ID",
+        "PAYPAL_CLIENT_SECRET",
+        "PAYPAL_WEBHOOK_ID",
+        "OLLAMA_API_KEY",
+        "RENDER_API_KEY",
+        "RENDER_WORKFLOW_SLUG",
+        "CRON_SECRET",
+        "DS_COOKIE_SECRET",
+        "DS_DEMO_ACCESS_CODE",
+        "AG_STUDIO_LICENSE_KEY"
+      ]
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": [
+        "DATABASE_URL",
+        "PAYPAL_CLIENT_ID",
+        "PAYPAL_CLIENT_SECRET",
+        "PAYPAL_WEBHOOK_ID",
+        "OLLAMA_API_KEY",
+        "RENDER_API_KEY",
+        "RENDER_WORKFLOW_SLUG",
+        "CRON_SECRET",
+        "DS_COOKIE_SECRET",
+        "DS_DEMO_ACCESS_CODE",
+        "AG_STUDIO_LICENSE_KEY"
+      ]
+    },
+    "lint": {},
+    "typecheck": {},
+    "test": {
+      "outputs": ["coverage/**"],
+      "env": ["DATABASE_URL_TEST"]
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "env": [
+        "DATABASE_URL",
+        "CRON_SECRET",
+        "DS_COOKIE_SECRET",
+        "DS_DEMO_ACCESS_CODE"
+      ]
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false,
+      "env": ["DATABASE_URL"]
+    },
+    "eval": {
+      "cache": false,
+      "env": ["OLLAMA_API_KEY"]
+    },
+    "openapi:export": {
+      "dependsOn": ["^build"],
+      "outputs": ["$TURBO_ROOT$/docs/openapi.json"]
     }
   }
 }

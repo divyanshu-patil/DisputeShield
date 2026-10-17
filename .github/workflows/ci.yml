@@ -1,0 +1,47 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: ds, POSTGRES_PASSWORD: ds, POSTGRES_DB: ds_test }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ds" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DS_MODE: replay
+      DS_SUBMIT_MODE: dry-run
+      DATABASE_URL_TEST: postgres://ds:ds@localhost:5432/ds_test
+      DATABASE_URL: postgres://ds:ds@localhost:5432/ds_test
+      DS_JOB_BACKEND: postgres
+      CRON_SECRET: ci-cron-secret
+      DS_COOKIE_SECRET: ci-cookie-secret-123456
+      DS_DEMO_ACCESS_CODE: ci
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Sandbox-only PayPal hosts (AGENTS.md rule 1)
+        run: |
+          hits=$(git grep -nIoE '[a-z0-9.-]+\.paypal\.com' -- . ':!docs' ':!*.md' | grep -vE '(sandbox|developer)\.paypal\.com' || true)
+          if [ -n "$hits" ]; then echo "Non-sandbox PayPal host found:"; echo "$hits"; exit 1; fi
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with: { node-version-file: .nvmrc, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      # Enable when @ds/db has migrations (P1-3).
+      # - run: pnpm db:migrate
+      - run: pnpm turbo run lint typecheck test
+      - run: pnpm turbo run build --filter=@ds/api --filter=@ds/workflows --filter=@ds/web
+      # Enable when apps/api has the OpenAPI scripts (P1-13).
+      # - run: pnpm openapi:check
+      # Enable when scripts/check-bundle-secrets.mjs exists.
+      # - run: node scripts/check-bundle-secrets.mjs
+      # Enable when e2e specs exist (P4-1).
+      # - run: pnpm --filter @ds/web exec playwright install --with-deps chromium
+      # - run: pnpm test:e2e

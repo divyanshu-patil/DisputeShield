@@ -1,0 +1,69 @@
+# Render Blueprint for Dispute Shield. Sandbox PayPal only.
+# Status: written from the Blueprint spec read on 2026-10-17 (type: workflow supports node/python and
+# no `plan` / `preDeployCommand` ✅). Not yet applied to a real account: spike S11 validates it. ⚠️
+#
+# Secrets use `sync: false`, so Render asks for them in the dashboard and they never live in git.
+
+services:
+  # 1. The Fastify API. Free web services spin down after 15 min idle (~1 min cold start) ✅;
+  #    PayPal retries webhooks, but use a paid plan (hackathon credits) during the judging window.
+  - type: web
+    name: dispute-shield-api
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@ds/api
+    startCommand: node apps/api/dist/index.js
+    healthCheckPath: /api/health
+    envVars:
+      - { key: NODE_VERSION, value: "24" }      # pnpm 11 needs Node >= 22.13
+      - { key: NODE_ENV, value: production }
+      - { key: API_HOST, value: 0.0.0.0 }
+      - { key: API_PORT, value: "10000" }           # Render web services listen on PORT, default 10000 (set PORT if you change it) ⚠️
+      - { key: DS_MODE, value: live }
+      - { key: DS_SUBMIT_MODE, value: dry-run }
+      - { key: PAYPAL_ENV, value: sandbox }
+      - { key: DS_JOB_BACKEND, value: render }
+      - { key: RENDER_WORKFLOW_SLUG, value: dispute-shield-workflows }
+      - { key: OLLAMA_HOST, value: "https://ollama.com" }
+      - { key: WEB_ORIGIN, sync: false }
+      - { key: DATABASE_URL, sync: false }          # Supabase session pooler or direct connection
+      - { key: PAYPAL_CLIENT_ID, sync: false }
+      - { key: PAYPAL_CLIENT_SECRET, sync: false }
+      - { key: PAYPAL_WEBHOOK_ID, sync: false }
+      - { key: OLLAMA_API_KEY, sync: false }
+      - { key: LLM_MODEL, sync: false }
+      - { key: RENDER_API_KEY, sync: false }
+      - { key: DS_DEMO_ACCESS_CODE, sync: false }
+      - { key: DS_COOKIE_SECRET, generateValue: true }
+      - { key: CRON_SECRET, generateValue: true }
+
+  # 2. The workflow service: one Render Workflows task per job kind (apps/workflows).
+  - type: workflow
+    name: dispute-shield-workflows
+    runtime: node
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@ds/workflows
+    startCommand: node apps/workflows/dist/index.js
+    envVars:
+      - { key: NODE_VERSION, value: "24" }      # pnpm 11 needs Node >= 22.13
+      - { key: DS_MODE, value: live }
+      - { key: DS_SUBMIT_MODE, value: dry-run }
+      - { key: PAYPAL_ENV, value: sandbox }
+      - { key: OLLAMA_HOST, value: "https://ollama.com" }
+      - { key: DATABASE_URL, sync: false }
+      - { key: PAYPAL_CLIENT_ID, sync: false }
+      - { key: PAYPAL_CLIENT_SECRET, sync: false }
+      - { key: OLLAMA_API_KEY, sync: false }
+      - { key: LLM_MODEL, sync: false }
+
+  # 3. Workflows have no schedule of their own ✅, so a cron job starts the dispute sync every 5 minutes.
+  #    It also keeps the Supabase free project from pausing for inactivity (the sync reads/writes it).
+  - type: cron
+    name: dispute-shield-sync
+    runtime: node
+    schedule: "*/5 * * * *"
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm turbo run build --filter=@ds/workflows
+    startCommand: node apps/workflows/dist/trigger.js
+    envVars:
+      - { key: NODE_VERSION, value: "24" }      # pnpm 11 needs Node >= 22.13
+      - { key: RENDER_WORKFLOW_SLUG, value: dispute-shield-workflows }
+      - { key: RENDER_API_KEY, sync: false }

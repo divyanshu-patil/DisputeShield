@@ -1,0 +1,1 @@
+{ "extends": "@ds/config-typescript/node.json", "include": ["src", "test", "tsup.config.ts"] }

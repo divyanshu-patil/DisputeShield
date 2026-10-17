@@ -1,20 +1,31 @@
 {
-  "name": "DisputeShield",
+  "name": "dispute-shield",
   "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
-  },
-  "devDependencies": {
-    "prettier": "3.9.6",
-    "turbo": "^2.11.8",
-    "typescript": "7.0.2"
-  },
   "packageManager": "pnpm@11.25.0",
   "engines": {
-    "node": ">=24"
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "turbo run dev --filter=@ds/web --filter=@ds/api",
+    "dev:workflows": "pnpm --filter @ds/workflows dev",
+    "openapi:export": "pnpm --filter @ds/api openapi:export",
+    "openapi:check": "pnpm --filter @ds/api openapi:check",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e --filter=@ds/web",
+    "start:api": "pnpm --filter @ds/api start",
+    "db:generate": "turbo run db:generate --filter=@ds/db",
+    "db:migrate": "turbo run db:migrate --filter=@ds/db",
+    "eval": "turbo run eval --filter=@ds/agent",
+    "ds": "pnpm --filter @ds/cli exec tsx src/index.ts",
+    "seed:demo": "pnpm --filter @ds/cli exec tsx src/index.ts seed:demo",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "3.9.10",
+    "turbo": "2.11.8",
+    "typescript": "catalog:"
   }
 }

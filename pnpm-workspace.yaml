@@ -1,3 +1,19 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Both ship prebuilt binaries via optional deps; their postinstall steps are not needed.
+allowBuilds:
+  esbuild: false
+  unrs-resolver: false
+
+# Versions shared by many packages, pinned once.
+catalog:
+  "@renderinc/sdk": 1.2.0
+  "@types/node": 24.19.2
+  eslint: 9.39.5
+  tsup: 9.0.0
+  tsx: 4.23.15
+  typescript: 5.9.3
+  vitest: 5.0.5
+  zod: 4.6.7
