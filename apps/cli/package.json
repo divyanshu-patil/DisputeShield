@@ -12,8 +12,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ds/paypal": "workspace:*",
     "commander": "15.0.0",
-    "tsx": "catalog:"
+    "tsx": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@ds/config-eslint": "workspace:*",

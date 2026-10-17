@@ -111,12 +111,18 @@ importers:
 
   apps/cli:
     dependencies:
+      '@ds/paypal':
+        specifier: workspace:*
+        version: link:../../packages/paypal
       commander:
         specifier: 15.0.0
         version: 15.0.0
       tsx:
         specifier: 'catalog:'
         version: 4.23.15
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
     devDependencies:
       '@ds/config-eslint':
         specifier: workspace:*
@@ -405,6 +411,9 @@ importers:
       '@ds/schemas':
         specifier: workspace:*
         version: link:../schemas
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
     devDependencies:
       '@ds/config-eslint':
         specifier: workspace:*

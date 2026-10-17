@@ -12,7 +12,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ds/schemas": "workspace:*"
+    "@ds/schemas": "workspace:*",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@ds/config-eslint": "workspace:*",
