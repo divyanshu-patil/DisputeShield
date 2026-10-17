@@ -9,9 +9,15 @@ import {
   redact,
   requestToken,
 } from "@ds/paypal";
-import { PaypalDisputeDetails, PaypalDisputeList } from "@ds/schemas";
+import {
+  PaypalDisputeDetails,
+  PaypalDisputeList,
+  PaypalOrder,
+  PaypalTransactionSearch,
+} from "@ds/schemas";
 import { z } from "zod";
 import { paypalCredentials, paypalWebhookId } from "../lib/env.js";
+import { s9 } from "./spike-s9.js";
 
 // Day-0 spikes (docs/11-risks-and-day0-spikes.md). Never print secrets or tokens.
 
@@ -155,9 +161,13 @@ async function s2(): Promise<void> {
 
 export type SpikeOptions = {
   dispute?: string;
+  order?: string;
   send?: boolean;
   carrier?: string;
   file?: boolean;
+  models?: string;
+  runs?: string;
+  toolkit?: boolean;
 };
 
 // 1x1 transparent PNG: the smallest valid image, for the file-part test in S3.
@@ -375,10 +385,246 @@ async function s5(): Promise<void> {
   }
 }
 
+const PROTECTION: Record<string, string> = {
+  "01": "Eligible",
+  "02": "Not eligible",
+  "03": "Partially eligible",
+};
+
+/** S6: Transaction search over the last 30 days (contract 4, gate G5). Prints codes and field presence only. */
+async function s6(): Promise<void> {
+  const token = await requestToken(paypalCredentials());
+  const iso = (ms: number) => `${new Date(ms).toISOString().slice(0, 19)}Z`;
+  const q = new URLSearchParams({
+    start_date: iso(Date.now() - 30 * 86_400_000),
+    end_date: iso(Date.now()),
+    fields: "transaction_info,payer_info,shipping_info,cart_info",
+    page_size: "100",
+  });
+  const res = await paypalGet(
+    `/v1/reporting/transactions?${q.toString()}`,
+    token.accessToken,
+  );
+  const body = PaypalTransactionSearch.parse(res.body);
+  console.log(
+    `HTTP ${res.status}: ${body.total_items} transaction(s), ${body.total_pages} page(s), data as of ${body.last_refreshed_datetime ?? "?"}`,
+  );
+  for (const {
+    transaction_info: t,
+    shipping_info,
+    cart_info,
+  } of body.transaction_details) {
+    const addr = Object.keys(shipping_info?.address ?? {}).join(",");
+    const items = (cart_info?.item_details ?? [])
+      .map((i) => i.item_name)
+      .join("; ");
+    console.log(
+      [
+        `${t.transaction_id} ${t.transaction_event_code} ${t.transaction_initiation_date} ${t.transaction_amount.value} ${t.transaction_amount.currency_code} status=${t.transaction_status}`,
+        `  protection=${t.protection_eligibility ?? "-"} (${PROTECTION[t.protection_eligibility ?? ""] ?? "absent"}) ref=${t.paypal_reference_id_type ?? "-"}:${t.paypal_reference_id ?? "-"} invoice=${t.invoice_id ?? "-"}`,
+        `  ship_to: ${addr || "none"}  items: ${items || "none"}`,
+      ].join("\n"),
+    );
+  }
+  console.log(
+    `fixture: ${saveFixture("transactions/search.sandbox.json", res.body)}`,
+  );
+}
+
+const showOrder = (o: PaypalOrder): void => {
+  for (const [n, pu] of o.purchase_units.entries()) {
+    const p = `purchase_units[${n}]`;
+    console.log(
+      [
+        `  ${p}.shipping.address: ${Object.keys(pu.shipping?.address ?? {}).join(",") || "absent"}`,
+        `  ${p}.payments.captures: ${(pu.payments?.captures ?? []).map((c) => `${c.id} ${c.status}`).join("; ") || "absent"}`,
+        `  ${p}.payments.refunds: ${(pu.payments?.refunds ?? []).map((r) => `${r.id} ${r.status} ${r.amount?.value ?? ""}`).join("; ") || "absent"}`,
+        `  ${p}.shipping.trackers: ${(pu.shipping?.trackers ?? []).map((t) => `${t.id} ${t.status}`).join("; ") || "absent"}`,
+      ].join("\n"),
+    );
+  }
+};
+
+async function getOrder(id: string, accessToken: string) {
+  const res = await paypalGet(
+    `/v2/checkout/orders/${encodeURIComponent(id)}`,
+    accessToken,
+  );
+  const o = PaypalOrder.parse(res.body);
+  console.log(
+    `order ${o.id}: status=${o.status} links=${o.links.map((l) => l.rel).join(",")}`,
+  );
+  return { o, raw: res.body };
+}
+
+/**
+ * S7: without --order, creates a $24 Orders API order for the buyer to approve; with --order, captures it
+ * once APPROVED (--send) and records the nested paths for captures, refunds, shipping and trackers (Q4).
+ */
+async function s7(opts: SpikeOptions): Promise<void> {
+  const token = await requestToken(paypalCredentials());
+  if (!opts.order) {
+    const usd = (value: string) => ({ currency_code: "USD", value });
+    const body = {
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          reference_id: "DS-1005",
+          invoice_id: `DS-1005-${Date.now()}`,
+          amount: { ...usd("24.00"), breakdown: { item_total: usd("24.00") } },
+          items: [
+            {
+              name: "Speckled mug (set of 2)",
+              quantity: "1",
+              unit_amount: usd("24.00"),
+              category: "PHYSICAL_GOODS",
+            },
+          ],
+        },
+      ],
+      payment_source: {
+        paypal: {
+          experience_context: {
+            brand_name: "Hearthside Ceramics",
+            shipping_preference: "GET_FROM_FILE",
+            user_action: "PAY_NOW",
+            return_url: "https://example.com/return",
+            cancel_url: "https://example.com/cancel",
+          },
+        },
+      },
+    };
+    console.log(`POST /v2/checkout/orders\n${JSON.stringify(body, null, 2)}`);
+    if (!opts.send)
+      return console.log("DRY RUN: not sent. Re-run with --send.");
+    const res = await paypalRequest(
+      "POST",
+      "/v2/checkout/orders",
+      token.accessToken,
+      body,
+    );
+    const o = PaypalOrder.parse(res.body);
+    console.log(`HTTP ${res.status}: order ${o.id} status=${o.status}`);
+    console.log(
+      `buyer approves at: ${o.links.find((l) => l.rel === "payer-action")?.href ?? "no payer-action link"}`,
+    );
+    console.log(`fixture: ${saveFixture("orders/created.json", res.body)}`);
+    return;
+  }
+  let { o, raw } = await getOrder(opts.order, token.accessToken);
+  if (o.status === "APPROVED") {
+    const path = `/v2/checkout/orders/${encodeURIComponent(o.id)}/capture`;
+    console.log(`POST ${path}`);
+    if (!opts.send)
+      return console.log("DRY RUN: not captured. Re-run with --send.");
+    const res = await paypalRequest(
+      "POST",
+      path,
+      token.accessToken,
+      {},
+      fetch,
+      {
+        "paypal-request-id": `ds-capture-${o.id}`,
+      },
+    );
+    console.log(
+      `HTTP ${res.status}${res.debugId ? ` (debug_id ${res.debugId})` : ""}`,
+    );
+    console.log(
+      `fixture: ${saveFixture("responses/order-capture.json", res.body)}`,
+    );
+    ({ o, raw } = await getOrder(o.id, token.accessToken));
+  }
+  showOrder(o);
+  console.log(`fixture: ${saveFixture(`orders/${o.id}.details.json`, raw)}`);
+}
+
+/**
+ * S8: add a tracker to a captured order, then a $1.00 partial refund sent twice with the same
+ * PayPal-Request-Id (Q6). Writes only with --send.
+ */
+async function s8(opts: SpikeOptions): Promise<void> {
+  if (!opts.order)
+    throw new Error("s8 needs --order <id> (a captured order from s7)");
+  const token = await requestToken(paypalCredentials());
+  const { o } = await getOrder(opts.order, token.accessToken);
+  const capture = o.purchase_units[0]?.payments?.captures?.[0];
+  if (!capture)
+    throw new Error(`order ${o.id} has no capture yet; run s7 first`);
+  const track = {
+    capture_id: capture.id,
+    tracking_number: "9400111899223817565499",
+    carrier: opts.carrier ?? "USPS",
+    notify_payer: false,
+  };
+  const refund = {
+    amount: { currency_code: "USD", value: "1.00" },
+    note_to_payer: "Partial refund for a chipped mug.",
+  };
+  const requestId = `ds-refund-${capture.id}-1`;
+  console.log(
+    `POST /v2/checkout/orders/${o.id}/track\n${JSON.stringify(track, null, 2)}`,
+  );
+  console.log(
+    `POST /v2/payments/captures/${capture.id}/refund (PayPal-Request-Id ${requestId}) x2\n${JSON.stringify(refund, null, 2)}`,
+  );
+  if (!opts.send) return console.log("DRY RUN: not sent. Re-run with --send.");
+
+  const send = async (
+    label: string,
+    path: string,
+    body: unknown,
+    headers = {},
+  ) => {
+    try {
+      const res = await paypalRequest(
+        "POST",
+        path,
+        token.accessToken,
+        body,
+        fetch,
+        headers,
+      );
+      const b = z
+        .object({ id: z.string().optional(), status: z.string().optional() })
+        .loose()
+        .safeParse(res.body);
+      console.log(
+        `${label}: HTTP ${res.status} id=${b.data?.id ?? "-"} status=${b.data?.status ?? "-"}${res.debugId ? ` (debug_id ${res.debugId})` : ""}`,
+      );
+      console.log(
+        `  fixture: ${saveFixture(`responses/${label}.json`, res.body ?? null)}`,
+      );
+    } catch (err) {
+      if (!(err instanceof PayPalError)) throw err;
+      console.log(
+        `${label}: FAIL ${err.message}${err.debugId ? ` (debug_id ${err.debugId})` : ""}`,
+      );
+    }
+  };
+  await send(
+    "order-track.usps",
+    `/v2/checkout/orders/${encodeURIComponent(o.id)}/track`,
+    track,
+  );
+  const refundPath = `/v2/payments/captures/${encodeURIComponent(capture.id)}/refund`;
+  await send("capture-refund.partial", refundPath, refund, {
+    "paypal-request-id": requestId,
+  });
+  await send("capture-refund.partial.repeat", refundPath, refund, {
+    "paypal-request-id": requestId,
+  });
+  const after = await getOrder(o.id, token.accessToken);
+  showOrder(after.o);
+  console.log(
+    `fixture: ${saveFixture(`orders/${o.id}.after-track-refund.details.json`, after.raw)}`,
+  );
+}
+
 export const SPIKES: Record<
-  "s0" | "s1" | "s2" | "s3" | "s4" | "s5",
+  "s0" | "s1" | "s2" | "s3" | "s4" | "s5" | "s6" | "s7" | "s8" | "s9",
   (opts: SpikeOptions) => Promise<void>
-> = { s0, s1, s2, s3, s4, s5 };
+> = { s0, s1, s2, s3, s4, s5, s6, s7, s8, s9 };
 
 export async function runSpike(
   id: keyof typeof SPIKES,

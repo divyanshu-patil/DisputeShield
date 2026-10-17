@@ -14,11 +14,18 @@ program
     "--dispute <id>",
     "dispute id for s3/s4 (defaults to the S1 disputes)",
   )
-  .option("--carrier <name>", "s3: carrier_name (default USPS)")
+  .option("--order <id>", "s7/s8: Orders API order id")
+  .option("--carrier <name>", "s3/s8: carrier name (default USPS)")
+  .option("--models <list>", "s9: comma-separated models (default LLM_MODEL)")
+  .option("--runs <n>", "s9: drafter runs per model (default 5)")
+  .option(
+    "--toolkit",
+    "s9 part 2: answer through the PayPal toolkit read tools",
+  )
   .option("--file", "s3: attach a 1x1 PNG as a document part")
   .option(
     "--send",
-    "send write requests (s3/s4); without it they are only printed",
+    "send write requests (s3/s4/s7/s8); without it they are only printed",
   )
   .action((id: keyof typeof SPIKES, opts: SpikeOptions) => runSpike(id, opts));
 

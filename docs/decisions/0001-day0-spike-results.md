@@ -163,3 +163,38 @@ Decision: per 11-risks S5 fallback, the 5-minute polling sync is the source of t
   real-time. /api/webhooks/paypal stays (verify → store → enqueue) for when sandbox delivery works. G4 optional.
 Open: whether sandbox emits dispute events at all for UI-filed disputes (Q12 stays open; re-test on Render).
 ```
+
+```text
+Spike: S6  Date: 2026-10-18  Result: PASS (shipping, protection) / PARTIAL (cart)
+What I ran: pnpm ds spike s6  (GET /v1/reporting/transactions, last 30 days,
+  fields=transaction_info,payer_info,shipping_info,cart_info, page_size=100)
+What happened: HTTP 200, 9 transactions, 1 page, last_refreshed_datetime 2026-10-17T17:59:59Z (a payment made
+  ~2 h later was not yet listed: the documented lag is real).
+  - Seller payments are event code T0000 with protection_eligibility "01" and shipping_info
+    {name, address{line1, city, state, country_code, postal_code}}.
+  - Dispute side effects appear as their own rows: T1110 hold (status P, negative amount, protection "02"),
+    T1111 hold release (D), T1107 refund (S). T1900 is the sandbox funding row.
+  - paypal_reference_id_type is TXN (the buyer-side id) for these UI payments, not ODR: there is no order link
+    unless the payment went through the Orders API (S7 created one). cart_info is empty ({}) for them.
+Contract changes: section 4 (event codes, TXN vs ODR, cart only for Orders/cart payments, lag observed).
+Plan changes: txn.item_names may be absent; R-ADDR keeps working (shipping_info present). Schema:
+  @ds/schemas PaypalTransactionSearch; fixture paypal/transactions/search.sandbox.json.
+
+Spike: S9  Date: 2026-10-18  Result: PASS
+What I ran: pnpm ds spike s9 [--models …] (drafter stand-in prompt on DS-001 facts x5, tool round trip,
+  two parallel requests); pnpm ds spike s9 --toolkit (PayPal toolkit read tools driven by Ollama).
+What happened: GET /api/tags lists 21 models. Free plan: gemma4:31b works; glm-5.3-flash → HTTP 402
+  "not included in your free usage".
+  | model         | JSON parse | zod-valid | cites hold | median latency | tool call |
+  | gemma4:31b    | 5/5        | 5/5       | 5/5        | 2.3 s          | yes, grounded |
+  | gpt-oss:120b  | 5/5        | 5/5       | 4/5        | 3.5 s          | yes, grounded |
+  | gpt-oss:20b   | 5/5        | 5/5       | 4/5        | 9.5 s          | yes, grounded |
+  `tool` message with `tool_name` works. Two parallel requests: both 200, no 429 observed.
+  "gemma4:31b:cloud" is also accepted, but /api/tags lists "gemma4:31b"; use the listed name.
+  Toolkit 1.11.0: the `@paypal/agent-toolkit/openai` adapter gives JSON-schema tools that Ollama accepts
+  as-is and `handleToolCall` runs them; no AI SDK needed. Read actions: disputes.list/get, orders.get,
+  shipment.get (not "show"), transactions.list. gemma4:31b called get_dispute on PP-R-GSH-10193291 and
+  answered with the right status and amount (1 tool round, 5.1 s).
+Decision: LLM_MODEL=gemma4:31b. Adapter: packages/agent/src/copilot/toolkit.ts (createPaypalReadTools).
+Contract changes: section 7, Q7 and Q11 answered.
+```

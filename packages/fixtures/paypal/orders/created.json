@@ -1,0 +1,19 @@
+{
+  "id": "5U925703JP3687631",
+  "status": "PAYER_ACTION_REQUIRED",
+  "payment_source": {
+    "paypal": {}
+  },
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v2/checkout/orders/5U925703JP3687631",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://www.sandbox.paypal.com/checkoutnow?token=5U925703JP3687631",
+      "rel": "payer-action",
+      "method": "GET"
+    }
+  ]
+}

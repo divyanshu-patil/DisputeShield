@@ -1,0 +1,500 @@
+{
+  "transaction_details": [
+    {
+      "transaction_info": {
+        "transaction_id": "4C869860FV614480P",
+        "transaction_event_code": "T1900",
+        "transaction_initiation_date": "2026-10-16T16:11:01Z",
+        "transaction_updated_date": "2026-10-16T16:11:01Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "Initial balance",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      },
+      "payer_info": {
+        "address_status": "N",
+        "payer_name": {}
+      },
+      "shipping_info": {},
+      "cart_info": {}
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "3ZCPBP8VKH5FQ",
+        "transaction_id": "93093235NT796845V",
+        "paypal_reference_id": "6N175353601156814",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T0000",
+        "transaction_initiation_date": "2026-10-17T12:51:46Z",
+        "transaction_updated_date": "2026-10-17T12:51:46Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "48.00"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.56"
+        },
+        "transaction_status": "S",
+        "transaction_note": "Order DS-1001: ceramic mug set",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5045.44"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5045.44"
+        },
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      },
+      "payer_info": {
+        "account_id": "3ZCxxxxxxxxxx",
+        "email_address": "buyer@example.com",
+        "phone_number": {
+          "country_code": "1",
+          "national_number": "5555550100"
+        },
+        "address_status": "N",
+        "payer_status": "Y",
+        "payer_name": {
+          "given_name": "Jordan",
+          "surname": "Avery",
+          "alternate_full_name": "Jordan Avery"
+        },
+        "country_code": "US",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "shipping_info": {
+        "name": "Jordan Avery",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "cart_info": {}
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "3ZCPBP8VKH5FQ",
+        "transaction_id": "2UE21765H5395474W",
+        "paypal_reference_id": "883999676N0484120",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T0000",
+        "transaction_initiation_date": "2026-10-17T12:54:46Z",
+        "transaction_updated_date": "2026-10-17T12:54:46Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "129.00"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-6.29"
+        },
+        "transaction_status": "S",
+        "transaction_note": "Order DS-1002: wireless headphones",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5168.15"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5168.15"
+        },
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      },
+      "payer_info": {
+        "account_id": "3ZCxxxxxxxxxx",
+        "email_address": "buyer@example.com",
+        "phone_number": {
+          "country_code": "1",
+          "national_number": "5555550100"
+        },
+        "address_status": "N",
+        "payer_status": "Y",
+        "payer_name": {
+          "given_name": "Jordan",
+          "surname": "Avery",
+          "alternate_full_name": "Jordan Avery"
+        },
+        "country_code": "US",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "shipping_info": {
+        "name": "Jordan Avery",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "cart_info": {}
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "3ZCPBP8VKH5FQ",
+        "transaction_id": "1U8154933L670010R",
+        "paypal_reference_id": "3DX45652S6383154N",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T0000",
+        "transaction_initiation_date": "2026-10-17T12:56:12Z",
+        "transaction_updated_date": "2026-10-17T12:56:12Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "36.00"
+        },
+        "fee_amount": {
+          "currency_code": "USD",
+          "value": "-2.01"
+        },
+        "transaction_status": "S",
+        "transaction_note": "Order DS-1003: linen tote bag",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5202.14"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5202.14"
+        },
+        "protection_eligibility": "01",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      },
+      "payer_info": {
+        "account_id": "3ZCxxxxxxxxxx",
+        "email_address": "buyer@example.com",
+        "phone_number": {
+          "country_code": "1",
+          "national_number": "5555550100"
+        },
+        "address_status": "N",
+        "payer_status": "Y",
+        "payer_name": {
+          "given_name": "Jordan",
+          "surname": "Avery",
+          "alternate_full_name": "Jordan Avery"
+        },
+        "country_code": "US",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "shipping_info": {
+        "name": "Jordan Avery",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "cart_info": {}
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "3ZCPBP8VKH5FQ",
+        "transaction_id": "08H782571K243501W",
+        "paypal_reference_id": "93093235NT796845V",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1110",
+        "transaction_initiation_date": "2026-10-17T13:02:53Z",
+        "transaction_updated_date": "2026-10-17T13:02:53Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-45.44"
+        },
+        "transaction_status": "P",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5156.70"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5156.70"
+        },
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      },
+      "payer_info": {
+        "account_id": "3ZCxxxxxxxxxx",
+        "email_address": "buyer@example.com",
+        "address_status": "N",
+        "payer_status": "Y",
+        "payer_name": {
+          "given_name": "Jordan",
+          "surname": "Avery",
+          "alternate_full_name": "Jordan Avery"
+        },
+        "country_code": "US",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "shipping_info": {
+        "name": "Jordan Avery"
+      },
+      "cart_info": {}
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "3ZCPBP8VKH5FQ",
+        "transaction_id": "7KS74836PJ325574C",
+        "paypal_reference_id": "2UE21765H5395474W",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1110",
+        "transaction_initiation_date": "2026-10-17T13:07:33Z",
+        "transaction_updated_date": "2026-10-17T13:07:33Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-122.71"
+        },
+        "transaction_status": "P",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5033.99"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5033.99"
+        },
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      },
+      "payer_info": {
+        "account_id": "3ZCxxxxxxxxxx",
+        "email_address": "buyer@example.com",
+        "address_status": "N",
+        "payer_status": "Y",
+        "payer_name": {
+          "given_name": "Jordan",
+          "surname": "Avery",
+          "alternate_full_name": "Jordan Avery"
+        },
+        "country_code": "US",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "shipping_info": {
+        "name": "Jordan Avery"
+      },
+      "cart_info": {}
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "3ZCPBP8VKH5FQ",
+        "transaction_id": "7S68207405882720W",
+        "paypal_reference_id": "1U8154933L670010R",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1110",
+        "transaction_initiation_date": "2026-10-17T13:11:03Z",
+        "transaction_updated_date": "2026-10-17T13:11:03Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-33.99"
+        },
+        "transaction_status": "P",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "5000.00"
+        },
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      },
+      "payer_info": {
+        "account_id": "3ZCxxxxxxxxxx",
+        "email_address": "buyer@example.com",
+        "address_status": "N",
+        "payer_status": "Y",
+        "payer_name": {
+          "given_name": "Jordan",
+          "surname": "Avery",
+          "alternate_full_name": "Jordan Avery"
+        },
+        "country_code": "US",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "shipping_info": {
+        "name": "Jordan Avery"
+      },
+      "cart_info": {}
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "3ZCPBP8VKH5FQ",
+        "transaction_id": "4RK28438509138452",
+        "paypal_reference_id": "1U8154933L670010R",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1107",
+        "transaction_initiation_date": "2026-10-17T13:17:35Z",
+        "transaction_updated_date": "2026-10-17T13:17:35Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "-36.00"
+        },
+        "transaction_status": "S",
+        "transaction_subject": "36.0 USD; 2026-10-17 Credit has been processed and claim is now closed. Please refer Dispute ID PP-R-AUY-10193248. Thank you.",
+        "transaction_note": "36.0 USD; 2026-10-17 Credit has been processed and claim is now closed. Please refer Dispute ID PP-R-AUY-10193248. Thank you.",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4964.00"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4964.00"
+        },
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      },
+      "payer_info": {
+        "account_id": "3ZCxxxxxxxxxx",
+        "email_address": "buyer@example.com",
+        "address_status": "N",
+        "payer_status": "Y",
+        "payer_name": {
+          "given_name": "Jordan",
+          "surname": "Avery",
+          "alternate_full_name": "Jordan Avery"
+        },
+        "country_code": "US",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "shipping_info": {
+        "name": "Jordan Avery"
+      },
+      "cart_info": {}
+    },
+    {
+      "transaction_info": {
+        "paypal_account_id": "3ZCPBP8VKH5FQ",
+        "transaction_id": "7S68207405882720W",
+        "paypal_reference_id": "1U8154933L670010R",
+        "paypal_reference_id_type": "TXN",
+        "transaction_event_code": "T1111",
+        "transaction_initiation_date": "2026-10-17T13:11:03Z",
+        "transaction_updated_date": "2026-10-17T13:17:35Z",
+        "transaction_amount": {
+          "currency_code": "USD",
+          "value": "33.99"
+        },
+        "transaction_status": "D",
+        "ending_balance": {
+          "currency_code": "USD",
+          "value": "4997.99"
+        },
+        "available_balance": {
+          "currency_code": "USD",
+          "value": "4997.99"
+        },
+        "protection_eligibility": "02",
+        "instrument_type": "PayPal",
+        "instrument_sub_type": "PayPal Wallet"
+      },
+      "payer_info": {
+        "account_id": "3ZCxxxxxxxxxx",
+        "email_address": "buyer@example.com",
+        "address_status": "N",
+        "payer_status": "Y",
+        "payer_name": {
+          "given_name": "Jordan",
+          "surname": "Avery",
+          "alternate_full_name": "Jordan Avery"
+        },
+        "country_code": "US",
+        "address": {
+          "line1": "1 Test Street",
+          "city": "San Jose",
+          "state": "CA",
+          "country_code": "US",
+          "postal_code": "95131"
+        }
+      },
+      "shipping_info": {
+        "name": "Jordan Avery"
+      },
+      "cart_info": {}
+    }
+  ],
+  "account_number": "BTFxxxxxxxxxx",
+  "start_date": "2026-09-17T19:51:54Z",
+  "end_date": "2026-10-17T17:59:59Z",
+  "last_refreshed_datetime": "2026-10-17T17:59:59Z",
+  "page": 1,
+  "total_items": 9,
+  "total_pages": 1,
+  "links": [
+    {
+      "href": "https://api.sandbox.paypal.com/v1/reporting/transactions?start_date=2026-09-17T19%3A51%3A54Z&end_date=2026-10-17T19%3A51%3A54Z&fields=transaction_info%2Cpayer_info%2Cshipping_info%2Ccart_info&page_size=100&page=1",
+      "rel": "self",
+      "method": "GET",
+      "encType": "application/json"
+    }
+  ]
+}

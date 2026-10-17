@@ -5,7 +5,8 @@ export type RawResponse = { status: number; body: unknown; debugId?: string };
 
 /**
  * Authenticated call against the sandbox. A FormData body is sent as multipart (fetch sets the boundary);
- * a string is sent as-is as JSON; any other body is JSON-serialised. Retries, token refresh, PayPal-Request-Id and the recorder come in P1-5.
+ * a string is sent as-is as JSON; any other body is JSON-serialised. `extraHeaders` carries `PayPal-Request-Id`
+ * (S8). Retries, token refresh and the recorder come in P1-5.
  */
 export async function paypalRequest(
   method: "GET" | "POST",
@@ -13,8 +14,10 @@ export async function paypalRequest(
   accessToken: string,
   body?: unknown,
   doFetch: typeof fetch = fetch,
+  extraHeaders: Record<string, string> = {},
 ): Promise<RawResponse> {
   const headers: Record<string, string> = {
+    ...extraHeaders,
     authorization: `Bearer ${accessToken}`,
     accept: "application/json",
   };

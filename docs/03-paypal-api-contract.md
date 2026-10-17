@@ -151,12 +151,14 @@ Webhook handler rule: verify, store, enqueue, answer fast. All fetching and draf
 | --- | --- | --- |
 | Scope | `https://uri.paypal.com/services/reporting/search/read` | ✅ |
 | Required | `start_date`, `end_date` (ISO 8601), window **at most 31 days** | ✅ |
-| Latency | Data can lag by up to **3 hours** | ✅ |
+| Latency | Data can lag by up to **3 hours**; seen in S6 (`last_refreshed_datetime` about 2 h behind) | ✅ (S6) |
 | `page_size` | 1 to 500 | ✅ |
 | `fields` | `transaction_info`, `payer_info`, `shipping_info`, `auction_info`, `cart_info`, `incentive_info`, `store_info`, `all` | ✅ |
 | Filter by ID | `transaction_id` | ⚠️ |
-| Protection | `transaction_info.protection_eligibility`: `01` eligible, `02` not eligible, `03` partially eligible | ✅ (code meanings ✅ per doc; verify in S6) |
-| Order link | `transaction_info.paypal_reference_id` with `paypal_reference_id_type` = `ODR` points to the order | ✅ |
+| Protection | `transaction_info.protection_eligibility`: `01` eligible, `02` not eligible, `03` partially eligible. Seller payments (T0000) came back `01`; hold/refund rows `02` | ✅ (S6) |
+| Order link | `transaction_info.paypal_reference_id` with `paypal_reference_id_type` = `ODR` points to the order. Payments made outside the Orders API carry `TXN` (the buyer-side transaction) instead, so there is no order to fetch | ✅ (S6) |
+| Rows per payment | Event codes seen: `T0000` payment received, `T1110` dispute hold (status `P`), `T1111` hold release (`D`), `T1107` refund, `T1900` sandbox funding. Extractors read `T0000` rows only | ✅ (S6) |
+| `shipping_info` / `cart_info` | `shipping_info` {`name`, `address`{`line1`,`city`,`state`,`country_code`,`postal_code`}} present on T0000. `cart_info` is `{}` for non-cart payments; `txn.item_names` is optional | ✅ (S6) |
 | Your own refs | `invoice_id`, `custom_field` | ✅ |
 | App feature | "Transaction search" must be enabled on the app | ✅ |
 
@@ -183,10 +185,10 @@ Idempotency: every write we send carries a `PayPal-Request-Id` we generate and s
 | --- | --- | --- |
 | Import | `import { PayPalAgentToolkit } from '@paypal/agent-toolkit/ai-sdk'` | ✅ |
 | Constructor | `clientId`, `clientSecret`, `configuration: { actions: {…}, context: { sandbox: true } }` | ✅ |
-| Actions used (read only) | `disputes: { list: true, get: true }`, `shipment: { show: true }`, `orders: { get: true }`, plus transactions listing if present ❓ | ✅ for the first three |
+| Actions used (read only) | `disputes: { list: true, get: true }`, `orders: { get: true }`, `shipment: { get: true }` (not `show`), `transactions: { list: true }` → tools `list_disputes`, `get_dispute`, `get_order`, `get_shipment_tracking`, `list_transactions` | ✅ (S9, 1.11.0) |
 | Tools | `toolkit.getTools()`; the documented usage passes them to the AI SDK `generateText` | ✅ |
-| Use without the AI SDK (this build uses Ollama, not the AI SDK) | `getTools()` returns AI SDK tool objects; whether each has a directly callable `execute` and a JSON schema we can hand to Ollama as a `tools` entry is not confirmed. Other adapter import paths may exist | ❓ S9 part 2 |
-| AI SDK major version | The documented examples use `maxSteps`, which suggests an older AI SDK major. Only matters if the toolkit's own dependency pulls the SDK in; we do not call `generateText` | ❓ S9 records the installed versions in `packages/agent/package.json` |
+| Use without the AI SDK (this build uses Ollama, not the AI SDK) | Import `@paypal/agent-toolkit/openai`: `getTools()` returns OpenAI-format JSON-schema tools that Ollama accepts unchanged; `handleToolCall({id, type, function:{name, arguments}})` runs one and returns `{content}`. Wrapped as `createPaypalReadTools` in `packages/agent/src/copilot/toolkit.ts` | ✅ (S9) |
+| AI SDK major version | Toolkit 1.11.0 depends on `ai` ^4, `openai` 4.86.1, `@langchain/core`, zod 3 (about 200 packages). We never import the AI SDK; pinned `@paypal/agent-toolkit` 1.11.0 in `packages/agent` | ✅ (S9) |
 | Env alternative | `PAYPAL_ACCESS_TOKEN`, `PAYPAL_ENVIRONMENT` | ✅ |
 | Node | 18 or newer | ✅ |
 | Gaps | The toolkit exposes about 43 functions in total ✅ (counted), but **no evidence upload, accept-claim or payout tools**; that is why disputes writes go through our own REST client | ✅ |
@@ -213,9 +215,9 @@ Webhook endpoint (ours): `POST <API_ORIGIN>/api/webhooks/paypal` on the Fastify 
 | Q4 | Exact nested paths in order details for captures, refunds, trackers | S7 | `extract-order.ts` |
 | Q5 | `accept-claim` required fields and reasons (`REFUND` needs only `accept_claim_type`; `note` accepted) | S4 | accept flow |
 | Q6 | Does the add-tracking endpoint behave as remembered, and does it accept `PayPal-Request-Id`? | S8 | Prevent module |
-| Q7 | Can the toolkit's read tools be called directly and exposed to Ollama as `tools` (versions that install cleanly)? | S9 part 2 | Case Copilot |
+| Q7 | Can the toolkit's read tools be called directly and exposed to Ollama as `tools`? **Yes** via the `/openai` adapter (1.11.0), S9 2026-10-18 | S9 part 2 | answered |
 | Q8 | AG Studio licence mechanism and variable name; custom widget registration | S10 | dashboard |
-| Q11 | Which Ollama Cloud model parses JSON reliably and supports tool calls; is API access on the free plan? | S9 | drafter, analyst, copilot |
+| Q11 | Which Ollama Cloud model parses JSON reliably and supports tool calls? **gemma4:31b** (free plan; 5/5 parse and cites, tools work, 2.3 s median). Some models need paid usage (HTTP 402). S9 2026-10-18 | S9 | answered |
 | Q12 | Does the PayPal webhook still reach and verify on a Render free instance after idle (cold start), and does PayPal retry? | S5, S11 | hosted real-time story |
 | Q9 | Webhook failed-verification code and retry count (code answered: 200 + `FAILURE`; retries open) | S5 | none (designed around) |
 | Q10 | Are all `dispute_state` and `status` values captured? (S2: only INQUIRY / `REQUIRED_ACTION` / `WAITING_FOR_SELLER_RESPONSE`, `UNDER_REVIEW` once; later stages pending S3/S4) | S2, S3, S4 | state mapping |

@@ -13,13 +13,33 @@ const SECRET_KEYS = new Set([
   "client_secret",
   "payer_id",
   "merchant_id",
+  "account_id",
+  "account_number",
 ]);
 const EMAIL = /[^\s@"]+@[^\s@"]+\.[^\s@"]+/g;
 
-// Dispute parties (`disputed_transactions[].buyer` / `.seller`) get stable synthetic identities.
+// Keyed by the parent field: dispute parties, and the names, street lines and phones in Transaction
+// search (S6) and order details (S7) get stable synthetic values. Postal code, state and country stay,
+// because facts compare them.
+const STREET = { line1: "1 Test Street", address_line_1: "1 Test Street" };
 const PARTIES: Record<string, Record<string, string>> = {
   buyer: { name: "Jordan Avery", email: "buyer@example.com" },
   seller: { name: "Hearthside Ceramics", email: "seller@example.com" },
+  shipping_info: { name: "Jordan Avery" },
+  payer_name: {
+    given_name: "Jordan",
+    surname: "Avery",
+    alternate_full_name: "Jordan Avery",
+  },
+  name: { given_name: "Jordan", surname: "Avery", full_name: "Jordan Avery" },
+  address: {
+    ...STREET,
+    line2: "Unit 1",
+    address_line_2: "Unit 1",
+    city: "San Jose",
+    admin_area_2: "San Jose",
+  },
+  phone_number: { national_number: "5555550100" },
 };
 
 /** Keeps the first three characters and the length, so a fixture still looks like the real thing. */

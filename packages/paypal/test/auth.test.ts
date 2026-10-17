@@ -83,6 +83,40 @@ describe("redact", () => {
       expires_in: 3,
     });
   });
+  it("replaces_names_streets_and_phones_keeping_postal_code", () => {
+    const out = redact({
+      payer_info: {
+        account_id: "QBD8EVNX2QBNC",
+        payer_name: { given_name: "Real", surname: "Person" },
+        phone_number: { national_number: "4085551234" },
+      },
+      shipping_info: {
+        name: "Real Person",
+        address: {
+          line1: "9 Real Rd",
+          city: "Austin",
+          postal_code: "95131",
+          country_code: "US",
+        },
+      },
+    });
+    expect(out).toEqual({
+      payer_info: {
+        account_id: "QBDxxxxxxxxxx",
+        payer_name: { given_name: "Jordan", surname: "Avery" },
+        phone_number: { national_number: "5555550100" },
+      },
+      shipping_info: {
+        name: "Jordan Avery",
+        address: {
+          line1: "1 Test Street",
+          city: "San Jose",
+          postal_code: "95131",
+          country_code: "US",
+        },
+      },
+    });
+  });
   it("replaces_dispute_parties_and_masks_account_ids", () => {
     const out = redact({
       buyer: { name: "Real Name", email: "r@x.com", payer_id: "3ZCPBP8VKH5FQ" },

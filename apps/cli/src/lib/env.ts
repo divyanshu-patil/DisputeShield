@@ -35,3 +35,29 @@ export function paypalWebhookId(): string {
   if (!id.success) throw new Error("Missing in .env: PAYPAL_WEBHOOK_ID");
   return id.data;
 }
+
+const Ollama = z.object({
+  OLLAMA_API_KEY: z.string().min(1),
+  OLLAMA_HOST: z.string().url().default("https://ollama.com"),
+  LLM_MODEL: z.string().min(1),
+});
+
+/** Ollama Cloud settings for spike S9. Errors name keys, never values. */
+export function ollamaConfig(): {
+  apiKey: string;
+  host: string;
+  model: string;
+} {
+  if (existsSync(ROOT_ENV)) process.loadEnvFile(ROOT_ENV);
+  const parsed = Ollama.safeParse(process.env);
+  if (!parsed.success) {
+    throw new Error(
+      `Missing in .env: ${parsed.error.issues.map((i) => i.path.join(".")).join(", ")}`,
+    );
+  }
+  return {
+    apiKey: parsed.data.OLLAMA_API_KEY,
+    host: parsed.data.OLLAMA_HOST,
+    model: parsed.data.LLM_MODEL,
+  };
+}
