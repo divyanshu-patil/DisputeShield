@@ -1,10 +1,22 @@
+import { createDb, runMigrations } from "@ds/db";
 import { buildContainer } from "./container.js";
 import { EnvError, loadEnv } from "./env.js";
 import { buildServer } from "./server.js";
 
 async function main(): Promise<void> {
   const env = loadEnv();
-  const app = await buildServer({ env, deps: buildContainer(env) });
+  if (env.DATABASE_URL) {
+    const m = createDb(env.DATABASE_URL, { max: 1 });
+    await runMigrations(m.db);
+    await m.close();
+  }
+  const deps = buildContainer(env);
+  const app = await buildServer({ env, deps });
+  if (deps.close) app.addHook("onClose", deps.close);
+  // Replay demo with an empty database: load the scenarios so the queue is never blank.
+  if (env.DS_MODE === "replay" && deps.services && (await deps.disputes.list({ limit: 1 })).length === 0) {
+    app.log.info(await deps.services.seed(), "seeded replay demo");
+  }
 
   const shutdown = async (signal: string): Promise<void> => {
     app.log.info({ signal }, "shutting down");

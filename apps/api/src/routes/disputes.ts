@@ -19,6 +19,12 @@ const DisputeRowSchema = z.object({
   currency: z.string().length(3),
   sellerResponseDue: z.string().nullable(),
   caseState: z.string(),
+  caseId: z.string().nullable().optional(),
+  strength: z.string().nullable().optional(),
+  recommendedAction: z.string().nullable().optional(),
+  allowedActions: z.array(z.string()).optional(),
+  disputedTransactionId: z.string().nullable().optional(),
+  createdAtPaypal: z.string().nullable().optional(),
 });
 
 export function disputeRoutes(app: FastifyInstance, deps: Deps): void {

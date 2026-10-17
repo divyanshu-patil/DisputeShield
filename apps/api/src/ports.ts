@@ -1,3 +1,5 @@
+import type { PostgresJobQueue, Repos } from "@ds/db";
+import type { Pipeline } from "@ds/pipeline";
 import type { StudioTurnRequest, StudioTurnResponse } from "@ds/schemas";
 
 // Ports the HTTP layer depends on. Real implementations come from @ds/db, @ds/paypal and
@@ -46,6 +48,12 @@ export type DisputeRow = {
   currency: string;
   sellerResponseDue: string | null;
   caseState: string;
+  caseId?: string | null;
+  strength?: string | null;
+  recommendedAction?: string | null;
+  allowedActions?: string[];
+  disputedTransactionId?: string | null;
+  createdAtPaypal?: string | null;
 };
 
 export interface DisputeReader {
@@ -65,6 +73,18 @@ export interface StudioLlm {
   status(): Promise<"ok" | "down" | "not_configured">;
 }
 
+/** Database-backed case services. Absent with the in-memory adapters (no DATABASE_URL): those routes answer 501. */
+export type Services = {
+  pipeline: Pipeline;
+  repos: Repos;
+  queue: PostgresJobQueue | null;
+  /** Demo CSV for the Fulfilment page (replay scenarios, dates relative to now). */
+  sampleCsv: () => string;
+  seed: () => Promise<unknown>;
+  /** Run due jobs soon instead of waiting for the next worker tick. */
+  kick: () => void;
+};
+
 export type Deps = {
   events: EventStore;
   verifier: WebhookVerifier;
@@ -73,4 +93,5 @@ export type Deps = {
   health: HealthProbe;
   studioLlm: StudioLlm;
   clock: () => Date;
+  services?: Services;
 };

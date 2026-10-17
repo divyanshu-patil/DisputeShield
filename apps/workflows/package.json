@@ -13,8 +13,15 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@ds/agent": "workspace:*",
+    "@ds/db": "workspace:*",
+    "@ds/fixtures": "workspace:*",
     "@ds/jobs": "workspace:*",
+    "@ds/paypal": "workspace:*",
+    "@ds/pipeline": "workspace:*",
     "@renderinc/sdk": "catalog:",
+    "drizzle-orm": "0.45.3",
+    "postgres": "3.4.9",
     "zod": "catalog:"
   },
   "devDependencies": {

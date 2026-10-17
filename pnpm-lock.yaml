@@ -50,9 +50,24 @@ importers:
       '@ds/agent':
         specifier: workspace:*
         version: link:../../packages/agent
+      '@ds/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@ds/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@ds/fixtures':
+        specifier: workspace:*
+        version: link:../../packages/fixtures
       '@ds/jobs':
         specifier: workspace:*
         version: link:../../packages/jobs
+      '@ds/paypal':
+        specifier: workspace:*
+        version: link:../../packages/paypal
+      '@ds/pipeline':
+        specifier: workspace:*
+        version: link:../../packages/pipeline
       '@ds/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
@@ -74,9 +89,15 @@ importers:
       '@renderinc/sdk':
         specifier: 'catalog:'
         version: 1.2.0(@opentelemetry/api@1.9.0)
+      drizzle-orm:
+        specifier: 0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.0)(postgres@3.4.9)
       fastify:
         specifier: 5.12.7
         version: 5.12.7
+      postgres:
+        specifier: 3.4.9
+        version: 3.4.9
       zod:
         specifier: 'catalog:'
         version: 4.6.7
@@ -203,12 +224,33 @@ importers:
 
   apps/workflows:
     dependencies:
+      '@ds/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@ds/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@ds/fixtures':
+        specifier: workspace:*
+        version: link:../../packages/fixtures
       '@ds/jobs':
         specifier: workspace:*
         version: link:../../packages/jobs
+      '@ds/paypal':
+        specifier: workspace:*
+        version: link:../../packages/paypal
+      '@ds/pipeline':
+        specifier: workspace:*
+        version: link:../../packages/pipeline
       '@renderinc/sdk':
         specifier: 'catalog:'
         version: 1.2.0(@opentelemetry/api@1.9.0)
+      drizzle-orm:
+        specifier: 0.45.3
+        version: 0.45.3(@opentelemetry/api@1.9.0)(postgres@3.4.9)
+      postgres:
+        specifier: 3.4.9
+        version: 3.4.9
       zod:
         specifier: 'catalog:'
         version: 4.6.7

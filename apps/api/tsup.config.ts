@@ -10,4 +10,6 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   noExternal: [/^@ds\//],
+  // Migrations run at startup from dist/drizzle (packages/db/src/migrate.ts).
+  onSuccess: "cp -R ../../packages/db/drizzle dist/drizzle",
 });

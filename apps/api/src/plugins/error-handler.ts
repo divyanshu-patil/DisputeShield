@@ -1,5 +1,8 @@
 import type { FastifyInstance } from "fastify";
+import { ServiceError } from "@ds/pipeline";
 import { AppError, TooManyRequestsError } from "../errors.js";
+
+const SERVICE_STATUS = { NOT_FOUND: 404, CONFLICT: 409, VALIDATION_ERROR: 400, UPSTREAM: 502 } as const;
 
 type ErrorBody = { error: { code: string; message: string; requestId: string; details?: unknown } };
 
@@ -10,6 +13,12 @@ export function registerErrorHandling(app: FastifyInstance): void {
   });
 
   app.setErrorHandler((err: unknown, req, reply) => {
+    if (err instanceof ServiceError) {
+      const body: ErrorBody = {
+        error: { code: err.code, message: err.message, requestId: req.id, ...(err.details ? { details: err.details } : {}) },
+      };
+      return reply.code(SERVICE_STATUS[err.code]).send(body);
+    }
     if (err instanceof AppError) {
       if (err instanceof TooManyRequestsError && err.retryAfterSeconds) reply.header("retry-after", String(err.retryAfterSeconds));
       const body: ErrorBody = {

@@ -61,7 +61,9 @@ export async function registerOpenApi(app: FastifyInstance): Promise<void> {
         { name: "auth", description: "Demo access-code session" },
         { name: "webhooks", description: "PayPal webhook intake" },
         { name: "disputes", description: "Dispute queue and cases" },
-        { name: "studio", description: "LLM proxy for the AG Studio dashboard agent" },
+        { name: "studio", description: "LLM proxy and analytics for the AG Studio dashboard" },
+        { name: "risk", description: "Prevent: risk flags on recent payments" },
+        { name: "fulfilment", description: "Seller fulfilment CSV" },
       ],
       components: {
         securitySchemes: {

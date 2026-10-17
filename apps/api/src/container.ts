@@ -1,5 +1,6 @@
 import { createOllamaClient, createStudioTurnHandler } from "@ds/agent";
 import { Render } from "@renderinc/sdk";
+import { buildDatabaseDeps } from "./adapters/database.js";
 import { buildMemoryDeps } from "./adapters/memory.js";
 import { RenderJobQueue } from "./adapters/render-queue.js";
 import type { Env } from "./env.js";
@@ -10,13 +11,12 @@ import type { Deps, StudioLlm } from "./ports.js";
  *
  * Already real:  studioLlm -> Ollama Cloud through @ds/agent (when OLLAMA_API_KEY is set).
  * Real when DS_JOB_BACKEND=render: jobs -> Render Workflows (adapters/render-queue.ts).
- * Still memory:  events, jobs (postgres backend), disputes, health -> @ds/db repositories and queue   (P1-3, P1-4)
- *                verifier                       -> @ds/paypal verify-postback      (P1-7)
- *                job handlers                   -> @ds/core + @ds/paypal + @ds/agent (P2-8)
+ * Real when DATABASE_URL is set: events, jobs (postgres backend), disputes, health, case services and the
+ *                live webhook verifier (adapters/database.ts). Without it the in-memory adapters run.
  * Keep this file free of business rules.
  */
-export function buildContainer(env: Env): Deps {
-  const deps = buildMemoryDeps(env.DS_MODE);
+export function buildContainer(env: Env, log?: (msg: string, extra?: Record<string, unknown>) => void): Deps & { close?: () => Promise<void> } {
+  let deps: Deps & { close?: () => Promise<void> } = buildMemoryDeps(env.DS_MODE);
   if (env.OLLAMA_API_KEY && env.LLM_MODEL) {
     deps.studioLlm = buildOllamaStudioLlm(env.OLLAMA_API_KEY, env.OLLAMA_HOST, env.LLM_MODEL);
   }
@@ -27,6 +27,10 @@ export function buildContainer(env: Env): Deps {
       startTask: (slug, args, options) => render.workflows.startTask(slug, args, options),
       clock: deps.clock,
     });
+  }
+  if (env.DATABASE_URL) {
+    const built = buildDatabaseDeps(env, deps, env.DATABASE_URL, log);
+    deps = { ...built.deps, close: built.close };
   }
   return deps;
 }
