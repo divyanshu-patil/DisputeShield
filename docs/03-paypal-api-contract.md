@@ -140,6 +140,7 @@ Fallback if the buyer scopes are not available (UI route ✅): in the sandbox, u
 | Dedup | Atomically insert the event ID (unique constraint) before any work; a conflict means "already seen, answer 200" | design rule |
 | Raw body | The body must be captured raw before parsing, because the signature is computed over exact bytes (offline mode) and we store it for audit | design rule |
 | Offline verification | Works with the simulator's events; the postback method does not verify simulator events (confirmed: FAILURE, S5) | ⚠️ third-party (offline part) |
+| Real dispute events (sandbox) | None emitted for this app across 4 disputes (create, evidence, send-message, resolve), even with the "Customer disputes" feature on; the dashboard Webhook Events log stays empty. Simulator events do deliver | ❌ (S5): polling is the source of truth; webhooks are an optional speed-up |
 | Delivery details | Extra header `PAYPAL-AUTH-VERSION: v2`; `PAYPAL-CERT-URL` and event `links` point at `api.paypal.com` even in the sandbox, so never follow them: re-fetch by `resource.dispute_id` from the sandbox host. Event body: `id`, `event_type`, `event_version`, `create_time`, `resource_type` `dispute`, `summary`, `resource` (a dispute), `links` | ✅ (S5, simulator) |
 
 Webhook handler rule: verify, store, enqueue, answer fast. All fetching and drafting happens in jobs (`architecture.md` section 5.1). The webhook payload is a hint; we always re-fetch dispute details before acting.

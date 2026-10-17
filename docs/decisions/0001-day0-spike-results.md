@@ -151,3 +151,15 @@ Spike: S5 (continued)  Date: 2026-10-18  Result: no real event yet
     PayPal has not emitted any real CUSTOMER.DISPUTE.* event for this app; simulator events do arrive.
   - A second simulator test (00:48:41 IST) was not delivered within 10 minutes (ngrok and API had been restarted).
 ```
+
+```text
+Spike: S5 (closed)  Date: 2026-10-18  Result: PARTIAL, fallback taken (polling)
+What I ran: new $36 payment (buyer pressed Send) → item-not-received dispute PP-R-GSH-10193291 filed in the
+  buyer UI after "Customer disputes" was switched on; ngrok watched 10 minutes; dashboard Webhook Events checked.
+What happened: the dispute reached WAITING_FOR_SELLER_RESPONSE with links self, accept_claim, make_offer, escalate,
+  send_message, provide_evidence. No CUSTOMER.DISPUTE.* delivery reached ngrok and the Webhook Events log shows
+  "No data". Endpoint reachable (public /api/health 200).
+Decision: per 11-risks S5 fallback, the 5-minute polling sync is the source of truth and the UI does not claim
+  real-time. /api/webhooks/paypal stays (verify → store → enqueue) for when sandbox delivery works. G4 optional.
+Open: whether sandbox emits dispute events at all for UI-filed disputes (Q12 stays open; re-test on Render).
+```
