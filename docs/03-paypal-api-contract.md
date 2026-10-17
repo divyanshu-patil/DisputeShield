@@ -169,13 +169,16 @@ Idempotency: every write we send carries a `PayPal-Request-Id` we generate and s
 | Import | `import { PayPalAgentToolkit } from '@paypal/agent-toolkit/ai-sdk'` | ✅ |
 | Constructor | `clientId`, `clientSecret`, `configuration: { actions: {…}, context: { sandbox: true } }` | ✅ |
 | Actions used (read only) | `disputes: { list: true, get: true }`, `shipment: { show: true }`, `orders: { get: true }`, plus transactions listing if present ❓ | ✅ for the first three |
-| Tools | `toolkit.getTools()`, used with the AI SDK `generateText` | ✅ |
-| AI SDK major version | The documented examples use `maxSteps`, which suggests an older AI SDK major | ❓ S9 pins the compatible version and records it in `packages/agent/package.json` |
+| Tools | `toolkit.getTools()`; the documented usage passes them to the AI SDK `generateText` | ✅ |
+| Use without the AI SDK (this build uses Ollama, not the AI SDK) | `getTools()` returns AI SDK tool objects; whether each has a directly callable `execute` and a JSON schema we can hand to Ollama as a `tools` entry is not confirmed. Other adapter import paths may exist | ❓ S9 part 2 |
+| AI SDK major version | The documented examples use `maxSteps`, which suggests an older AI SDK major. Only matters if the toolkit's own dependency pulls the SDK in; we do not call `generateText` | ❓ S9 records the installed versions in `packages/agent/package.json` |
 | Env alternative | `PAYPAL_ACCESS_TOKEN`, `PAYPAL_ENVIRONMENT` | ✅ |
 | Node | 18 or newer | ✅ |
 | Gaps | The toolkit exposes about 43 functions in total ✅ (counted), but **no evidence upload, accept-claim or payout tools**; that is why disputes writes go through our own REST client | ✅ |
 
 Rule: the toolkit is used only inside `packages/agent/src/copilot`, only with read actions, and every result is recorded through `record-tools.ts` so it appears as a citable fact.
+
+Webhook endpoint (ours): `POST <API_ORIGIN>/api/webhooks/paypal` on the Fastify service (`13-api-service-spec.md` section 4). The URL registered in the PayPal app is the hosted API URL (or a tunnel in development), not the Next.js web URL. A sleeping free instance may delay the first delivery; PayPal's retry behaviour is ❓ (Q9, Q12), so the 5-minute polling sync remains the backstop.
 
 ## 8. Fixture strategy
 
@@ -195,8 +198,10 @@ Rule: the toolkit is used only inside `packages/agent/src/copilot`, only with re
 | Q4 | Exact nested paths in order details for captures, refunds, trackers | S7 | `extract-order.ts` |
 | Q5 | `accept-claim` required fields and reasons | S4 | accept flow |
 | Q6 | Does the add-tracking endpoint behave as remembered, and does it accept `PayPal-Request-Id`? | S8 | Prevent module |
-| Q7 | Which AI SDK version works with the toolkit? | S9 | Case Copilot |
-| Q8 | AG Studio licence mechanism and variable name | S10 | dashboard |
+| Q7 | Can the toolkit's read tools be called directly and exposed to Ollama as `tools` (versions that install cleanly)? | S9 part 2 | Case Copilot |
+| Q8 | AG Studio licence mechanism and variable name; custom widget registration | S10 | dashboard |
+| Q11 | Which Ollama Cloud model parses JSON reliably and supports tool calls; is API access on the free plan? | S9 | drafter, analyst, copilot |
+| Q12 | Does the PayPal webhook still reach and verify on a Render free instance after idle (cold start), and does PayPal retry? | S5, S11 | hosted real-time story |
 | Q9 | Webhook failed-verification code and retry count | S5 | none (designed around) |
 | Q10 | Are all `dispute_state` and `status` values captured? | S2 | state mapping |
 

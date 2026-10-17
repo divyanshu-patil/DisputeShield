@@ -48,7 +48,7 @@ Scenario names refer to the demo shop "Hearthside Ceramics" (fictional): DS-001 
 | --- | --- | --- | --- |
 | AC-EVID-01 | M | **Given** DS-001 facts and a working model, **when** drafting runs, **then** the draft has between 1 and 8 statements, each with at least one valid fact key, and the draft is stored with `model`, `prompt_version`, `origin = MODEL`. | I, L |
 | AC-EVID-02 | M | **Given** no API key or a model timeout (30 s), **when** drafting runs, **then** a draft with `origin = TEMPLATE_FALLBACK` is produced from facts only, passes the verifier, and the UI shows the "AI drafting unavailable" banner. | U, E |
-| AC-EVID-03 | M | **Given** the model output violates the schema, **when** drafting runs, **then** one repair attempt is made with the error text; if still invalid the fallback is used. | U |
+| AC-EVID-03 | M | **Given** the model reply is not parseable JSON, or parses but violates the zod schema (Ollama Cloud has no structured-output mode ✅, so this is an expected case), **when** drafting runs, **then** one repair attempt is made with the error text; if still invalid the template fallback is used. | U |
 | AC-EVID-04 | M | **Given** the prompt input, **when** it is built, **then** it contains no buyer name, email, street address or phone number and no raw payloads. | U |
 | AC-EVID-05 | M | **Given** the drafter output, **when** the draft is persisted, **then** `evidenceType` is one of the allowed types for the case. | U |
 | AC-EVID-06 | M | **Given** blocking checklist items are missing, **when** drafting runs, **then** no evidence statements are produced and the recommendation is `REVIEW` with an explanation of what is missing. | U |
@@ -125,9 +125,91 @@ Scenario names refer to the demo shop "Hearthside Ceramics" (fictional): DS-001 
 | AC-UI-06 | S | Lighthouse accessibility score ≥ 90 on `/disputes` and `/disputes/[id]` in replay mode. | M |
 | AC-UI-07 | M | The UI is usable at 1280×720 and at 390 px width (no horizontal scroll on Queue and Case). | E |
 | AC-UI-08 | S | Dark theme renders AG Grid and AG Studio without unreadable text. | M |
-| AC-UI-09 | S | **Given** the Health dashboard, **then** it renders KPI row, two bar charts, the "Deadline runway" widget and the "Verifier ledger" widget from live DB data. | E |
+| AC-UI-09 | S | **Given** the Health dashboard, **then** it renders KPI row, two bar charts, the "Deadline runway" widget and the "Verifier ledger" widget from live DB data (detail in AC-STUDIO-*). | E |
 | AC-UI-10 | M | **Given** the access code is wrong, **then** the login shows an error and no data route responds with data. | I, E |
 | AC-UI-11 | M | AI-drafted text is labelled as AI-drafted until approved. | E |
+
+## AC-API — Fastify service (`apps/api`)
+
+Spec: `13-api-service-spec.md`. Starter tests exist in `apps/api/test/api.test.ts`.
+
+| ID | P | Criterion | By |
+| --- | --- | --- | --- |
+| AC-API-01 | M | **Given** any error (validation, auth, not found, upstream, unexpected), **then** the body is `{ error: { code, message, requestId, details? } }` and unexpected errors reveal no stack or internal message. | U |
+| AC-API-02 | M | **Given** a request with `x-request-id`, **then** it is echoed on the response and appears in the log line; without it one is generated. | U |
+| AC-API-03 | M | **Given** `GET /api/health`, **then** it needs no session, reports mode, submit mode, job backend, database, LLM, last sync, last webhook, and contains no secret, key, id or URL. | U |
+| AC-API-04 | M | **Given** no valid `ds_session` cookie, **when** any non-public route is called, **then** it returns 401; **given** the wrong access code, login returns 401 and sets no cookie; the access-code compare is timing-safe. | U |
+| AC-API-05 | M | **Given** more than 10 login attempts a minute from one client, **then** the next gets 429 with `Retry-After`. | U |
+| AC-API-06 | M | **Given** an invalid environment, **when** the service starts, **then** it exits with a message naming each bad variable and never printing a value; `DS_SUBMIT_MODE=live` without `DS_MODE=live`, `DS_MODE=live` without PayPal credentials or `DATABASE_URL`, an Ollama key without a model, and the Render backend without its key or slug are all refused. | U |
+| AC-API-07 | M | **Given** `GET /api/openapi.json`, **then** it is valid OpenAPI 3 listing every route with its security scheme and the shared error body, and `pnpm openapi:check` fails CI if `docs/openapi.json` is stale. | U, CI |
+| AC-API-08 | M | **Given** a cross-origin request from an origin other than `WEB_ORIGIN`, **then** no CORS allow header is returned; responses carry Helmet security headers. | U |
+| AC-API-09 | M | **Given** the web app in production, **then** the browser reaches the API through the same-origin rewrite, the session cookie is first-party, and no secret appears in the web bundle (grep in CI) (S12). | M, CI |
+| AC-API-10 | M | **Given** a graceful shutdown signal, **then** the server stops accepting requests and waits for the in-flight worker tick before exiting. | U |
+
+## AC-LLM — Ollama Cloud
+
+| ID | P | Criterion | By |
+| --- | --- | --- | --- |
+| AC-LLM-01 | M | **Given** a configured key, **then** every Ollama request sends `Authorization: Bearer <key>` to `<OLLAMA_HOST>/api/chat` with `stream:false`, and never sends a `format` parameter. | U |
+| AC-LLM-02 | M | **Given** a timeout, 401/403, 429 or 5xx from Ollama, **then** the client raises a typed error (`LlmTimeoutError`, `LlmAuthError`, `LlmRateLimitError`, `LlmError`) and the Studio proxy maps them to 504, 502 `LLM_PROVIDER_AUTH`, 429 with `Retry-After`, and 502. | U |
+| AC-LLM-03 | M | **Given** a model reply with prose around a JSON object, or a fenced block, **then** `extractJsonObject` returns the object; **given** no object, it returns an error that triggers the repair path. | U |
+| AC-LLM-04 | M | **Given** no `OLLAMA_API_KEY`, **then** `/api/health` reports `llm: not_configured`, the Dispute analyst replies with an honest notice, and drafting uses templates (AC-EVID-02). | U, E |
+| AC-LLM-05 | M | **Given** the key is set, **then** it never appears in any response, log line, error message, OpenAPI document or the web bundle. | U, CI |
+| AC-LLM-06 | S | **Given** a live key (spike S9), **then** the chosen `LLM_MODEL` completes a drafter call and a tool-calling call, and the model name is recorded in `docs/decisions/`. | L |
+
+## AC-DB — Supabase Postgres
+
+| ID | P | Criterion | By |
+| --- | --- | --- | --- |
+| AC-DB-01 | M | **Given** `DATABASE_URL`, **then** migrations and the jobs queue run against the Supabase **session pooler or direct** connection; the docs and `.env.example` say never to use port 6543 for the app. | I, L |
+| AC-DB-02 | M | **Given** the app connects, **then** it runs only standard Postgres (no Supabase Auth, Storage, Realtime or Data API), and the same migrations pass against `docker compose` Postgres. | I |
+| AC-DB-03 | S | **Given** the Supabase project, **then** Row Level Security is enabled on every application table with no public policy, so the Data API cannot return case data (S11). | M |
+| AC-DB-04 | M | **Given** the hosted demo, **then** a periodic job touches the database at least daily and `docs/demo-uptime.md` records that the project was not paused (free projects pause after low activity over 7 days ✅). | M |
+
+## AC-STUDIO — AG Studio dashboard and Dispute analyst (Track A)
+
+| ID | P | Criterion | By |
+| --- | --- | --- | --- |
+| AC-STUDIO-01 | S | **Given** replay data, **then** the Health dashboard renders in `view` mode from the four analytics sources (`disputes`, `evidence_items`, `statements`, `risk_flags`) with no PII fields. | E, I |
+| AC-STUDIO-02 | S | **Given** the Deadline runway widget, **then** one mark per open dispute appears at its response deadline, overdue and under-24-hour marks differ by shape and text label as well as colour, and clicking a mark opens the case. | U (view component), E |
+| AC-STUDIO-03 | S | **Given** the Verifier ledger widget, **then** its accepted, rejected and per-reason counts equal the counts computed directly from `statements`. | U |
+| AC-STUDIO-04 | S | **Given** the app's design tokens, **then** the Studio theme is built from them and light and dark both render legibly (AC-UI-08). | M |
+| AC-STUDIO-05 | S | **Given** the Dispute analyst, **then** its tool list is exactly `viewSchema`, `viewReport`, `viewPage`, `viewWidget`, `executeQuery` (asserted in a unit test), so it cannot edit the report or contact PayPal. | U |
+| AC-STUDIO-06 | S | **Given** the proxy LLM adapter, **when** the API returns 401, 429, 5xx or the network fails, **then** `executeTurn` does not throw into Studio; `complete` resolves with status `failed` and a plain-language error; an aborted signal cancels the request. | U |
+| AC-STUDIO-07 | S | **Given** a turn response with text and tool calls, **then** the adapter emits `TEXT_MESSAGE_START/CONTENT/END` and `TOOL_CALL_START/ARGS/END` events in order and `complete` matches. | U |
+| AC-STUDIO-08 | S | **Given** the analyst answers a question about deadlines or money, **then** the number comes from an `executeQuery` result (checked in the recorded demo session), and no answer contains a win probability. | M, eval |
+
+## AC-RENDER — Render Workflows (Track B)
+
+Starter tests: `apps/workflows/test/tasks.test.ts`, `apps/api/test/api.test.ts` ("render job backend").
+
+| ID | P | Criterion | By |
+| --- | --- | --- | --- |
+| AC-RENDER-01 | S | **Given** the workflow service, **then** one task exists per job kind plus `process_dispute`, named exactly as the kinds, each validating its payload with `@ds/jobs` before running. | U |
+| AC-RENDER-02 | S | **Given** `process_dispute`, **then** it runs `collect_case` then `draft_case` as separate task runs and never calls submit. | U |
+| AC-RENDER-03 | S | **Given** a task without a registered handler, **then** it fails with `JobNotImplementedError` rather than succeeding. | U |
+| AC-RENDER-04 | S | **Given** `DS_JOB_BACKEND=render`, **then** enqueue calls `startTask("<slug>/<kind>")` with an idempotency key (event id when given, else a 5-minute bucket), the inline worker is off, and `/api/health` shows `jobBackend: render`. | U |
+| AC-RENDER-05 | S | **Given** a redelivered webhook event, **then** no second task run is started. | I |
+| AC-RENDER-06 | S | **Given** the hosted demo, **then** `render.yaml` is applied, a webhook or the 5-minute cron produces a visible `sync_disputes`/`process_dispute` run in the Render dashboard, and a screenshot is in `docs/img/` (S11). | L |
+
+## AC-APIM — APIMatic (Track C)
+
+| ID | P | Criterion | By |
+| --- | --- | --- | --- |
+| AC-APIM-01 | S | `docs/openapi.json` is generated from the running app and matches it (`openapi:check`). | CI |
+| AC-APIM-02 | S | The OpenAPI document lints with no errors. | CI |
+| AC-APIM-03 | S | `apps/web` calls the API only through `packages/api-client`. The client is generated by APIMatic if S13 allowed it; otherwise by `openapi-typescript`, and the README says which. | M, CI |
+| AC-APIM-04 | S | `docs/decisions/apimatic.md` records how the Context Plugin was installed and which code it informed, or that it could not be installed (S13). | M |
+
+## AC-AI — PayPal + AI evidence (Track D)
+
+| ID | P | Criterion | By |
+| --- | --- | --- | --- |
+| AC-AI-01 | M | Model-derived text can reach PayPal only through `verifyDraft`; a code search finds no other path from `@ds/agent` output to a gateway write. | U, M |
+| AC-AI-02 | M | `pnpm eval` prints a results table (cases, rejected, accepted) that the README embeds; it runs without a model for the deterministic suite. | CI |
+| AC-AI-03 | S | The Case Copilot exposes only read tools and every tool result is stored in `raw_payloads` and cited. | U |
+| AC-AI-04 | M | With `OLLAMA_API_KEY` unset, the full DS-001 flow still completes in replay mode (template or recorded draft). | E |
+| AC-AI-05 | M | The video and Devpost text show where AI is used and where it is blocked (verifier rejections, approval gate). | M |
 
 ## AC-DEMO — Judge experience
 
@@ -144,9 +226,9 @@ Scenario names refer to the demo shop "Hearthside Ceramics" (fictional): DS-001 
 | ID | P | Criterion | By |
 | --- | --- | --- | --- |
 | AC-SUBMIT-01 | M | The video is public on YouTube, under 3:00, plays logged out, shows the product working, and uses no third-party trademarks or copyrighted music beyond what the rules allow ✅ (rules; re-read before recording). | M |
-| AC-SUBMIT-02 | M | The Devpost text describes the problem, named user, what was built, how PayPal APIs and AI are used, how AG Grid / AG Studio are used, and limits. | M |
+| AC-SUBMIT-02 | M | The Devpost text describes the problem, named user, what was built, how PayPal APIs and AI are used, how AG Grid / AG Studio, Render and APIMatic are used (only what the build really uses), and limits. | M |
 | AC-SUBMIT-03 | M | The submission lists the repo link, demo link, test instructions with the access code, and "built with" tags. | M |
-| AC-SUBMIT-04 | M | Only one Grand/HM prize and one sponsor prize are targeted; the form selection matches ✅ (rules). | M |
+| AC-SUBMIT-04 | M | The form selection matches the rules ✅: at most one Grand Prize or Honorable Mention plus one sponsor prize can be won. Sponsor prizes are open to submissions that use that sponsor's tools, so the Devpost text names every sponsor tool actually used, and `14-prize-tracks.md` records which one is the primary target. | M |
 | AC-SUBMIT-05 | M | Final submit is completed by Wed 11 Nov 12:00 IST and verified from a private browser window. | M |
 | AC-SUBMIT-06 | M | AG Studio trial was started on or after 1 Nov so it covers 1–15 Dec; the start date is recorded in `docs/decisions/`. | M |
 
@@ -173,5 +255,14 @@ Scenario names refer to the demo shop "Hearthside Ceramics" (fictional): DS-001 
 | Potential Impact | Credible, specific case for a real problem for a real audience, and the solution addresses it as demonstrated | AC-DEC-*, AC-CASE-*, AC-RISK-* |
 | Innovation/Idea | Creative, novel, differs from existing concepts | AC-VER-11, AC-VER-10 (AI with enforced accountability), AC-RISK-* (prevent plus respond) |
 | Presentation | Video shows the project working end to end; clear problem, audience, why it matters | AC-SUBMIT-01…03, AC-DEMO-02 |
+
+Sponsor and category tracks (`14-prize-tracks.md`; sponsor criteria beyond "use the tools" are ❓ unless stated there):
+
+| Track | Main ACs |
+| --- | --- |
+| Best Use of AG Grid | AC-STUDIO-*, AC-UI-09 |
+| Best Use of Render | AC-RENDER-* |
+| Best Use of APIMatic | AC-APIM-*, AC-API-07 |
+| Best Use of PayPal + AI | AC-AI-*, AC-VER-*, AC-SUB-* |
 
 The rules also say judges are not required to run the project and may judge from the text, images and video alone ✅, and that judging may include automated AI-driven analysis ✅. The video, the Devpost text and the README therefore carry real weight.

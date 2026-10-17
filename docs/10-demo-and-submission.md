@@ -15,7 +15,7 @@ The rules say judges are not required to run the project and may judge from the 
 | Video under 3 minutes (judges need not watch past 3:00), public on YouTube, shows the project functioning, no third-party trademarks or copyrighted music/material without permission | See storyboard; no music or licensed music-free; avoid logos |
 | Text description of features and functionality | Template below |
 | Projects must be new or significantly updated during the submission period; explain how if pre-existing | New build; say so |
-| One Grand/HM prize + one sponsor prize at most | Target Most Impactful or Best Use of PayPal + AI, plus Best Use of AG Grid |
+| One Grand/HM prize + one sponsor prize at most; sponsor prizes need use of that sponsor's tools | Target Most Impactful or Best Use of PayPal + AI, plus **one** sponsor prize. Name every sponsor tool actually used (AG Grid/Studio, Render, APIMatic); the primary sponsor target is recorded in `14-prize-tracks.md` |
 | Materials in English | Yes |
 
 Re-read the live rules the day before submitting; the ❓ items below may have changed.
@@ -32,10 +32,10 @@ Voiceover in plain English, recorded in one take per scene, captions burned in (
 | 0:45–1:15 | Case file and draft | Open DS-001; facts list with sources; checklist; draft with citation chips; click a chip to show the PayPal JSON snippet | "Every fact comes from PayPal or her own file. The AI drafts the response, but each sentence must cite a fact." |
 | 1:15–1:40 | The verifier (key moment) | Edit a sentence to say a wrong tracking number or "delivered on 28 September"; verifier flags VALUE_MISMATCH; revert | "If the AI, or a person, writes something the records do not support, the verifier removes it. The AI cannot invent evidence." |
 | 1:40–2:05 | Decision and approval | Decision panel (Fight, why, amount, time left); approve modal with the exact request; checkbox; send | "She sees why we recommend fighting, reviews the exact request to PayPal, and approves. Nothing is sent without her." |
-| 2:05–2:20 | Result | Submission result; if live: PayPal 2xx and webhook updates the case; else dry-run snapshot labelled | "Evidence is submitted through PayPal's Disputes API and the case updates when the webhook arrives." |
-| 2:20–2:35 | Prevent | Risk Radar with two flags; click Add tracking; preview | "The best dispute is the one that never happens. Dispute Shield flags unshipped, untracked or unprotected orders and fixes them before the buyer complains." |
-| 2:35–2:48 | Health dashboard | AG Studio dashboard, Deadline runway widget, Verifier ledger | "A dashboard built with AG Grid and AG Studio shows what is due and how the AI is performing." |
-| 2:48–2:55 | Close | URL, "open source, sandbox only, MIT" | "Open source, built on PayPal's APIs, and honest about what it does not do yet." |
+| 2:05–2:22 | Result and pipeline | Submission result; if live: PayPal 2xx and webhook updates the case; else dry-run snapshot labelled. **Insert (5 s, only if Track B is claimed):** Render dashboard showing the `process_dispute` run with `collect_case` then `draft_case`, labelled | "Evidence is submitted through PayPal's Disputes API and the case updates when the webhook arrives. Behind it, each dispute runs as a Render workflow." |
+| 2:22–2:34 | Prevent | Risk Radar with two flags; click Add tracking; preview | "The best dispute is the one that never happens. Dispute Shield flags unshipped, untracked or unprotected orders and fixes them before the buyer complains." |
+| 2:34–2:50 | Health dashboard and analyst | AG Studio dashboard, Deadline runway widget, Verifier ledger; ask the Dispute analyst "What is due soonest?" and show the answer with its query | "A dashboard built with AG Grid and AG Studio shows what is due and how the AI is performing, and a read-only analyst agent answers from the data. It cannot change anything." |
+| 2:50–2:57 | Close | URL, "open source, sandbox only, MIT" | "Open source, built on PayPal's APIs, and honest about what it does not do yet." |
 
 Guidelines:
 - Show a real working flow without cuts at the key moments (approval, verifier).
@@ -63,10 +63,10 @@ git clone <repo> && cd dispute-shield
 corepack enable && pnpm install
 docker compose up -d
 cp .env.example .env && pnpm db:migrate && pnpm seed:demo
-pnpm dev   # open http://localhost:3000, access code: change-me
+pnpm dev   # starts the web app (http://localhost:3000) and the API (http://localhost:4000); access code: change-me
 ```
 
-Hosted demo: URL + access code in the testing instructions.
+Hosted demo: URL + access code in the testing instructions. State that the hosted API runs on Render's free or credit-funded instance and may take about a minute to wake after idle.
 
 The 90-second judge path (AC-DEMO-02):
 1. Log in with the access code.
@@ -90,10 +90,10 @@ Keep claims factual and checkable. Replace bracketed items; delete anything unsu
 > Small online sellers get PayPal disputes with a short response window. The evidence is scattered across PayPal, shipping and spreadsheets, and a wrong or missing detail can cost the case. [One sourced statistic with a link, only if found.] Many disputes trace back to avoidable gaps: no tracking on PayPal, mismatched addresses, unprotected payments.
 
 **What it does**
-> Dispute Shield is an open-source dispute desk. Respond: it collects facts from PayPal's Disputes, Transaction Search and Orders APIs plus the seller's fulfilment CSV, scores evidence strength with a fixed checklist, drafts a response with an LLM in which every sentence cites a fact, and runs a deterministic verifier that removes anything the records do not support. The owner approves the exact request before it is sent (or accepts the claim). Prevent: it scans transactions for gaps and lets the owner add tracking or refund proactively. A health dashboard built with AG Grid and AG Studio shows deadlines and verifier performance.
+> Dispute Shield is an open-source dispute desk. Respond: it collects facts from PayPal's Disputes, Transaction Search and Orders APIs plus the seller's fulfilment CSV, scores evidence strength with a fixed checklist, drafts a response with an LLM in which every sentence cites a fact, and runs a deterministic verifier that removes anything the records do not support. The owner approves the exact request before it is sent (or accepts the claim). Prevent: it scans transactions for gaps and lets the owner add tracking or refund proactively. A health dashboard built with AG Grid and AG Studio shows deadlines and verifier performance, and a read-only analyst agent answers questions about it.
 
 **How we built it**
-> Turborepo monorepo (TypeScript, Next.js 16, Postgres/Drizzle). A PayPal gateway with live and replay adapters; signature-verified, idempotent webhooks with a Postgres job queue; direct REST calls for disputes (evidence, accept claim), tracking and refunds; `@paypal/agent-toolkit` for read-only copilot tools. AI SDK for drafting with schema-constrained output, one repair retry and a template fallback. [Eval results from `docs/evals/<date>.md`, only if run.]
+> Turborepo monorepo (TypeScript). A Fastify 5 API service with an OpenAPI contract; a Next.js UI that holds no secrets; Supabase Postgres with Drizzle. A PayPal gateway with live and replay adapters; signature-verified, idempotent webhooks; background jobs that run in Postgres or as Render Workflows tasks; direct REST calls for disputes (evidence, accept claim), tracking and refunds; `@paypal/agent-toolkit` read tools for the copilot. Ollama Cloud drafts the evidence: because the cloud API has no structured-output mode, we parse and validate the reply in code, repair once, then fall back to a template; a deterministic verifier gates every sentence. [Eval results from `docs/evals/<date>.md`, only if run.]
 
 **Challenges**
 > [Honest list: sandbox dispute creation, multipart evidence upload quirks, webhook ordering, making the AI accountable.]
@@ -108,12 +108,18 @@ Keep claims factual and checkable. Replace bracketed items; delete anything unsu
 > Disputes API (list, details, provide-evidence, accept-claim, [make-offer]); Webhooks (CUSTOMER.DISPUTE.CREATED/UPDATED/RESOLVED with signature verification); Transaction Search; Orders v2 and shipment tracking; Refunds; `@paypal/agent-toolkit` (read tools) with AI. Sandbox only.
 
 **How AG Grid / AG Studio are used**
-> AG Grid: dispute queue, risk radar, audit log, fulfilment table. AG Studio: Health dashboard with two custom widgets, themed from the app's design tokens.
+> AG Grid: dispute queue, risk radar, audit log, fulfilment table. AG Studio: Health dashboard with two custom widgets (Deadline runway, Verifier ledger), themed from the app's design tokens, plus a read-only Dispute analyst built with the Studio Agent Framework: a custom LLM adapter sends each turn to our API, which calls Ollama Cloud, and the agent's tool list is limited to five read tools.
+
+**How Render is used** (include only if Track B shipped and was demonstrated)
+> The API runs as a Render web service. The dispute pipeline is a Render Workflows service: one task per job kind and a `process_dispute` task that chains collection then drafting, with retries and timeouts. A Render cron job starts the five-minute sync. [Screenshot of a run.]
+
+**How APIMatic is used** (include only what really happened)
+> [Context Plugin used while coding the PayPal calls: which ones. OpenAPI document for our API; SDK and docs portal generated with APIMatic and used by the web app. If generation was not possible, say the client was generated with another tool and delete this section.]
 
 **Limits (say them)**
 > Sandbox only; supports item-not-received and refund-based evidence; strength is a checklist, not a prediction; Transaction Search data can be up to 3 hours old.
 
-**Built with:** TypeScript, Next.js, React, Turborepo, pnpm, Postgres, Drizzle, Vercel AI SDK, [LLM provider], PayPal REST APIs, PayPal Agent Toolkit, AG Grid, AG Studio, Tailwind CSS, Playwright, Vitest.
+**Built with:** TypeScript, Fastify, Next.js, React, Turborepo, pnpm, Supabase (Postgres), Drizzle, Ollama Cloud, zod, PayPal REST APIs, PayPal Agent Toolkit, AG Grid, AG Studio, [Render, Render Workflows], [APIMatic], OpenAPI, Tailwind CSS, Playwright, Vitest. (Keep only the sponsor tools actually used.)
 
 **Links:** GitHub repo, hosted demo, YouTube video.
 
@@ -121,7 +127,7 @@ Keep claims factual and checkable. Replace bracketed items; delete anything unsu
 
 **Images:** queue screenshot, case workspace with citations, verifier rejection, risk radar, dashboard. Use 3:2 images as Devpost requires ❓ (check the form).
 
-**Prize selections:** Honorable Mention (Most Impactful or Best Use of PayPal + AI, choose one) and Best Use of AG Grid. Follow the "one Grand/HM + one sponsor" rule ✅.
+**Prize selections:** Honorable Mention (Most Impactful or Best Use of PayPal + AI, choose one) and **one** sponsor prize (AG Grid, Render or APIMatic; decide using `14-prize-tracks.md`). Follow the "one Grand/HM + one sponsor" rule ✅. Using several sponsors' tools is allowed and makes the submission eligible for each, but only one sponsor prize can be won.
 
 ## 5. How to explain the AI honestly
 
@@ -135,8 +141,10 @@ Keep claims factual and checkable. Replace bracketed items; delete anything unsu
 - [ ] CI green on `main`; tag `v1.0.0`.
 - [ ] Repo public; LICENSE detected in About; README quickstart works on a second machine.
 - [ ] No secrets in history (gitleaks clean).
-- [ ] Hosted demo up, code works, replay label visible, DB retention covers 15 Dec.
+- [ ] Hosted demo up, code works, replay label visible; Supabase project active and Render instance type covers 15 Dec; Render dashboard shows a recent successful workflow run (if claimed).
 - [ ] AG Studio trial start date recorded; ends after 15 Dec.
+- [ ] `docs/openapi.json` current; README "APIs and SDKs" section matches what was really generated; sponsor sections in Devpost match what is in the repo.
+- [ ] No key in the web bundle, API responses or logs (AC-LLM-05); `OLLAMA_API_KEY`, `RENDER_API_KEY`, `DATABASE_URL` set only on the servers.
 - [ ] Video public, under 3:00, plays logged out; link in README and Devpost.
 - [ ] Devpost text complete, claims sourced, limits listed.
 - [ ] Images uploaded; built-with tags set; prize selections correct.
@@ -151,8 +159,10 @@ Keep claims factual and checkable. Replace bracketed items; delete anything unsu
 | Failure | Response |
 | --- | --- |
 | Sandbox down or evidence upload fails on recording day | Record in replay mode; label it; mention live rehearsal logs in the repo |
-| LLM provider down | Template fallback is a feature: show the banner in the video as a resilience point if needed |
-| Hosted DB expires or sleeps | Move to a paid/always-on tier for a month, or switch to profile B instructions; add a daily uptime check |
-| AG Studio unusable | Use the fallback dashboard (AG Grid + simple charts); say so honestly in the text |
+| Ollama Cloud down, rate limited (free tier is one request at a time ✅) or key missing | Template fallback is a feature: show the banner in the video as a resilience point if needed; the analyst shows its honest notice; use the recorded model draft for DS-001 |
+| Supabase project paused or Render instance asleep | Restore the project (possible for a year ✅); keep the 5-minute cron; use a paid Render instance from credits for Dec 1 to 15; add a daily uptime check; the video is the fallback |
+| Render Workflows unavailable or misbehaving | Switch to `DS_JOB_BACKEND=postgres`; drop the Render section from the Devpost text |
+| APIMatic unavailable | Use `openapi-typescript` for the client and remove the APIMatic section |
+| AG Studio unusable | Use the fallback dashboard (AG Grid + simple charts); say so honestly in the text; the analyst becomes a plain side panel or is dropped |
 | Video over 3:00 | Cut Prevent to 10 s and Health to 8 s; the verifier scene stays |
 | Devpost upload error near deadline | Keep a complete text draft saved locally; submit early (the plan has 37 h buffer) |

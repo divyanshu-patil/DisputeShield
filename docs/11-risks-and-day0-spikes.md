@@ -95,19 +95,47 @@ Pass: tracker visible; refund created; repeat does not double refund.
 Fail → `ADD_TRACKING` and/or `REFUND` become dry-run only; record the error.
 Updates: contract section 6 (Q6).
 
-### S9 — Agent toolkit read tools (≈1 ih)
+### S9 — Ollama Cloud and the agent toolkit (≈2 ih)
 
-Install `@paypal/agent-toolkit`; check the peer dependency on the AI SDK; find a combination that compiles. Run a `generateText` call with read-only tools (`disputes.list/get`, `shipment.show`, `orders.get`) against the sandbox. Pass: the model calls a tool and returns a grounded answer. Updates: contract section 7 (Q7); pin versions in `packages/agent`. Fail → drop Case Copilot (Should), no other impact.
+Part 1, Ollama Cloud (needs your account and API key; keep the key out of git):
+1. `GET https://ollama.com/api/tags` with `Authorization: Bearer $OLLAMA_API_KEY`. Record which models your plan can call ❓ (free-tier API access is not stated in the docs read).
+2. For each candidate model, run the drafter prompt (`packages/agent`) against DS-001 facts 5 times. Record: JSON parse rate, zod-valid rate, verifier acceptance before and after repair, latency. Cloud has no structured outputs ✅, so parse rate is the number that matters.
+3. Send one request with `tools` and confirm the model returns `tool_calls`; send the tool result back as a `tool` message with `tool_name` ⚠️ and confirm a final answer.
+4. Two parallel requests on the free tier: confirm the 429 behaviour and the `Retry-After` value if any.
+Pass: one model has parse rate ≥ 95%, supports tool calls, and answers within 30 s. Write the choice into `docs/decisions/` and set `LLM_MODEL`.
+Fail → keep templates as the draft path and the recorded model draft in replay (AC-DEMO-03); the Dispute analyst is shown against a recorded session; Case Copilot is dropped.
+Updates: `.env.example`, `13-api-service-spec.md` section 7, AC-LLM-06.
 
-### S10 — AG Studio in Next 16 (≈1.5 ih)
+Part 2, toolkit (≈1 ih): install `@paypal/agent-toolkit`; its documented example uses the Vercel AI SDK `generateText` with `maxSteps` ✅, which this build does not use. Call the toolkit's read tools (`disputes.list/get`, `shipment.show`, `orders.get`) directly against the sandbox, and wrap them as Ollama `tools`. Pass: a grounded answer using a toolkit read tool. Fail → drop Case Copilot (Should); no other impact. Updates: contract section 7 (Q7), pin versions in `packages/agent`.
+
+### S10 — AG Studio: custom widgets, theme, agent adapter (≈3 ih)
 
 1. Clone PayPal's starter (`paypaldev/hackathon-paypal-ag-grid-boilerplate`) or add `ag-studio`/`ag-studio-react` 3.0.0 to `apps/web`.
-2. Render `<AgStudio data={{sources:[…]}} mode="edit" />` inside Next 16 with `transpilePackages`.
-3. Find: licence mechanism and trial start (do **not** start the trial before 1 Nov; read how it is activated and whether rendering needs a key ❓), theming API, custom widget API ❓, whether it needs `"use client"`, bundle size, dark mode.
-4. Prototype one custom widget ("Deadline runway") or confirm what extension points exist.
-Pass: dashboard renders with sample data and one custom widget is feasible.
-Fail → fallback dashboard (AG Grid + simple charts); sponsor prize still reachable through AG Grid use.
-Updates: `06-ui-spec.md` section 6, contract Q8.
+2. Render `<AgStudio data={...} mode="edit" />` inside Next 16 with `transpilePackages`.
+3. Find: licence mechanism and trial start (do **not** start the trial before 1 Nov; read how it is activated and whether rendering needs a key ❓), whether it needs `"use client"`, bundle size, dark mode.
+4. **Custom widget:** register "Deadline runway" through `createWidgets({ additionalTypes })` with a custom `AgRegistry` type and a `comp` key mapped by the `components` prop. Read data through `widgetApi.getData`. Time box 2 ih; if it fails keep a standard widget and record why.
+5. **Agent:** wire `createAiHarness` + `directLlmRunner` with the proxy `AgLlmAdapter` from `14-prize-tracks.md` section 2.6 against `POST /api/studio/llm/turn` in replay mode (no model). Confirm: the chat panel opens, prompt starters show, a turn shows the honest "no model" notice, a failed response (`status: "failed"`) is visible to the user and does not break the panel ❓.
+6. Theme: build from tokens with `createStudioTheme` / `studioGridTheme`.
+Pass: dashboard renders with sample data; one custom widget works; the analyst round-trips a turn.
+Fail → fallback dashboard (AG Grid + simple charts and the standard Studio widgets); sponsor prize still reachable through AG Grid use.
+Updates: `06-ui-spec.md` section 6, `14-prize-tracks.md` section 2, contract Q8.
+
+### S11 — Render and Supabase deploy (≈3 ih)
+
+1. Supabase: create a project; take the **session pooler** URL (port 5432, user `postgres.<ref>`) and the direct URL; run migrations; run the job-claim concurrency test through the session pooler, then confirm it fails or misbehaves on port 6543 (to prove the rule). Confirm Render can reach the DB (IPv4 via the pooler; direct needs IPv6 ❓). Enable RLS on all tables; confirm the anon key cannot read them.
+2. Render: apply `render.yaml` (web + `type: workflow` + cron) from the repo. Fix whatever the Blueprint validator rejects; record it. Set secrets in the dashboard. Confirm `/api/health` is green.
+3. Workflows: locally run `render workflows dev -- tsx src/index.ts`, then deploy; start `sync_disputes` from `apps/api` with `DS_JOB_BACKEND=render` and from the cron job; confirm a run appears. Confirm whether a free/hackathon account can create workflows ❓ and what they cost.
+4. Send a sandbox webhook to the Render URL after 20 minutes idle (cold start) and confirm it is processed.
+Pass: the pipeline runs on Render against Supabase; screenshot saved. Fail → `DS_JOB_BACKEND=postgres` on a single Render web service, record why, drop Track B.
+Updates: `render.yaml`, `architecture.md` section 14, AC-RENDER-06, AC-DB-01, AC-DB-03.
+
+### S12 — Browser to API session (≈1 ih)
+
+Deploy web and API on their real hosts. Try the same-origin rewrite: log in, load the queue, send a 40 to 60 s Studio turn (stub with a delay). Check cookie flags in the browser. Check Safari with "prevent cross-site tracking" on. If the rewrite times out or the cookie fails, implement the bearer-token fallback (`architecture.md` section 11). Pass: login and a long turn work in Chrome, Firefox and Safari. Updates: ADR-015, AC-API-09.
+
+### S13 — APIMatic (≈2 ih)
+
+Find the Context Plugin install steps (the resource page was not readable ❓). Install it into your coding agent; ask it for the PayPal Orders v2 "add tracking" call and compare against the contract. Upload `docs/openapi.json` to APIMatic; generate a TypeScript SDK and a docs portal; check the SDK compiles against our types. Record every step and what it cost in `docs/decisions/apimatic.md`. Pass: SDK generated and used by `apps/web`. Fail → `openapi-typescript` client; do not claim APIMatic. Updates: `14-prize-tracks.md` section 4, AC-APIM-*.
 
 ## 2. Spike order and time boxes
 
@@ -119,9 +147,10 @@ Updates: `06-ui-spec.md` section 6, contract Q8.
 | 4 | S3, S4 | 3 h |
 | 5 | S5 | 2 h |
 | 6 | S6, S7, S8 | 4 h |
-| 7 | S9, S10 | 3 h (can slip into Phase 1) |
+| 7 | S9 | 3 h (key and model choice; can slip into Phase 1) |
+| 8 | S10, S11, S12, S13 | 9 h total; **run after the Phase 0 go/no-go**, in Phase 1 (S11, S12 once something is deployable) and Phase 3 (S10 after 1 Nov for the trial; start with a licence-free render check before then) |
 
-Total box ≈ 17 h; the plan assumes ≈ 12 ih because some will be quick. Write results in `docs/decisions/0001-day0-spike-results.md` using this template:
+Phase 0 (S0 to S9) box ≈ 17 h; the plan assumes ≈ 12 ih because some will be quick. S10 to S13 are scheduled in later phases (`07-implementation-plan.md`). Write results in `docs/decisions/0001-day0-spike-results.md` using this template:
 
 ```text
 Spike: S3  Date: 2026-10-18  Result: PASS | PARTIAL | FAIL
@@ -142,10 +171,10 @@ Likelihood and impact are the author's judgement (L/M/H), not measured.
 | R3 | Webhooks late, duplicate, out of order, or not verifying | M | M | S5 | idempotent insert, re-fetch before acting, polling backup | Phase 1 |
 | R4 | Transaction Search lags up to 3 h ✅ | H | L | S6 | label data age; never claim real-time Prevent | Phase 3 |
 | R5 | LLM hallucination slips through | L | H | evals | verifier + adversarial evals gate CI; fallback template | Phase 2 |
-| R6 | LLM provider outage or key missing on judge machines | M | M | n/a | template fallback; recorded draft in replay mode | Phase 2 |
+| R6 | Ollama Cloud outage, key missing, no API access on the free plan ❓, or 1-concurrent-request limit ✅ | M | M | S9 | template fallback; recorded draft in replay mode; serialise Studio turns and return 429 with Retry-After; local Ollama via `OLLAMA_HOST` | Phase 2 |
 | R7 | AG Studio licence/trial/API surprises | M | M | S10 | start trial 1 Nov; fallback dashboard; AG Grid still qualifies | Phase 3 |
 | R8 | AG Studio trial expires inside judging window | M | H | calendar | start on or after 1 Nov (45 days → ~16 Dec) ✅; record date | Phase 3 |
-| R9 | Hosted demo or free DB expires before 15 Dec | M | H | provider terms ❓ | check retention at deploy time; paid tier or always-on; daily uptime check | Phase 4 |
+| R9 | Hosted demo or free DB unavailable before 15 Dec: Supabase free projects pause after low activity over 7 days ✅; Render free web services sleep after 15 min ✅ | M | H | provider terms | 5-minute cron keeps the DB active; paid Render instance via the $50 credits for Dec 1 to 15; daily uptime check; recorded video as the fallback | Phase 4 |
 | R10 | Sandbox flakiness on recording day | M | M | rehearsals | record in replay; label honestly | Phase 5 |
 | R11 | Scope creep (copilot, PDF, offers) | H | M | hours burned > plan | MoSCoW; cut Should items at checkpoints | all |
 | R12 | Unverified PayPal fields used in code | M | M | ❓ in contract | rule: check contract first; fixtures must parse; spike before feature | all |
@@ -160,6 +189,14 @@ Likelihood and impact are the author's judgement (L/M/H), not measured.
 | R21 | Pre-existing code claims: "significantly updated" rule | L | M | n/a | build from scratch; say so; commit history shows it | all |
 | R22 | PayPal docs change or conflict (multipart, webhook code) | M | L | spikes | record conflicts in contract; trust sandbox behaviour over docs | all |
 | R23 | Financial/preferential support rule (commercial licence from sponsor) | L | M | n/a | use only trials offered by the hackathon; note in README | Phase 3 |
+| R24 | Render Workflows unavailable, different from the SDK docs, or costs credits quickly | M | M | S11 | `DS_JOB_BACKEND=postgres` works without it; Track B is optional | Phase 3 |
+| R25 | Cookie not sent from the browser to the API (cross-site, `SameSite=Lax`) | H | H | S12 | same-origin rewrite; bearer-token fallback; test in Safari | Phase 1 |
+| R26 | Supabase transaction pooler (6543) breaks `SKIP LOCKED` queue or prepared statements | M | H | S11 | use session pooler or direct; documented in `.env.example`; concurrency test | Phase 1 |
+| R27 | Cloud model returns non-JSON or ignores tool schemas | M | M | S9 parse rate | extract + zod + one repair + template; evals measure parse rate | Phase 2 |
+| R28 | Custom Studio widget typing or registration blocks the dashboard | M | M | S10 | one widget only; standard widgets; AG Grid prize still reachable | Phase 3 |
+| R29 | Studio chat prompt-injected into doing harm | L | H | tests | read-only tool allow-list (AC-STUDIO-05); no PayPal tool | Phase 3 |
+| R30 | APIMatic tooling not accessible or install steps unclear ❓ | M | L | S13 | fallback client generator; do not claim APIMatic | Phase 3 |
+| R31 | Sponsor prize criteria differ from what we assume ❓ | M | M | n/a | read the sponsor pages again on 1 Nov; claim only used tools; remember only one sponsor prize can be won | Phase 3 |
 
 ## 4. Go / no-go record (fill on Mon 19 Oct)
 
@@ -176,4 +213,4 @@ If FALLBACK: open `docs/decisions/0002-fallback.md`, summarise why, and restart 
 
 ## 5. Things we deliberately do not know yet
 
-Listed so nobody builds on them silently: win rates and dispute volumes for small sellers; the exact `dispute_state` values; whether the accepted carriers list is enumerated; nested order paths; whether sandbox allows partial refunds on all payment types; AG Studio custom widget API; AG Studio licence variable; hosting provider retention terms; eligibility details for the entrant.
+Listed so nobody builds on them silently: win rates and dispute volumes for small sellers; the exact `dispute_state` values; whether the accepted carriers list is enumerated; nested order paths; whether sandbox allows partial refunds on all payment types; AG Studio custom widget behaviour and licence variable; whether Ollama's free tier allows API calls and which models support tools; whether a hackathon Render account can run Workflows; the APIMatic Context Plugin install steps; hosting provider retention terms; eligibility details for the entrant.

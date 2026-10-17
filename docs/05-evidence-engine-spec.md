@@ -117,7 +117,9 @@ No checklist. The case gets `recommended_action = MANUAL`, a packet of the facts
 
 ## 4. The drafter (LLM)
 
-Location: `packages/agent/src/drafter/draft.ts`, prompt `drafter.v1`.
+Location: `packages/agent/src/drafter/draft.ts`, prompt `drafter.v1`. Model: **Ollama Cloud** through `createOllamaClient` (`packages/agent/src/llm`, already implemented), model name from `LLM_MODEL`.
+
+**Ollama Cloud has no structured-output mode** ✅ (the docs list none; the client never sends `format`). The drafter therefore (1) asks for a JSON object in the prompt, (2) extracts it with `extractJsonObject` (tolerates prose and code fences), (3) validates it with zod, (4) hands accepted statements to the verifier. Nothing below depends on the model following a schema; every failure path ends in the template fallback.
 
 ### 4.1 Input
 
@@ -147,14 +149,15 @@ Not included: raw payloads, buyer name, email, street address, phone.
 - If a fact is from the seller's file, say so.
 - Do not speculate about the buyer, do not argue, do not mention PayPal policy, do not promise outcomes.
 - If the checklist shows missing blocking items, return `recommendation.action = "REVIEW"` and explain what is missing, with no evidence statements.
-- Output JSON that matches the schema. Nothing else.
+- Output one JSON object that matches the schema shown in the prompt (field names and enum values are listed there). No markdown, no commentary. Parsing is by code, so extra prose is tolerated but wasted tokens.
 
 ### 4.4 Failure handling
 
-1. Schema invalid → one repair retry with the zod error text.
+1. Not parseable as JSON, or schema invalid → one repair retry that quotes the parse or zod error and restates the required shape. Count it as `repaired_parse` in the metrics (it is the number that decides whether the chosen model is usable, spike S9).
 2. Verifier rejects any statement → one repair retry with the rejection list (statement, reason).
-3. Still failing, model error, timeout (30 s budget) or no API key → build statements from `templates/fallback-statements.ts` using only facts, set `origin = TEMPLATE_FALLBACK`, and show a banner "AI drafting unavailable, using plain template".
-4. Record `model`, `prompt_version`, token counts (if available) in the draft row and logs.
+3. Still failing, model error (`LlmError`, including 429 rate limit on the free tier's single concurrent request ✅), timeout (30 s budget) or no API key → build statements from `templates/fallback-statements.ts` using only facts, set `origin = TEMPLATE_FALLBACK`, and show a banner "AI drafting unavailable, using plain template".
+4. Record `model`, `prompt_version`, token counts (if Ollama returns them ⚠️), and which path produced the draft (`MODEL`, `MODEL_REPAIRED`, `TEMPLATE_FALLBACK`) in the draft row and logs.
+5. Where it runs: the `draft_case` job handler (a Render task in the hosted demo, the Postgres worker locally). Never inside a web request.
 
 Template examples (INR strong):
 - "Tracking number {tracking.number} with carrier {tracking.carrier} was recorded for this order. [tracking.number, tracking.carrier]"
@@ -259,14 +262,18 @@ Actions:
 
 ## 9. Case Copilot (should-have)
 
-- Tool-using chat with the AI SDK. Read tools only (`architecture.md` section 5.6).
+- Tool-using chat over Ollama's native `tools` / `tool_calls` ⚠️ (spike S9), driven by our own loop in `packages/agent/src/copilot`. Read tools only (`architecture.md` section 5.6). Maximum 6 tool rounds per question. The PayPal toolkit's read tools are exposed to the model as Ollama tools if S9 part 2 shows they can be called directly.
 - System prompt: answer only from tool results and the case's facts; cite fact keys as `[key]`; say "I can't see that" when a fact is absent.
 - Answers pass through the same token check as the verifier (numbers, dates, IDs must appear in cited facts). A failed check replaces the answer with "I could not verify that answer; here are the facts I do have".
 - The copilot cannot approve, submit or edit drafts. It can suggest a question for the owner to ask the buyer or the carrier.
 
+## 9a. Dispute analyst (AG Studio agent; not part of the evidence path)
+
+A separate, read-only chat on the Health dashboard (`14-prize-tracks.md` section 2.6). It answers questions about the dashboard's data by running Studio queries. It does not read raw payloads, does not draft evidence and cannot write anything: its tools are `viewSchema`, `viewReport`, `viewPage`, `viewWidget` and `executeQuery` only. It shares the Ollama client and the proxy endpoint with nothing else in the engine, and its output never flows into a draft or a submission. Its numbers come from query results; its prompt forbids win-probability language (AC-DEC-05 text lint covers its prompt and starters).
+
 ## 10. Observability of the engine
 
-Per draft attempt, log: case ID, prompt version, model, input fact count, output statement count, verifier accepted/rejected counts by reason, fallback used (bool), latency. The Setup/Health page shows rolling counts so a judge can see the verifier working ("Last 24 h: 14 statements drafted, 2 rejected: VALUE_MISMATCH").
+Per draft attempt, log: case ID, prompt version, model, input fact count, output statement count, parse result (`ok`, `repaired`, `failed`), verifier accepted/rejected counts by reason, fallback used (bool), latency. The Setup/Health page shows rolling counts so a judge can see the verifier working ("Last 24 h: 14 statements drafted, 2 rejected: VALUE_MISMATCH").
 
 ## 11. Limits stated in the product
 

@@ -46,7 +46,7 @@ The five criteria are equally weighted ✅ (Technological Implementation, Design
 
 | Criterion | What Dispute Shield must demonstrate |
 | --- | --- |
-| Technological Implementation (first tie-breaker ✅) | Real depth on PayPal's Disputes, Transaction Search, Orders/tracking and Webhooks APIs; signature-verified, idempotent webhooks; a job queue; an AI pipeline with a deterministic verifier and measured evals; record/replay gateway; tests. The `@paypal/agent-toolkit` has no evidence-upload or accept-claim tools ✅, so the depth comes from our own REST client. |
+| Technological Implementation (first tie-breaker ✅) | Real depth on PayPal's Disputes, Transaction Search, Orders/tracking and Webhooks APIs; signature-verified, idempotent webhooks; a separate Fastify API with an OpenAPI contract; a job queue that runs in Postgres or as Render Workflows tasks; an AI pipeline (Ollama Cloud) with a deterministic verifier and measured evals; record/replay gateway; tests. The `@paypal/agent-toolkit` has no evidence-upload or accept-claim tools ✅, so the depth comes from our own REST client. |
 | Design | One coherent workflow from deadline queue to approved submission; citations you can click; exact-request preview; consistent theme across AG Grid and AG Studio; accessible and responsive. |
 | Potential Impact | A specific user with a specific recurring problem; time and money at stake shown per case; the Prevent half addresses causes, not only symptoms. Statistics must be sourced before use. |
 | Innovation/Idea | "AI that cannot invent evidence": enforced citations plus a verifier; combining respond and prevent in one open-source tool aimed at small sellers. A novelty claim needs a rival search trail; none is asserted here beyond what the ideation document recorded. |
@@ -54,22 +54,28 @@ The five criteria are equally weighted ✅ (Technological Implementation, Design
 
 ## 5. Prize targets
 
-Rules ✅: a project can win at most one Grand Prize and one Sponsor Prize, **or** one Honorable Mention and one Sponsor Prize.
+Rules ✅: a project can win at most one Grand Prize and one Sponsor Prize, **or** one Honorable Mention and one Sponsor Prize. Sponsor prizes are open to submissions that use that sponsor's tools, but only one sponsor prize can be won. The full analysis of the code-dependent prizes, with specs, is in `14-prize-tracks.md`.
 
 | Target | Prize | Why plausible | Dependency |
 | --- | --- | --- | --- |
 | Primary | **Most Impactful** (Honorable Mention, $5,000) or a Grand Prize | the story is a real seller problem with real deadlines | strong Potential Impact narrative with sourced numbers |
-| Alternate HM | **Best Use of PayPal + AI** ($5,000) | Disputes API depth + verified AI drafting | working live sandbox flow, evals shown |
-| Sponsor | **Best Use of AG Grid** (1st $5,000 / 2nd $2,000 / 3rd $1,000 ×3) ✅ eligible if "any AG Grid tools" are used | AG Grid for the queue and risk radar, AG Studio for the Health dashboard with two custom widgets | AG Studio trial started on 1 Nov; dashboard polished |
+| Alternate HM | **Best Use of PayPal + AI** ($5,000) (Track D) | Disputes API depth + verified AI drafting + read-only agents | working live sandbox flow, evals shown |
+| Sponsor, code track A | **Best Use of AG Grid** (1st $5,000 / 2nd $2,000 / 3rd $1,000 ×3) | AG Grid for the queue and risk radar; AG Studio dashboard with two custom widgets, a theme from our tokens, and a Dispute analyst built with the Studio Agent Framework ✅ (what that prize is judged on) | AG Studio trial started on or after 1 Nov; spike S10 |
+| Sponsor, code track B | **Best Use of Render** ($1,000 / $750 / $500 in Render credits) | the dispute pipeline runs as Render Workflows tasks, with a web service and a cron job | spike S11 |
+| Sponsor, code track C | **Best Use of APIMatic** ($1,000 ×3 + 6 months Business) | OpenAPI document for our API, generated SDK and docs portal, Context Plugin used while coding | spike S13 |
 
-Not targeted: Best Use of Agentic Commerce (this product is not a buyer-side agentic checkout), Channel3, Render, APIMatic, Bryntum. Using only one sponsor's tools keeps the submission focused and avoids the trial-expiry problem for Bryntum.
+All three sponsor tracks are built because each strengthens Technological Implementation, but **at most one sponsor prize can be won**, so do not present them as additive. The Devpost form names the sponsor tools actually used (AC-SUBMIT-04).
+
+Not targeted: Best Use of Agentic Commerce (this product is not a buyer-side agentic checkout), Channel3, Bryntum. The reasons are in `14-prize-tracks.md` section 0.
 
 Re-read the live rules page before submitting; prize names and amounts above are from the rules text read on 2026-10-17.
 
 ## 6. Scope
 
 ### In scope (MVP)
-See MoSCoW in `07-implementation-plan.md` section 8. In short: sandbox connection, webhook + polling sync, case collection, drafter + verifier, decision panel, approval, submit (live sandbox or dry-run), accept-claim, queue UI, seeded demo with replay mode. Should-haves: Prevent module, AG Studio dashboard, Case Copilot, PDF evidence packet.
+See MoSCoW in `07-implementation-plan.md` section 8. In short: sandbox connection, webhook + polling sync, case collection, drafter + verifier, decision panel, approval, submit (live sandbox or dry-run), accept-claim, queue UI, seeded demo with replay mode. Should-haves: Prevent module, AG Studio dashboard with the Dispute analyst, Render Workflows backend, OpenAPI/SDK, Case Copilot, PDF evidence packet.
+
+Platform choices (decided 2026-10-17): separate **Fastify** API, **Supabase** Postgres, **Ollama Cloud** for the model, Next.js for the UI only (`architecture.md`).
 
 ### Out of scope (stated openly in README)
 - Production PayPal. The code has no production URL.
@@ -88,6 +94,8 @@ See MoSCoW in `07-implementation-plan.md` section 8. In short: sandbox connectio
 | Webhooks can be late, duplicated, out of order ✅ | idempotency, re-fetch before acting, polling backup |
 | Judges may not run the code ✅ | strong README, hosted demo, replay mode, great video |
 | AG Studio/AG Grid trial is 45 days ✅ | start the AG Studio trial on 1 Nov so it covers the 1–15 Dec judging window |
+| Ollama Cloud has no structured outputs ✅ and a free tier of 1 concurrent request ✅ | parse and validate in code, repair once, fall back to templates; serialise chat turns |
+| Supabase free projects pause after 7 days of low activity ✅; Render free web services sleep after 15 minutes ✅ | a 5-minute cron keeps both active; paid instance via credits for Dec 1 to 15; the video is the fallback |
 | Submission cannot be changed after the deadline ✅ | submit with buffer; verify links |
 
 ## 8. Success measures (for the build, not for marketing)
@@ -120,4 +128,4 @@ All names, addresses and numbers are synthetic.
 
 1. Does the owner want evidence in a PDF packet to attach (Should) or is the note text enough for the MVP?
 2. Will a second persona (a freelancer taking PayPal invoices) strengthen Potential Impact, or dilute focus? Default: no, stay with small online shops.
-3. Is a hosted live-sandbox demo worth the reliability risk, or is replay mode the hosted default? Default: hosted = replay with a clearly visible label; live is demonstrated in the video and runnable locally.
+3. Is a hosted live-sandbox demo worth the reliability risk, or is replay mode the hosted default? Default: hosted = replay with a clearly visible label; live is demonstrated in the video and runnable locally. If Track B (Render) is claimed, the video must show a real workflow run, which needs live or simulated webhooks on the hosted instance.

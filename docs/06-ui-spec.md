@@ -1,6 +1,6 @@
 # 06. UI spec
 
-Stack: Next.js App Router, React 19, Tailwind 4, AG Grid Community 36.x for tables, AG Studio 3.x for the Health dashboard (versions from PayPal's starter, see `02-monorepo-structure.md`). Components live in `packages/ui`; pages and data loading in `apps/web/src/app`.
+Stack: Next.js App Router, React 19, Tailwind 4, AG Grid Community 36.x for tables, AG Studio 3.x for the Health dashboard (versions from PayPal's starter, see `02-monorepo-structure.md`). Components live in `packages/ui`; pages in `apps/web/src/app`. The web app is UI only: all data comes from `apps/api` through `packages/api-client` (same-origin `/api/*` rewrite), and it holds no secrets (`architecture.md` ADR-013, ADR-015).
 
 User: the owner or ops person of a small online shop. They are not a PayPal expert, are busy, and are afraid of a deadline. Design for "what do I do in the next five minutes?".
 
@@ -23,7 +23,7 @@ User: the owner or ops person of a small online shop. They are not a PayPal expe
   Colour and text both change; tooltips explain. Production is never shown because it does not exist.
 - Deadline ticker: shows the nearest deadline across open cases ("Next deadline: DS-002 in 5 h 12 m").
 - Toasts for async results (sync done, draft ready, submission result).
-- Login screen: one field for the access code (`DS_DEMO_ACCESS_CODE`), cookie session, "Demo data only" notice.
+- Login screen: one field for the access code (`DS_DEMO_ACCESS_CODE`), posted to `/api/auth/login`; the API sets a signed `ds_session` cookie. "Demo data only" notice. A 401 from any call sends the user back to login with their place remembered.
 - Empty state for first run: "No disputes yet. Click Sync now or load demo data" (the latter only in replay mode).
 
 ## 3. Screen: Dispute Queue (`/disputes`)
@@ -108,30 +108,24 @@ Purpose: find orders with gaps before they become disputes.
 
 ## 6. Screen: Health dashboard (`/health`) — AG Studio
 
-Purpose: show the owner how disputes are trending and give the hackathon an AG Studio showpiece. This is the AG Studio "Best Use" angle; keep it focused and polished instead of broad.
+Purpose: show the owner how disputes are trending, and be the AG Studio showpiece for the AG Grid prize track. Judged on custom widgets, theming and layout, and use of the Studio Agent Framework ✅. Implementation specs (data sources, widgets, theme, analyst, adapter, tests) are in `14-prize-tracks.md` section 2; this section is the design.
 
-Library usage: `import { AgStudio } from 'ag-studio-react'`, `<AgStudio data={data} mode="edit" />` with `data` as `{ sources: [{ id, data }] }` ✅ (starter README). Licence, theming API and custom widget registration are ❓ and are settled in spike S10; this section lists the intent.
+Library usage: `import { AgStudio, createWidgets } from 'ag-studio-react'`; `<AgStudio data={...} mode="view" theme={...} widgets={...} components={...} ai={...} />`. Types read from the 3.0.0 packages ✅; licence mechanism and custom widget behaviour are settled in spike S10.
 
-Data sources (arrays of plain objects served by `/api/analytics/[source]`):
+Data sources (arrays of plain objects from `GET /api/analytics/:source`, no PII, money in minor units): `disputes`, `evidence_items`, `statements`, `risk_flags` (columns in `14-prize-tracks.md` 2.3 and `04-data-model.md` 2.12a).
 
-| Source id | Fields |
-| --- | --- |
-| `disputes` | id, reason, stage, state, amount, currency, openedAt, dueAt, strength, outcome |
-| `submissions` | id, caseId, action, status, sentAt, origin (model/template) |
-| `riskFlags` | id, rule, severity, status, amount, firstSeenAt, resolvedAt |
-| `verifier` | draftId, accepted, rejected, rejectReasons, fallbackUsed, at |
+Default layout (view mode for judges; an Edit toggle switches to `edit`):
+1. Top row, three value widgets: open disputes, money at risk (one per currency), due within 24 h.
+2. Middle, full width: **Deadline runway** (custom widget 1). Horizontal timeline of open disputes from now to +14 days. Mark position = response deadline, size = amount, colour and shape = strength. Overdue and under-24-hour marks use a different shape and a text label, never colour alone. Click opens the case.
+3. Lower left: **Verifier ledger** (custom widget 2). Statements drafted, accepted, rejected by reason (`NO_CITATION`, `UNKNOWN_FACT`, `VALUE_MISMATCH`, `TOO_LONG`), and the share of drafts that passed first time. Shows the AI is accountable.
+4. Lower right: AG Grid of disputes by urgency (reuses the queue columns).
+5. Optional (if time): disputes by reason (bar), flags opened vs resolved (line), strength distribution.
+6. **Theme:** built from `tokens.css` (colour, radius, font, spacing) for light and dark, so the dashboard matches the app.
+7. **Dispute analyst** chat panel (Studio Agent Framework). Read-only; prompt starters: "What is due soonest?", "What is blocking drafts?", "Money at stake", "Where do disputes come from?". Answers cite the query they ran. When no model is configured the panel says so plainly ("No language model is connected in this demo") instead of pretending.
 
-Default dashboard (view mode for the demo, edit mode available):
-1. KPI row: open disputes, amount at risk, due in 24 h, flags open.
-2. Disputes by reason (bar) and by stage (bar).
-3. Amount at risk by deadline band (stacked bar).
-4. Prevent: flags opened vs resolved over time (line).
-5. Evidence strength distribution (donut or bar).
-6. **Custom widget 1: "Deadline runway"**: horizontal timeline of open disputes from now to due date, coloured by strength. Click opens the case. (Differentiated and useful.)
-7. **Custom widget 2: "Verifier ledger"**: counts of statements drafted/accepted/rejected by reason with a sparkline. Shows the AI is accountable.
-8. Theme: AG Studio theme built from `tokens.css` so the dashboard matches the app (light and dark).
+States to design: loading (skeleton), no data (EmptyState with a link to load demo data in replay mode), analyst busy (429 from the one-request free tier: "The analyst is busy, try again in a few seconds"), analyst signed out (401: link to login), analyst failed (plain message, panel stays usable).
 
-Fallback if AG Studio trial or API blocks: render the same widgets with AG Grid Community plus a small chart library and keep the route; note it in README. Decision point in Phase 3 (`07-implementation-plan.md`).
+Fallback if AG Studio, its licence or the custom-widget API blocks: render the same widgets as React components with AG Grid Community and a small chart component, keep the route, and note it in the README. The chat then moves to a plain side panel using the same proxy. Decision point in Phase 3 (`07-implementation-plan.md`).
 
 ## 7. Screen: Fulfilment (`/fulfilment`)
 
@@ -148,7 +142,7 @@ Fallback if AG Studio trial or API blocks: render the same widgets with AG Grid 
 
 ## 9. Screen: Setup & Health (`/setup`)
 
-- Mode panel: data mode, submit mode, PayPal env (always Sandbox), app ID (masked), webhook ID (masked), last webhook received, last sync, LLM provider/model and reachability, database status, version/commit.
+- Mode panel (from `GET /api/health` and `GET /api/settings`): data mode, submit mode, PayPal env (always Sandbox), app ID (masked), webhook ID (masked), last webhook received, last sync, job backend (`postgres` or `render`), LLM (Ollama Cloud, model name, reachability), database status (Supabase), version/commit. Recent job outcomes with the Render run id when the backend is `render`.
 - Connection tests: "Test PayPal auth", "Send test webhook" (replay mode posts a fixture), "Test LLM".
 - Webhook URL to copy and the exact steps to register it in the PayPal developer dashboard with the three dispute events.
 - Thresholds editor (`R-*` values) with the label "These are assumptions you can change".
@@ -167,7 +161,8 @@ Fallback if AG Studio trial or API blocks: render the same widgets with AG Grid 
 | `FactDrawer` | `fact`, `payload`, `jsonPath` | shows highlighted JSON excerpt |
 | `Badge`, `Button`, `Card`, `Drawer`, `EmptyState`, `Toast` | basic | tokens only, no hard-coded colours |
 | `QueueGrid`, `RiskGrid`, `AuditGrid` | rows, callbacks | wrap AG Grid with the shared theme |
-| `DisputeHealthStudio` | `data`, `mode` | wraps AG Studio, registers custom widgets |
+| `DisputeHealthStudio` | `data`, `mode`, `apiBaseUrl` | wraps AG Studio; registers the custom widgets, theme and the Dispute analyst harness |
+| `DeadlineRunwayView`, `VerifierLedgerView` | rows | pure React views used by the Studio widgets; unit-tested without Studio |
 
 ## 11. Visual language
 
