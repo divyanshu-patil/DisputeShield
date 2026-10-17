@@ -1,6 +1,6 @@
 "use client";
 import type { QueueRow } from "@ds/api-client";
-import { Card, type ColDef, Countdown, DataGrid, DeadlineRunwayView, EmptyState, MoneyAtRisk, type RunwayRow, Skeleton, Stat, type StatementRow, StrengthMeter, VerifierLedgerView, formatMoney, reasonLabel } from "@ds/ui";
+import { Card, type ColDef, Countdown, DataGrid, DeadlineRunwayView, EmptyState, ErrorNote, MoneyAtRisk, type RunwayRow, Skeleton, Stat, type StatementRow, StrengthMeter, VerifierLedgerView, formatMoney, reasonLabel } from "@ds/ui";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { api } from "../../../lib/api";
@@ -30,6 +30,7 @@ export default function HealthPage() {
     [],
   );
 
+  if (data.error && !data.data) return <ErrorNote>{data.error.message}</ErrorNote>;
   if (!data.data) return <Skeleton rows={8} />;
   const { disputes, statements, flags, queue } = data.data;
   if (disputes.length === 0) return <EmptyState title="No data yet">Load the demo data from Setup, or sync disputes.</EmptyState>;

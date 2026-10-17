@@ -43,6 +43,12 @@ const walk = (p) => {
   else if (/\.(js|css|html|json|map|txt)$/.test(p)) files.push(p);
 };
 targets.forEach(walk);
+if (!files.some((f) => f.endsWith(".js"))) {
+  console.error(
+    "No JavaScript in apps/web/.next/static: the build is missing or incomplete.",
+  );
+  process.exit(2);
+}
 
 const hits = [];
 for (const f of files) {

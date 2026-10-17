@@ -9,6 +9,20 @@ let ctx: Awaited<ReturnType<typeof testDb>>;
 const now = new Date();
 const data = buildScenarios(now);
 const queued: { kind: string; payload: Record<string, unknown> }[] = [];
+// AC-NFR-09: a spy on every PayPal write; dry-run mode must never reach one.
+const writes: string[] = [];
+const gateway = new ReplayGateway(() => data);
+for (const m of [
+  "provideEvidence",
+  "acceptClaim",
+  "addTracking",
+  "refundCapture",
+] as const) {
+  const real = gateway[m].bind(gateway) as (...a: unknown[]) => Promise<never>;
+  Object.assign(gateway, {
+    [m]: (...a: unknown[]) => (writes.push(m), real(...a)),
+  });
+}
 let p: ReturnType<typeof createPipeline>;
 let repos: ReturnType<typeof createRepos>;
 let seeded: Awaited<ReturnType<typeof seedDemo>>;
@@ -18,7 +32,7 @@ beforeAll(async () => {
   repos = createRepos(ctx.db);
   p = createPipeline({
     repos,
-    gateway: new ReplayGateway(() => data),
+    gateway,
     llm: null,
     model: null,
     submitMode: "dry-run",
@@ -130,6 +144,11 @@ describe("demo scenarios through the pipeline", () => {
     expect(r.errors.map((e) => e.column)).toEqual(
       expect.arrayContaining(["paypal_transaction_id", "shipped_at"]),
     );
+  });
+
+  it("never_calls_a_paypal_write_in_dry_run (AC-NFR-09)", () => {
+    // Runs after the submit, accept and add-tracking tests above.
+    expect(writes).toEqual([]);
   });
 
   it("reseeds_after_a_sync (Reload demo data)", async () => {

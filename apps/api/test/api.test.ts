@@ -99,13 +99,14 @@ describe("auth and disputes", () => {
     expect(res.statusCode).toBe(400);
   });
 
-  it("rate limits login attempts", async () => {
+  it("rate limits login attempts with Retry-After (AC-API-05)", async () => {
     const { app } = await makeApp();
-    let last = 0;
-    for (let i = 0; i < 12; i++) {
-      last = (await app.inject({ method: "POST", url: "/api/auth/login", payload: { code: "x" } })).statusCode;
+    let last = await app.inject({ method: "POST", url: "/api/auth/login", payload: { code: "x" } });
+    for (let i = 0; i < 11; i++) {
+      last = await app.inject({ method: "POST", url: "/api/auth/login", payload: { code: "x" } });
     }
-    expect(last).toBe(429);
+    expect(last.statusCode).toBe(429);
+    expect(Number(last.headers["retry-after"])).toBeGreaterThan(0);
   });
 
   it("clears the session on logout", async () => {

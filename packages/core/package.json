@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --coverage --coverage.include=src --coverage.reporter=text-summary --coverage.thresholds.lines=90"
   },
   "dependencies": {
     "@ds/schemas": "workspace:*"
@@ -17,6 +17,8 @@
   "devDependencies": {
     "@ds/config-eslint": "workspace:*",
     "@ds/config-typescript": "workspace:*",
+    "@ds/fixtures": "workspace:*",
+    "@vitest/coverage-v8": "5.0.3",
     "eslint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
