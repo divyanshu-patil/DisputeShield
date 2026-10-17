@@ -40,7 +40,7 @@ yarn-error.log*
 # Next.js generated
 next-env.d.ts
 *.tsbuildinfo
-e2e/.auth.json
+**/e2e/.auth.json
 test-results/
 playwright-report/
 coverage/
