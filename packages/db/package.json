@@ -9,16 +9,25 @@
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/migrate-cli.ts"
   },
   "dependencies": {
-    "@ds/schemas": "workspace:*"
+    "@ds/core": "workspace:*",
+    "@ds/jobs": "workspace:*",
+    "@ds/schemas": "workspace:*",
+    "drizzle-orm": "0.45.3",
+    "postgres": "3.4.9",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@ds/config-eslint": "workspace:*",
     "@ds/config-typescript": "workspace:*",
     "@types/node": "catalog:",
+    "drizzle-kit": "0.31.11",
     "eslint": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
