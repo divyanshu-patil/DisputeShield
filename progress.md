@@ -68,13 +68,14 @@ P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`draf
 ## Phase 4 — Quality (started 2026-10-18)
 
 - P4-1 done: Playwright e2e, 17 tests in replay mode against a production build (login, queue, case review and dry-run submit, needs-info CSV fix, accept claim, risk actions, health, axe on seven pages, 390 px layout). `pnpm test:e2e` (uses `ds_e2e`, override with `E2E_DATABASE_URL`); in CI.
+- P4-2 done: deterministic eval (5 golden, 15 adversarial, template fallback) in `pnpm test`/`pnpm eval`, so a missed adversarial case fails CI; live eval `pnpm ds eval:live` writes `docs/evals/<date>.md`. 2026-10-18 with `gemma4:31b`: schema-valid 100%, accepted after repair 100%, 0 injection leaks, no fabrication in manual review. The eval added verifier rules: carrier tokens, buyer-statement and "received" claims, cited fact must be used, instruction text rejected; and fixed "shipped" (ship-to record) and "refunded" ("Refund issued: No").
 - P4-5 partial: `pnpm ds replay-check` (fixtures parse, no unredacted emails), in CI.
 - P4-6 done: README with a 5-command replay quickstart.
 - UI restyled to `DESIGN.md` (Geist, ink on near-white, hairlines, light and dark).
 
 ## Next
 
-P4-2 LLM eval suite, P4-3 webhook edge and security tests, P4-7 bug bash against `08-acceptance-criteria.md`. S7/S8 once the sandbox order is approved.
+P4-3 webhook edge and security tests, P4-7 bug bash against `08-acceptance-criteria.md`. S7/S8 once the sandbox order is approved.
 
 ## Run it locally (replay mode)
 
