@@ -25,7 +25,7 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 | P1-1         | Shared configs, ESLint boundary rules, Vitest                             | Done early, in P0-1 | `packages/config-eslint/test/boundaries.test.ts` (39 tests)                 |
 | P1-2 … P1-11 | Schemas, db, job queue, gateways, webhook, sync, app shell, queue, health | Done (2026-10-18)   | `pnpm turbo run lint typecheck test`: 47/47 tasks                           |
 | P1-12        | Deploy skeleton (Render, Supabase, web host)                              | Waiting on you      | needs Render account and the Supabase session-pooler URL                    |
-| P1-13        | OpenAPI export                                                            | Not started         |                                                                             |
+| P1-13        | OpenAPI export                                                            | Done (2026-10-18)   | `pnpm openapi:export` / `openapi:check` (in CI)                             |
 
 ## Phase 2 — Case engine (done 2026-10-18)
 
