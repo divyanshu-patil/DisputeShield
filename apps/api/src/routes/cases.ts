@@ -94,6 +94,12 @@ export function caseRoutes(app: FastifyInstance, deps: Deps): void {
     return reply.code(202).send({ ok: true });
   });
 
+  app.get("/disputes/:id/packet.pdf", { ...secured, schema: r("Evidence packet as a PDF: accepted statements, checklist, citation appendix (AC-SUB-12)") }, async (req, reply) => {
+    const { id } = parse(idParams, req.params);
+    const { filename, pdf } = await requireServices(deps).pipeline.packet(id);
+    return reply.type("application/pdf").header("content-disposition", `attachment; filename="${filename.replace(/[^\w.-]/g, "_")}"`).send(pdf);
+  });
+
   app.get("/payloads/:id", { ...secured, schema: r("Raw PayPal payload behind a fact (redacted)") }, async (req) => {
     const { id } = parse(z.object({ id: z.string().uuid() }), req.params);
     return requireServices(deps).pipeline.payload(id);

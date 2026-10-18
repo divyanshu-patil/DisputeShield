@@ -22,7 +22,7 @@ Dispute Shield is an open-source dispute desk with two halves.
 
 **Ask.** A read-only Case Copilot answers questions such as "What is missing?" from the case facts and the evidence checklist. It can re-read the dispute, order or transaction from PayPal with read-only tools. Its answers go through the same fact check as the drafts.
 
-A Health page shows deadlines, verifier results and pipeline status, and every action is in an exportable audit log.
+A Health page shows deadlines, verifier results and pipeline status, and every action is in an exportable audit log. Each case can be downloaded as a PDF evidence packet with the statements and a citation appendix.
 
 ## How we built it
 

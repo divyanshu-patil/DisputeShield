@@ -302,6 +302,8 @@ export function createApiClient(o: ClientOptions = {}) {
       get<Submission["requestSnapshot"]>(
         `/api/disputes/${enc(id)}/preview?action=${action}`,
       ),
+    /** A same-origin link (the session cookie goes with it); the browser downloads the PDF. */
+    packetUrl: (id: string) => `${base}/api/disputes/${enc(id)}/packet.pdf`,
     copilot: (id: string, question: string, history: CopilotTurn[] = []) =>
       post<CopilotAnswer>(`/api/disputes/${enc(id)}/copilot`, {
         question,

@@ -188,6 +188,23 @@ describe("demo scenarios through the pipeline", () => {
     ).not.toBeNull();
   });
 
+  it("packet_pdf_has_statements_checklist_and_appendix (AC-SUB-12)", async () => {
+    const ds1 = await p.packet("DS-001");
+    const text = ds1.pdf.toString("latin1");
+    const first = (await p.caseFile("DS-001")).draft?.report as {
+      accepted: { text: string }[];
+    };
+    expect(ds1.filename).toBe("dispute-DS-001-evidence.pdf");
+    expect(text).toContain("EVIDENCE STATEMENTS");
+    expect(text).toContain(
+      first.accepted[0]?.text.slice(0, 40).replace(/[()]/g, "\\$&"),
+    );
+    expect(text).toContain("CITATION APPENDIX");
+    expect(text).toContain("Replay data");
+    const ds4 = (await p.packet("DS-004")).pdf.toString("latin1");
+    expect(ds4).toContain("No evidence draft for this case");
+  });
+
   it("never_calls_a_paypal_write_in_dry_run (AC-NFR-09)", () => {
     // Runs after the submit, accept, add-tracking and copilot tests above.
     expect(writes).toEqual([]);

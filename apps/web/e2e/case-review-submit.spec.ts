@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("DS-001: citations, source drawer, failing edit blocked, approve and store a dry run (AC-UI-03, 04, 11, AC-VER-12, AC-SUB-02, AC-DEMO-03)", async ({
+test("DS-001: citations, source drawer, failing edit blocked, approve and store a dry run (AC-UI-03, 04, 11, AC-VER-12, AC-SUB-02, AC-SUB-12, AC-DEMO-03)", async ({
   page,
 }) => {
   await page.goto("/disputes/DS-001");
@@ -12,6 +12,10 @@ test("DS-001: citations, source drawer, failing edit blocked, approve and store 
   await page.getByText(/Ask about this dispute/).click();
   await page.getByRole("button", { name: "What is missing?" }).click();
   await expect(page.getByText(/needs an AI key/)).toBeVisible();
+  // AC-SUB-12: the evidence packet downloads as a PDF.
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download evidence packet (PDF)" }).click();
+  expect((await download).suggestedFilename()).toBe("dispute-DS-001-evidence.pdf");
 
   // A citation chip opens the fact's source record.
   await page

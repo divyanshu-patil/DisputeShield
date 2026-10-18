@@ -33,15 +33,16 @@ P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`draf
 
 ## Phase 3 — Risk and dashboards
 
-| ID           | Status            | Note                                                                                                                                                                                                            |
-| ------------ | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P3-1 … P3-4  | Done (2026-10-18) | risk rules, scan, Risk Radar with add-tracking/refund/dismiss, PII-free analytics views                                                                                                                         |
-| P3-5a        | Fallback          | AG Studio licence not active until the Nov 1 trial; Health page uses the same widgets as React views + AG Grid                                                                                                  |
-| P3-5b/c      | Done              | Deadline runway and Verifier ledger views                                                                                                                                                                       |
-| P3-5d, P3-8  | Skipped for now   | Dispute analyst (needs AG Studio), PDF packet                                                                                                                                                                   |
-| P3-7         | Done (2026-10-18) | Case Copilot: 4 toolkit read tools (replay: same tools over fixtures), results stored and turned into facts, answers checked per sentence (`verifyAnswer`), checklist in context; agent, pipeline and e2e tests |
-| P3-6         | Done              | loading/empty/error states, dark mode, keyboard dialogs                                                                                                                                                         |
-| P3-10, P3-11 | Waiting on you    | Render and APIMatic accounts                                                                                                                                                                                    |
+| ID           | Status               | Note                                                                                                                                                                                                            |
+| ------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P3-1 … P3-4  | Done (2026-10-18)    | risk rules, scan, Risk Radar with add-tracking/refund/dismiss, PII-free analytics views                                                                                                                         |
+| P3-5a        | Fallback             | AG Studio licence not active until the Nov 1 trial; Health page uses the same widgets as React views + AG Grid                                                                                                  |
+| P3-5b/c      | Done                 | Deadline runway and Verifier ledger views                                                                                                                                                                       |
+| P3-5d        | Waiting on AG Studio | Dispute analyst needs the AG Studio trial (Nov 1)                                                                                                                                                               |
+| P3-8         | Done (2026-10-18)    | PDF evidence packet (AC-SUB-12): `GET /api/disputes/:id/packet.pdf`, no PDF dependency; pipeline and e2e tests                                                                                                  |
+| P3-7         | Done (2026-10-18)    | Case Copilot: 4 toolkit read tools (replay: same tools over fixtures), results stored and turned into facts, answers checked per sentence (`verifyAnswer`), checklist in context; agent, pipeline and e2e tests |
+| P3-6         | Done                 | loading/empty/error states, dark mode, keyboard dialogs                                                                                                                                                         |
+| P3-10, P3-11 | Waiting on you       | Render and APIMatic accounts                                                                                                                                                                                    |
 
 ## P0-1 / P1-0 check record (2026-10-17, local, Node 24.10, pnpm 11.25.0)
 

@@ -14,9 +14,11 @@ import {
   buildCaseFile,
   type CaseFileInput,
   decide,
+  displayMoney,
   evaluateRisk,
   normaliseDispute,
   paypalEvent,
+  reasonLabel,
   toMinor,
   verifierPassed,
   verifyDraft,
@@ -39,9 +41,11 @@ import {
   type PaypalOrder,
   type PaypalTransactionDetail,
   type RiskThresholds,
+  type VerifierReport,
 } from "@ds/schemas";
 import { gatewayReadTools } from "./copilot-tools.js";
 import { parseFulfilmentCsv } from "./csv.js";
+import { textPdf } from "./packet-pdf.js";
 
 // Application services and job handlers shared by apps/api (Postgres worker) and apps/workflows (Render
 // tasks). Rules come from @ds/core, I/O from @ds/db, @ds/paypal and @ds/agent; this file only sequences.
@@ -661,6 +665,59 @@ export function createPipeline(d: PipelineDeps) {
     };
   }
 
+  /** AC-SUB-12: the case as a PDF: accepted statements, checklist, citation appendix, timestamps. */
+  async function packet(disputeId: string) {
+    const c = await caseFile(disputeId);
+    const { dispute: dp, draft } = c;
+    const byKey = new Map(c.facts.map((f) => [f.key, f]));
+    const report = draft ? (draft.report as VerifierReport) : null;
+    const cited = report
+      ? report.citationAppendix
+      : c.facts.map((f) => ({
+          factKey: f.key,
+          label: f.label,
+          display: f.display,
+          payloadId: f.sourcePayloadId,
+          jsonPath: f.jsonPath,
+        }));
+    const lines = [
+      "DISPUTE SHIELD EVIDENCE PACKET",
+      `Generated ${clock().toISOString()}. ${gateway.mode === "replay" ? "Replay data (recorded PayPal sandbox responses)." : "Live PayPal sandbox data."} Sandbox only.`,
+      "",
+      `Dispute ${dp.id}: ${reasonLabel(dp.reason)}`,
+      `Amount in dispute: ${displayMoney({ currency: dp.currency, minor: dp.amountMinor })}`,
+      `Opened: ${dp.createdAtPaypal ?? "-"}   Response due: ${dp.sellerResponseDue ?? "-"}`,
+      `Case: ${c.case?.state ?? "NEW"}. Evidence strength: ${c.strength} (a checklist result, not a prediction).`,
+      "",
+      ...(draft && report
+        ? [
+            `EVIDENCE STATEMENTS (draft v${draft.version}, ${draft.origin.replaceAll("_", " ").toLowerCase()}${draft.model ? `, ${draft.model}` : ""}, created ${draft.createdAt ?? "-"})`,
+            `Verifier: ${draft.passed ? "passed" : "did not pass"}; ${report.accepted.length} statements accepted, ${report.rejected.length} rejected.`,
+            ...report.accepted.map(
+              (st, i) => `  ${i + 1}. ${st.text} [${st.factKeys.join(", ")}]`,
+            ),
+          ]
+        : [
+            "No evidence draft for this case. The facts Dispute Shield holds are listed below.",
+          ]),
+      "",
+      "CHECKLIST",
+      ...c.checklist.map(
+        (i) => `  - ${i.label}: ${i.status}${i.blocking ? " (required)" : ""}`,
+      ),
+      "",
+      "CITATION APPENDIX",
+      ...cited.flatMap((e) => [
+        `  [${e.factKey}] ${e.label}: ${e.display}`,
+        `      source ${e.payloadId}, path ${e.jsonPath}, fetched ${byKey.get(e.factKey)?.fetchedAt ?? "-"}`,
+      ]),
+    ];
+    return {
+      filename: `dispute-${dp.id}-evidence.pdf`,
+      pdf: textPdf(lines, `Dispute ${dp.id} evidence packet`),
+    };
+  }
+
   async function payload(id: string) {
     const p = await repos.payloads.get(id);
     if (!p) throw new ServiceError("NOT_FOUND", "payload not found");
@@ -1140,6 +1197,7 @@ export function createPipeline(d: PipelineDeps) {
     draftCase,
     scanTransactions,
     caseFile,
+    packet,
     payload,
     async preview(
       disputeId: string,

@@ -228,6 +228,18 @@ export default function CasePage() {
                 onClick={() => void act("regen", () => api.regenerate(disputeId), "Drafting started; the new version appears shortly.")}
               />
               <ActionButton label="Sync from PayPal" variant="ghost" busy={busy === "sync"} blocked={null} onClick={() => void act("sync", () => api.syncDispute(disputeId), "Sync requested.")} />
+              <ActionButton
+                label="Download evidence packet (PDF)"
+                variant="ghost"
+                blocked={null}
+                onClick={() => {
+                  // Same-origin link, so the session cookie goes with it and the browser saves the file.
+                  const a = document.createElement("a");
+                  a.href = api.packetUrl(disputeId);
+                  a.download = "";
+                  a.click();
+                }}
+              />
             </div>
           </Card>
           <CopilotPanel disputeId={disputeId} openFact={(f) => void openSource(f.key, f)} />
