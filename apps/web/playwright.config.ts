@@ -56,7 +56,7 @@ export default defineConfig({
       url: "http://localhost:3100/login",
       reuseExistingServer: false,
       timeout: 180_000,
-      env: { API_ORIGIN: "http://localhost:4100" },
+      env: { API_ORIGIN: "http://localhost:4100", NEXT_DIST_DIR: ".next-e2e" },
     },
   ],
 });

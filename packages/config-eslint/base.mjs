@@ -3,7 +3,7 @@ import tseslint from "typescript-eslint";
 
 // recommendedTypeChecked includes no-floating-promises and no-explicit-any.
 export const base = defineConfig(
-  { ignores: ["dist/**", ".next/**", "coverage/**", "next-env.d.ts"] },
+  { ignores: ["dist/**", ".next/**", ".next-e2e/**", "coverage/**", "next-env.d.ts"] },
   {
     files: ["**/*.{ts,tsx,mts,cts}"],
     extends: [tseslint.configs.recommendedTypeChecked],
