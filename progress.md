@@ -14,7 +14,7 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 | P0-6  | S5: webhook + signature verification               | Partial (2026-10-18), polling fallback | ngrok delivery works (simulator); postback FAILURE for simulator and bad signature (200 + FAILURE). Sandbox emitted **no real dispute events** (dashboard Webhook Events log empty) despite Customer disputes on and new dispute PP-R-GSH-10193291. Gate G4 optional: 5-minute polling is the source of truth; webhook route kept |
 | P0-7  | S6/S7/S8: transaction search, orders, tracking     | Partial (2026-10-18)                   | S6 PASS (shipping, protection), PARTIAL (cart). S7/S8 wait for you to approve the $24 sandbox order (see open items)                                                                                                                                                                                                              |
 | P0-8  | S9: Ollama Cloud model choice                      | Done (2026-10-18)                      | `gemma4:31b` chosen; drafts parse and pass the verifier first time (1.8–2.4 s). Log: `docs/decisions/0001-day0-spike-results.md`                                                                                                                                                                                                  |
-| P0-10 | Accounts: Supabase, Ollama Cloud, Render, APIMatic | In progress (you)                      | Supabase URL in `.env` (see open items)                                                                                                                                                                                                                                                                                           |
+| P0-10 | Accounts: Supabase, Ollama Cloud, Render, APIMatic | In progress (you)                      | Supabase and Ollama Cloud done; Render, APIMatic to do                                                                                                                                                                                                                                                                                               |
 | P0-9  | Contract update, go/no-go note                     | Done (2026-10-18)                      |                                                                                                                                                                                                                                                                                                                                   |
 
 ## Phase 1 — Foundations
@@ -24,7 +24,7 @@ Task IDs are from `docs/07-implementation-plan.md`. Updated with each commit.
 | P1-0         | Adopt the starter (api, workflows, jobs, schemas, agent)                  | Done (2026-10-17)   | starter tests green; `/api/health` and `/api/openapi.json` answer in replay |
 | P1-1         | Shared configs, ESLint boundary rules, Vitest                             | Done early, in P0-1 | `packages/config-eslint/test/boundaries.test.ts` (39 tests)                 |
 | P1-2 … P1-11 | Schemas, db, job queue, gateways, webhook, sync, app shell, queue, health | Done (2026-10-18)   | `pnpm turbo run lint typecheck test`: 47/47 tasks                           |
-| P1-12        | Deploy skeleton (Render, Supabase, web host)                              | Waiting on you      | needs Render account and the Supabase session-pooler URL                    |
+| P1-12        | Deploy skeleton (Render, Supabase, web host)                              | Waiting on you      | Supabase ready; needs a Render account                                      |
 | P1-13        | OpenAPI export                                                            | Done (2026-10-18)   | `pnpm openapi:export` / `openapi:check` (in CI)                             |
 
 ## Phase 2 — Case engine (done 2026-10-18)
@@ -61,7 +61,7 @@ P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`draf
 
 ## Open items for you
 
-1. **`DATABASE_URL` and `DATABASE_URL_TEST` in `.env` use the Supabase transaction pooler (port 6543).** AGENTS.md rule 13 forbids it. Switch to the session pooler (same host, port 5432) or the direct URL. Point `DATABASE_URL_TEST` at the local `docker compose` database (`postgres://ds:ds@localhost:5432/ds_test`), not at Supabase, because tests will reset it.
+1. ~~Supabase URLs in `.env`.~~ Done 2026-10-18: `DATABASE_URL` is the session pooler (port 5432; Postgres 17, both migrations applied, RLS on every table); `DATABASE_URL_TEST` is the local `ds_test`.
 2. ~~Replace `[COPYRIGHT HOLDER]` in `LICENSE`.~~ Done 2026-10-18.
 3. ~~Create the GitHub repo and add it as `origin` so CI can run.~~ Done (public). CI failed on the sandbox-host check (scope names and recorded payload links); fixed 2026-10-18.
 4. Still to fill in `.env`: `PAYPAL_SANDBOX_BUYER_EMAIL`, `RENDER_*` (P1-12).
@@ -84,7 +84,7 @@ P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`draf
 
 ## Next
 
-P4-4 hosted deploy (needs the Supabase session-pooler URL and a Render account) and the demo video. Devpost text drafted in `docs/submission/devpost.md`; its bracketed items wait on the deploy, AG Studio, Render and APIMatic. S7/S8 once the sandbox order is approved.
+P4-4 hosted deploy (Supabase ready; needs a Render account) and the demo video. Devpost text drafted in `docs/submission/devpost.md`; its bracketed items wait on the deploy, AG Studio, Render and APIMatic. S7/S8 once the sandbox order is approved.
 
 ## Run it locally (replay mode)
 
