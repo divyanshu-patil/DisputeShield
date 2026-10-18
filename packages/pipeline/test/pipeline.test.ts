@@ -1,6 +1,6 @@
 import { createRepos } from "@ds/db";
 import { testDb } from "@ds/db/testing";
-import { buildScenarios } from "@ds/fixtures";
+import { buildScenarios, recordedDraft } from "@ds/fixtures";
 import { ReplayGateway } from "@ds/paypal";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createPipeline, parseFulfilmentCsv, seedDemo } from "../src/index.js";
@@ -35,6 +35,7 @@ beforeAll(async () => {
     gateway,
     llm: null,
     model: null,
+    recorded: recordedDraft,
     submitMode: "dry-run",
     clock: () => new Date(),
     enqueue: async (j) => void queued.push(j),
@@ -57,6 +58,8 @@ describe("demo scenarios through the pipeline", () => {
     expect(ds1.strength).toBe("STRONG");
     expect(ds1.facts.every((f) => f.sourcePayloadId && f.jsonPath)).toBe(true);
     expect(ds1.draft?.passed).toBe(true);
+    // AC-DEMO-03: no model, so the recorded draft, re-bound to facts seeded today, is used.
+    expect(ds1.draft?.origin).toBe("RECORDED_MODEL");
     expect(ds1.decision.recommended).toBe("FIGHT");
     const ds2 = await p.caseFile("DS-002");
     expect(ds2.strength).toBe("WEAK");
@@ -66,6 +69,7 @@ describe("demo scenarios through the pipeline", () => {
     const ds3 = await p.caseFile("DS-003");
     expect(ds3.evidenceType).toBe("PROOF_OF_REFUND");
     expect(ds3.draft?.passed).toBe(true);
+    expect(ds3.draft?.origin).toBe("RECORDED_MODEL");
     const ds4 = await p.caseFile("DS-004");
     expect(ds4.decision.recommended).toBe("REVIEW");
     expect(ds4.draft).toBeNull();

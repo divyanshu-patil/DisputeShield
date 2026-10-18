@@ -1,6 +1,6 @@
 import { type LlmClient, createOllamaClient } from "@ds/agent";
 import { PostgresJobQueue, createDb, createRepos } from "@ds/db";
-import { buildScenarios } from "@ds/fixtures";
+import { buildScenarios, recordedDraft } from "@ds/fixtures";
 import { createJobRunner } from "@ds/jobs";
 import { LiveGateway, ReplayGateway } from "@ds/paypal";
 import { createPipeline, seedDemo } from "@ds/pipeline";
@@ -26,6 +26,7 @@ export function buildDatabaseDeps(env: Env, base: Deps, url: string, log: (msg: 
     gateway,
     llm,
     model: env.LLM_MODEL ?? null,
+    recorded: env.DS_MODE === "replay" ? recordedDraft : undefined,
     submitMode: env.DS_SUBMIT_MODE,
     clock,
     enqueue: (j) => jobs.enqueue(j),

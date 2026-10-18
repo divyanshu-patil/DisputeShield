@@ -1,11 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-test("DS-001: citations, source drawer, failing edit blocked, approve and store a dry run (AC-UI-03, 04, 11, AC-VER-12, AC-SUB-02)", async ({
+test("DS-001: citations, source drawer, failing edit blocked, approve and store a dry run (AC-UI-03, 04, 11, AC-VER-12, AC-SUB-02, AC-DEMO-03)", async ({
   page,
 }) => {
   await page.goto("/disputes/DS-001");
   await expect(page.getByText("Evidence draft v1")).toBeVisible();
   await expect(page.getByText("✓ Verified")).toBeVisible();
+  // No AI key in the e2e servers: the recorded model draft is shown and labelled.
+  await expect(page.getByText(/Recorded model output/)).toBeVisible();
 
   // A citation chip opens the fact's source record.
   await page

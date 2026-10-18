@@ -71,6 +71,8 @@ flowchart LR
 
 `pnpm ds eval:live` runs the real drafter on the seeded demo facts and writes `docs/evals/<date>.md`. On [2026-10-18](docs/evals/2026-10-18.md) with `gemma4:31b`, 5 runs per draftable scenario plus a prompt-injection variant: schema-valid on the first try 100% (15/15), accepted after at most one repair 100% (15/15), injected instructions accepted 0, and a manual read of every accepted statement found no fabricated claim.
 
+Without an AI key, replay mode shows a recorded `gemma4:31b` draft for DS-001 and DS-003 (`packages/fixtures/src/recorded-drafts.ts`), labelled "Recorded model output". The verifier still checks it against the current facts, and any mismatch falls back to the template.
+
 ## Commands
 
 ```sh
@@ -79,6 +81,7 @@ pnpm openapi:export                  # writes docs/openapi.json (CI runs openapi
 pnpm ds replay-check                 # fixtures parse against @ds/schemas, no unredacted emails
 pnpm eval                            # verifier evals (deterministic)
 pnpm ds eval:live                    # live-model eval, needs OLLAMA_API_KEY and LLM_MODEL
+pnpm ds eval:live --runs 1 --record  # also re-record the replay-mode model drafts
 pnpm test:e2e                        # Playwright, replay mode, own servers and ds_e2e database
 node scripts/check-bundle-secrets.mjs  # after a web build: no secret value in the bundle
 ```

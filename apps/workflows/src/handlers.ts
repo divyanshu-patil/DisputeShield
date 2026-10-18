@@ -1,6 +1,6 @@
 import { createOllamaClient } from "@ds/agent";
 import { createDb, createRepos } from "@ds/db";
-import { buildScenarios } from "@ds/fixtures";
+import { buildScenarios, recordedDraft } from "@ds/fixtures";
 import type { JobHandlers } from "@ds/jobs";
 import { LiveGateway, ReplayGateway } from "@ds/paypal";
 import { createPipeline } from "@ds/pipeline";
@@ -21,6 +21,7 @@ export function buildHandlers(env: WorkerEnv | null = workerEnv()): JobHandlers 
     gateway: env.mode === "live" && env.paypal ? new LiveGateway(env.paypal) : new ReplayGateway(() => buildScenarios()),
     llm: env.ollama ? createOllamaClient({ apiKey: env.ollama.apiKey, host: env.ollama.host, timeoutMs: 30_000 }) : null,
     model: env.ollama?.model ?? null,
+    recorded: env.mode === "replay" ? recordedDraft : undefined,
     submitMode: env.submitMode,
     clock: () => new Date(),
     enqueue: async (job) => {

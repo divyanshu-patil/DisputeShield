@@ -414,7 +414,9 @@ function DraftPanel({ c, disputeId, hover, setHover, openSource, onChanged }: { 
       ? "Plain template (AI drafting unavailable)"
       : draft.origin === "HUMAN_EDIT"
         ? "Edited by you"
-        : `AI-drafted by ${draft.model ?? "model"} (prompt ${draft.promptVersion ?? "drafter.v1"})${draft.origin === "MODEL_REPAIRED" ? ", repaired once" : ""}`;
+        : draft.origin === "RECORDED_MODEL"
+          ? `Recorded model output (${draft.model ?? "model"}, prompt ${draft.promptVersion ?? "drafter.v1"}; no AI key in this demo)`
+          : `AI-drafted by ${draft.model ?? "model"} (prompt ${draft.promptVersion ?? "drafter.v1"})${draft.origin === "MODEL_REPAIRED" ? ", repaired once" : ""}`;
   const editable = c.case?.state === "READY";
 
   async function check() {

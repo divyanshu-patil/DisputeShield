@@ -43,6 +43,12 @@ export type DraftOptions = {
   reason: string;
   assessment: Assessment;
   facts: Fact[];
+  /** Replay mode without a model: a recorded model draft, re-bound to the current facts (AC-DEMO-03). */
+  recorded?: {
+    model: string;
+    promptVersion: string;
+    draft: EvidenceDraft;
+  } | null;
   maxStatements?: number;
   budgetMs?: number;
   now?: () => number;
@@ -84,6 +90,22 @@ export async function draftEvidence(o: DraftOptions): Promise<DraftResult> {
     };
   };
 
+  if ((!o.llm || !o.model) && o.recorded) {
+    const report = verifyDraft(o.recorded.draft, o.facts);
+    if (report.rejected.length > 0 || report.accepted.length === 0)
+      return fallback("recorded draft does not match the current facts");
+    metrics.path = "RECORDED_MODEL";
+    metrics.latencyMs = now() - t0;
+    return {
+      draft: o.recorded.draft,
+      report,
+      passed: verifierPassed(report, o.assessment.checklist),
+      origin: "RECORDED_MODEL",
+      model: o.recorded.model,
+      promptVersion: o.recorded.promptVersion,
+      metrics,
+    };
+  }
   if (!o.llm || !o.model) return fallback("no model configured");
   const llm = o.llm;
   const model = o.model;

@@ -54,6 +54,11 @@ export type PipelineDeps = {
   gateway: PayPalGateway;
   llm: LlmClient | null;
   model: string | null;
+  /** Replay mode only: a recorded model draft for a dispute, used when there is no model (AC-DEMO-03). */
+  recorded?: (
+    disputeId: string,
+    facts: Fact[],
+  ) => { model: string; promptVersion: string; draft: EvidenceDraft } | null;
   submitMode: "dry-run" | "live";
   clock: () => Date;
   enqueue: (job: {
@@ -460,6 +465,7 @@ export function createPipeline(d: PipelineDeps) {
     const r = await draftEvidence({
       llm: d.llm,
       model: d.model,
+      recorded: d.recorded?.(dispute.id, facts),
       reason: dispute.reason,
       assessment,
       facts,

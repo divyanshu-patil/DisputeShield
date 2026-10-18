@@ -103,6 +103,30 @@ describe("drafter (AC-EVID, AC-LLM)", () => {
   it("falls_back_without_a_model", async () => {
     expect((await run(null)).origin).toBe("TEMPLATE_FALLBACK");
   });
+  it("uses_a_recorded_draft_only_while_it_matches_the_facts (AC-DEMO-03)", async () => {
+    const recorded = (draft: unknown) =>
+      draftEvidence({
+        llm: null,
+        model: null,
+        recorded: {
+          model: "m",
+          promptVersion: "drafter.v1",
+          draft: draft as never,
+        },
+        reason: "MERCHANDISE_OR_SERVICE_NOT_RECEIVED",
+        assessment,
+        facts,
+      });
+    const ok = await recorded(good);
+    expect([ok.origin, ok.model, ok.passed]).toEqual([
+      "RECORDED_MODEL",
+      "m",
+      true,
+    ]);
+    const stale = await recorded(bad);
+    expect(stale.origin).toBe("TEMPLATE_FALLBACK");
+    expect(stale.metrics.fallbackReason).toMatch(/recorded draft/);
+  });
   it("sends_no_raw_payloads_or_pii", async () => {
     let sent = "";
     const llm: LlmClient = {

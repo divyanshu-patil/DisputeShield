@@ -51,6 +51,10 @@ program
     "Run the drafter on the seeded demo facts with the live model; writes docs/evals/<date>.md",
   )
   .option("--runs <n>", "runs per scenario", "5")
-  .action((opts: { runs: string }) => evalLive(opts));
+  .option(
+    "--record",
+    "also save the first accepted draft per scenario as the replay recorded draft",
+  )
+  .action((opts: { runs: string; record?: boolean }) => evalLive(opts));
 
 await program.parseAsync();
