@@ -43,7 +43,7 @@ export default function SetupPage() {
   return (
     <div className="space-y-4">
       <h1>Setup &amp; health</h1>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
         <Card title="Modes and connections">
           <dl className="text-sm">
             {row("Data mode", <Badge tone={s.mode === "live" ? "accent" : "info"}>{s.mode === "live" ? "Live sandbox" : "Replay (recorded)"}</Badge>)}

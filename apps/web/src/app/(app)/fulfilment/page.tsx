@@ -72,7 +72,7 @@ export default function FulfilmentPage() {
         <h1>Fulfilment records</h1>
         <p className="text-sm text-[var(--ds-muted)]">Your shipping records fill gaps PayPal does not have. Your file is your record; PayPal tracking is the authority when both exist.</p>
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
         <Card title="Upload CSV" actions={<Button size="sm" variant="ghost" onClick={() => void downloadSample()}>Download demo CSV</Button>}>
           <div
             onDragOver={(e) => {

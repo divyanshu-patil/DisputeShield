@@ -80,7 +80,7 @@ P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`draf
 - Dependency pins moved to releases at least 14 days old (AGENTS.md rule 7); tsup is 8.5.1; turbo's agent-guidance block is off.
 - P4-5 partial: `pnpm ds replay-check` (fixtures parse, no unredacted emails), in CI.
 - P4-6 done: README with a 5-command replay quickstart.
-- UI restyled to `DESIGN.md` (Geist, ink on near-white, hairlines, light and dark).
+- UI redesigned to the new `DESIGN.md` (2026-10-18): Nunito Sans, slate on white and #f5f7f7, #f0f4ff raised tint, blue-tinted shadows, radius 8/12/24 and pill badges, input states incl. error; accent, status and dark colours derived and checked for AA (axe passes on seven pages).
 
 ## Next
 

@@ -11,21 +11,16 @@
     background: var(--ds-bg);
     color: var(--ds-text);
     font-family: var(--ds-font);
-    font-size: 14px;
-    letter-spacing: -0.02em;
+    /* DESIGN.md font.size.base and font.weight.base; paragraphs get a readable line height. */
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
   }
 
   h1 {
-    font-size: 24px;
+    font-size: 24px; /* font.size.2xl */
     line-height: 32px;
-    font-weight: 600;
-    letter-spacing: -0.04em;
-  }
-
-  code,
-  pre,
-  .font-mono {
-    letter-spacing: 0;
+    font-weight: 700;
   }
 
   :focus-visible {
@@ -39,38 +34,43 @@
   }
 }
 
-/* DESIGN.md form-input: hairline, 6px radius, accent focus ring. Textareas grow from the same rule. */
+/* DESIGN.md input: 36px, radius.sm, 3:1 border; states: hover, focus-visible, disabled, error
+   (aria-invalid). Textareas grow from the same rule. */
 @layer components {
   .ds-input {
     min-height: 36px;
-    border: 1px solid var(--ds-line);
+    border: 1px solid var(--ds-line-strong);
     border-radius: var(--ds-radius);
     background: var(--ds-surface);
     color: var(--ds-text);
     padding: 0 12px;
     font-size: 14px;
     transition:
-      border-color 0.15s,
-      box-shadow 0.15s;
+      border-color var(--ds-fast),
+      box-shadow var(--ds-fast);
   }
   textarea.ds-input {
     padding: 8px 12px;
     line-height: 20px;
   }
   .ds-input:hover {
-    border-color: var(--ds-line-strong);
+    border-color: var(--ds-text);
+  }
+  .ds-input:disabled {
+    cursor: not-allowed;
+    border-color: var(--ds-line);
+    background: var(--ds-bg);
+    color: var(--ds-faint);
+  }
+  .ds-input[aria-invalid="true"] {
+    border-color: var(--ds-danger);
   }
   .ds-input:focus-visible {
     outline: none;
     border-color: var(--ds-accent);
-    box-shadow: 0 0 0 3px var(--ds-accent-soft);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-accent) 25%, transparent);
   }
   .ds-input::placeholder {
-    color: var(--ds-muted);
+    color: var(--ds-faint);
   }
-}
-
-/* DESIGN.md data table: uppercase mono caption headers. */
-.ag-header-cell-text {
-  text-transform: uppercase;
 }

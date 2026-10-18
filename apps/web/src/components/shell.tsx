@@ -28,7 +28,7 @@ function ThemeToggle() {
   return (
     <button
       type="button"
-      className="h-7 rounded-[var(--ds-radius)] px-2 text-[13px] text-[var(--ds-body)] hover:bg-[var(--ds-surface-2)] hover:text-[var(--ds-text)]"
+      className="h-8 whitespace-nowrap rounded-[var(--ds-radius)] px-2.5 text-sm font-semibold text-[var(--ds-body)] transition duration-[var(--ds-fast)] hover:bg-[var(--ds-surface-2)] hover:text-[var(--ds-text)] active:translate-y-px"
       aria-label={`Theme: ${theme}. Switch to ${next}`}
       onClick={() => {
         if (next === "system") delete document.documentElement.dataset.theme;
@@ -52,10 +52,10 @@ function DeadlineTicker({ rows }: { rows: QueueRow[] }) {
   const next = rows
     .filter((r) => OPEN.has(r.caseState) && r.sellerResponseDue && Date.parse(r.sellerResponseDue) > now)
     .sort((a, b) => Date.parse(a.sellerResponseDue ?? "") - Date.parse(b.sellerResponseDue ?? ""))[0];
-  if (!next) return <span className="text-[13px] text-[var(--ds-muted)]">No open deadlines</span>;
+  if (!next) return <span className="text-sm text-[var(--ds-muted)]">No open deadlines</span>;
   const urgent = Date.parse(next.sellerResponseDue ?? "") - now < 24 * 3_600_000;
   return (
-    <Link href={`/disputes/${encodeURIComponent(next.id)}`} className={`text-[13px] tabular-nums no-underline ${urgent ? "font-medium text-[var(--ds-danger)]" : "text-[var(--ds-body)]"}`}>
+    <Link href={`/disputes/${encodeURIComponent(next.id)}`} className={`text-sm tabular-nums no-underline ${urgent ? "font-semibold text-[var(--ds-danger)]" : "text-[var(--ds-body)]"}`}>
       Next deadline: {next.id} in {timeLeft(next.sellerResponseDue, now)}
     </Link>
   );
@@ -76,9 +76,12 @@ export function Shell({ children }: { children: ReactNode }) {
     <ToastProvider>
       <HealthCtx.Provider value={{ health: health.data, reloadQueue: () => void queue.reload() }}>
         <div className="min-h-screen">
-          <header className="sticky top-0 z-30 border-b border-[var(--ds-line)] bg-[var(--ds-surface)]/90 backdrop-blur">
+          <header className="sticky top-0 z-30 border-b border-[var(--ds-line)] bg-[var(--ds-surface)] shadow-[var(--ds-shadow-1)]">
             <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-6 px-4 sm:px-6 lg:h-16 lg:flex-nowrap">
-              <Link href="/disputes" className="flex h-14 items-center text-[15px] font-semibold tracking-[-0.03em] text-[var(--ds-text)] no-underline lg:h-auto">
+              <Link href="/disputes" className="flex h-14 items-center gap-2 text-lg font-extrabold text-[var(--ds-text)] no-underline lg:h-auto">
+                <span aria-hidden className="grid h-7 w-7 place-items-center rounded-[var(--ds-radius)] bg-[var(--ds-primary)] text-sm text-[var(--ds-primary-text)]">
+                  DS
+                </span>
                 Dispute Shield
               </Link>
               <nav aria-label="Main" className="order-last -mx-1 flex w-full gap-1 overflow-x-auto pb-2 lg:order-none lg:mx-0 lg:w-auto lg:overflow-visible lg:pb-0">
@@ -89,14 +92,14 @@ export function Shell({ children }: { children: ReactNode }) {
                       key={href}
                       href={href}
                       aria-current={active ? "page" : undefined}
-                      className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm tracking-[-0.02em] no-underline ${active ? "bg-[var(--ds-surface-2)] font-medium text-[var(--ds-text)]" : "text-[var(--ds-body)] hover:text-[var(--ds-text)]"}`}
+                      className={`whitespace-nowrap rounded-[var(--ds-radius-pill)] px-3.5 py-1.5 text-sm font-semibold no-underline transition duration-[var(--ds-fast)] ${active ? "bg-[var(--ds-surface-2)] text-[var(--ds-accent)]" : "text-[var(--ds-body)] hover:bg-[var(--ds-bg)] hover:text-[var(--ds-text)]"}`}
                     >
                       {label}
                     </Link>
                   );
                 })}
               </nav>
-              <div className="ml-auto flex items-center gap-3">
+              <div className="ml-auto flex flex-wrap items-center justify-end gap-2 pb-2 lg:flex-nowrap lg:pb-0">
                 <span className="hidden xl:inline">
                   <DeadlineTicker rows={queue.data?.items ?? []} />
                 </span>
@@ -107,7 +110,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 <ThemeToggle />
                 <button
                   type="button"
-                  className="h-7 rounded-[var(--ds-radius)] px-2 text-[13px] text-[var(--ds-body)] hover:bg-[var(--ds-surface-2)] hover:text-[var(--ds-text)]"
+                  className="h-8 whitespace-nowrap rounded-[var(--ds-radius)] px-2.5 text-sm font-semibold text-[var(--ds-body)] transition duration-[var(--ds-fast)] hover:bg-[var(--ds-surface-2)] hover:text-[var(--ds-text)] active:translate-y-px"
                   onClick={() => void api.logout().finally(() => window.location.assign("/login"))}
                 >
                   Sign out

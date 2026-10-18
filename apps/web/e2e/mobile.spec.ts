@@ -8,14 +8,22 @@ for (const path of ["/disputes", "/disputes/DS-003"]) {
   }) => {
     await page.goto(path);
     await page.locator("main h1").first().waitFor();
-    // Lists the elements that stick out, so a failure says what to fix.
+    // Lists the elements that stick out, so a failure says what to fix. Content inside its own
+    // horizontal scroller (the nav pills, the grid) cannot scroll the page.
     const wide = await page.evaluate(() => {
       const w = document.documentElement.clientWidth;
+      const inScroller = (el: Element) => {
+        for (let p = el.parentElement; p; p = p.parentElement)
+          if (/auto|scroll|hidden/.test(getComputedStyle(p).overflowX))
+            return true;
+        return false;
+      };
       return [...document.querySelectorAll("body *")]
         .filter(
           (el) =>
             el.getBoundingClientRect().right > w + 0.5 &&
-            !el.closest(".ag-root-wrapper"),
+            !el.closest(".ag-root-wrapper") &&
+            !inScroller(el),
         )
         .slice(0, 5)
         .map(
@@ -24,5 +32,12 @@ for (const path of ["/disputes", "/disputes/DS-003"]) {
         );
     });
     expect(wide).toEqual([]);
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth,
+      ),
+    ).toBe(true);
   });
 }

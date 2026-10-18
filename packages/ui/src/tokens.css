@@ -1,104 +1,115 @@
-/* Design tokens from DESIGN.md (Vercel-inspired: ink on near-white, hairlines, stacked soft shadows, blue
-   as the single accent and the success colour). Every colour in the app and in the AG Grid theme comes
-   from here. Deviations, for WCAG AA on small text: muted text is #666 (DESIGN's #888 is 3.5:1 on white),
-   the light-mode accent is link-deep #0761d1 (#0070f3 is 4.0:1 on the page), and blue badges use a lighter
-   tint (#e5efff). */
+/* Design tokens from DESIGN.md (Nunito Sans; slate text on white and #f5f7f7; #f0f4ff raised tint; soft
+   blue-tinted shadows; radius 8/12/24, pill badges). Every colour in the app and in the AG Grid theme comes
+   from here. DESIGN.md gives no accent, status or dark colours, so these are derived and checked for WCAG AA:
+   the accent is a blue from the #f0f4ff family darkened to #2a5bd7 (5.9:1 on white; #3770ff is 4.3:1);
+   tertiary #90999e (2.9:1) is used only for placeholders and disabled text, never for information;
+   strong lines are #848e93 so input borders reach 3:1. */
 :root {
   color-scheme: light;
-  --ds-bg: #fafafa; /* canvas-soft: page */
-  --ds-surface: #ffffff; /* canvas: cards, dialogs */
-  --ds-surface-2: #f5f5f5; /* canvas-soft-2: insets, hovers */
-  --ds-line: #ebebeb; /* hairline */
-  --ds-line-strong: #a1a1a1;
-  --ds-text: #171717; /* ink */
-  --ds-body: #4d4d4d;
-  --ds-muted: #666666;
-  --ds-primary: #171717; /* primary buttons */
+  --ds-bg: #f5f7f7; /* color.surface.strong: page */
+  --ds-surface: #ffffff; /* color.surface.muted: cards, dialogs */
+  --ds-surface-2: #f0f4ff; /* color.surface.raised: insets, hovers, selected */
+  --ds-line: #e3e8ea; /* hairline */
+  --ds-line-strong: #848e93; /* input borders, 3:1 */
+  --ds-text: #2b363c; /* color.text.inverse: headings, body */
+  --ds-body: #535f66; /* color.text.secondary */
+  --ds-muted: #535f66; /* secondary text; tertiary fails AA */
+  --ds-faint: #90999e; /* color.text.tertiary: placeholder, disabled */
+  --ds-ink: #000000; /* color.surface.base */
+  --ds-primary: #2a5bd7; /* primary buttons */
   --ds-primary-text: #ffffff;
-  --ds-accent: #0761d1; /* links, focus, selection */
+  --ds-accent: #2a5bd7; /* links, focus, selection */
   --ds-accent-text: #ffffff;
-  --ds-accent-soft: #e5efff;
-  --ds-ok: #0761d1; /* success is blue in this system */
-  --ds-ok-soft: #e5efff;
-  --ds-warn: #ab570a;
-  --ds-warn-soft: #ffefcf;
-  --ds-danger: #c50000;
-  --ds-danger-soft: #f7d4d6;
-  --ds-info: #0761d1;
-  --ds-info-soft: #e5efff;
-  --ds-radius: 6px; /* controls: buttons, inputs, menus */
-  --ds-radius-card: 8px;
-  --ds-radius-lg: 12px; /* dialogs */
-  --ds-ring: 0 0 0 1px #00000014;
-  --ds-shadow-2: 0 1px 1px #00000005, 0 2px 2px #0000000a, var(--ds-ring);
-  --ds-shadow-4: 0 2px 2px #0000000a, 0 8px 16px -4px #0000000a, var(--ds-ring);
-  --ds-shadow-5:
-    0 1px 1px #00000005, 0 8px 16px -4px #0000000a, 0 24px 32px -8px #0000000f,
-    var(--ds-ring);
+  --ds-accent-soft: #f0f4ff;
+  --ds-ok: #177245;
+  --ds-ok-soft: #e8f6ee;
+  --ds-warn: #8a5300;
+  --ds-warn-soft: #fff4dd;
+  --ds-danger: #c0302b;
+  --ds-danger-soft: #fdecec;
+  --ds-info: #2a5bd7;
+  --ds-info-soft: #f0f4ff;
+  --ds-radius-xs: 4px; /* radius.xs: chips */
+  --ds-radius: 8px; /* radius.sm: buttons, inputs, menus */
+  --ds-radius-card: 12px; /* radius.md: cards */
+  --ds-radius-lg: 24px; /* radius.lg: dialogs */
+  --ds-radius-pill: 40px; /* radius.xl: badges, nav pills */
+  --ds-shadow-1: rgba(3, 0, 92, 0.05) 0px 1px 4px 0px; /* shadow.1: cards */
+  --ds-shadow-2:
+    rgba(3, 0, 92, 0.12) 0px 1px 3px 0px, rgba(3, 0, 92, 0.07) 0px 4px 11px 0px; /* shadow.2: raised, dialogs */
+  --ds-instant: 100ms; /* motion.duration.instant */
+  --ds-fast: 150ms; /* motion.duration.fast */
+  --ds-normal: 300ms; /* motion.duration.normal */
   --ds-font:
-    var(--font-geist-sans, Geist), Inter, system-ui, -apple-system, sans-serif;
-  --ds-mono:
-    var(--font-geist-mono, "Geist Mono"), ui-monospace, SFMono-Regular, Menlo,
-    monospace;
+    var(--font-nunito-sans, "Nunito Sans"), system-ui, -apple-system, sans-serif;
+  --ds-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --ds-bg: #0a0a0a;
-    --ds-surface: #111111;
-    --ds-surface-2: #1a1a1a;
-    --ds-line: #2e2e2e;
-    --ds-line-strong: #454545;
-    --ds-text: #ededed;
-    --ds-body: #a1a1a1;
-    --ds-muted: #8f8f8f;
-    --ds-primary: #ededed;
-    --ds-primary-text: #0a0a0a;
-    --ds-accent: #52a8ff;
-    --ds-accent-text: #0a0a0a;
-    --ds-accent-soft: #0f2a4a;
-    --ds-ok: #52a8ff;
-    --ds-ok-soft: #0f2a4a;
-    --ds-warn: #f5a623;
-    --ds-warn-soft: #362a10;
-    --ds-danger: #ff6166;
-    --ds-danger-soft: #3c1618;
-    --ds-info: #52a8ff;
-    --ds-info-soft: #0f2a4a;
-    --ds-ring: 0 0 0 1px #ffffff17;
+    --ds-bg: #0e1316;
+    --ds-surface: #151b1f;
+    --ds-surface-2: #1c2430;
+    --ds-line: #29343a;
+    --ds-line-strong: #6a767c;
+    --ds-text: #eef2f3;
+    --ds-body: #b7c0c5;
+    --ds-muted: #b7c0c5;
+    --ds-faint: #7d888e;
+    --ds-ink: #ffffff;
+    --ds-primary: #8aa8ff;
+    --ds-primary-text: #0e1316;
+    --ds-accent: #8aa8ff;
+    --ds-accent-text: #0e1316;
+    --ds-accent-soft: #1a2547;
+    --ds-ok: #4cc38a;
+    --ds-ok-soft: #10291c;
+    --ds-warn: #f2b14c;
+    --ds-warn-soft: #33260e;
+    --ds-danger: #ff7a73;
+    --ds-danger-soft: #3a1614;
+    --ds-info: #8aa8ff;
+    --ds-info-soft: #1a2547;
+    --ds-shadow-1: rgba(0, 0, 0, 0.4) 0px 1px 4px 0px;
+    --ds-shadow-2:
+      rgba(0, 0, 0, 0.5) 0px 1px 3px 0px, rgba(0, 0, 0, 0.35) 0px 4px 11px 0px;
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --ds-bg: #0a0a0a;
-  --ds-surface: #111111;
-  --ds-surface-2: #1a1a1a;
-  --ds-line: #2e2e2e;
-  --ds-line-strong: #454545;
-  --ds-text: #ededed;
-  --ds-body: #a1a1a1;
-  --ds-muted: #8f8f8f;
-  --ds-primary: #ededed;
-  --ds-primary-text: #0a0a0a;
-  --ds-accent: #52a8ff;
-  --ds-accent-text: #0a0a0a;
-  --ds-accent-soft: #0f2a4a;
-  --ds-ok: #52a8ff;
-  --ds-ok-soft: #0f2a4a;
-  --ds-warn: #f5a623;
-  --ds-warn-soft: #362a10;
-  --ds-danger: #ff6166;
-  --ds-danger-soft: #3c1618;
-  --ds-info: #52a8ff;
-  --ds-info-soft: #0f2a4a;
-  --ds-ring: 0 0 0 1px #ffffff17;
+  --ds-bg: #0e1316;
+  --ds-surface: #151b1f;
+  --ds-surface-2: #1c2430;
+  --ds-line: #29343a;
+  --ds-line-strong: #6a767c;
+  --ds-text: #eef2f3;
+  --ds-body: #b7c0c5;
+  --ds-muted: #b7c0c5;
+  --ds-faint: #7d888e;
+  --ds-ink: #ffffff;
+  --ds-primary: #8aa8ff;
+  --ds-primary-text: #0e1316;
+  --ds-accent: #8aa8ff;
+  --ds-accent-text: #0e1316;
+  --ds-accent-soft: #1a2547;
+  --ds-ok: #4cc38a;
+  --ds-ok-soft: #10291c;
+  --ds-warn: #f2b14c;
+  --ds-warn-soft: #33260e;
+  --ds-danger: #ff7a73;
+  --ds-danger-soft: #3a1614;
+  --ds-info: #8aa8ff;
+  --ds-info-soft: #1a2547;
+  --ds-shadow-1: rgba(0, 0, 0, 0.4) 0px 1px 4px 0px;
+  --ds-shadow-2:
+    rgba(0, 0, 0, 0.5) 0px 1px 3px 0px, rgba(0, 0, 0, 0.35) 0px 4px 11px 0px;
 }
 
 ::selection {
-  background: var(--ds-text);
-  color: var(--ds-bg);
+  background: var(--ds-accent);
+  color: var(--ds-accent-text);
 }
 
 @media (prefers-reduced-motion: reduce) {

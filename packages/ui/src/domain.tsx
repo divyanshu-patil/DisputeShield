@@ -182,7 +182,7 @@ export function CitationChip({
       onFocus={() => onHover?.(factKey)}
       onBlur={() => onHover?.(null)}
       aria-label={`Show source for ${factKey}`}
-      className={`rounded border px-1.5 py-0.5 font-mono text-[11px] transition focus-visible:outline-2 focus-visible:outline-[var(--ds-accent)] ${active ? "border-[var(--ds-accent)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent)]" : "border-[var(--ds-line)] bg-[var(--ds-surface-2)] text-[var(--ds-muted)] hover:text-[var(--ds-text)]"}`}
+      className={`rounded-[var(--ds-radius-xs)] border px-1.5 py-0.5 font-mono text-xs transition duration-[var(--ds-fast)] focus-visible:outline-2 focus-visible:outline-[var(--ds-accent)] ${active ? "border-[var(--ds-accent)] bg-[var(--ds-accent-soft)] text-[var(--ds-accent)]" : "border-[var(--ds-line)] bg-[var(--ds-surface-2)] text-[var(--ds-muted)] hover:text-[var(--ds-text)]"}`}
     >
       {factKey}
     </button>
@@ -218,7 +218,7 @@ export function JsonView({
             key={i}
             className={
               hit
-                ? "rounded bg-[var(--ds-warn-soft)] text-[var(--ds-text)]"
+                ? "rounded-[var(--ds-radius-xs)] bg-[var(--ds-warn-soft)] text-[var(--ds-text)]"
                 : undefined
             }
           >

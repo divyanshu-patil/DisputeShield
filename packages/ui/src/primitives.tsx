@@ -46,8 +46,8 @@ export function Button({
       disabled={disabled || busy}
       aria-busy={busy || undefined}
       className={cx(
-        "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--ds-radius)] border font-medium tracking-[-0.01em] transition active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-accent)] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0",
-        size === "sm" ? "h-7 px-2.5 text-[13px]" : "h-9 px-3.5 text-sm",
+        "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--ds-radius)] border font-semibold transition duration-[var(--ds-fast)] active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ds-accent)] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0",
+        size === "sm" ? "h-7 px-2.5 text-sm" : "h-9 px-3.5 text-sm",
         VARIANTS[variant],
         className,
       )}
@@ -86,7 +86,7 @@ export function Badge({
     <span
       title={title}
       className={cx(
-        "inline-flex h-5 items-center gap-1 whitespace-nowrap rounded-full border px-2 text-xs font-medium",
+        "inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-[var(--ds-radius-pill)] border px-2.5 text-xs font-semibold",
         TONES[tone],
         className,
       )}
@@ -110,19 +110,13 @@ export function Card({
   return (
     <section
       className={cx(
-        "rounded-[var(--ds-radius-card)] bg-[var(--ds-surface)] p-5 shadow-[var(--ds-shadow-2)]",
+        "rounded-[var(--ds-radius-card)] border border-[var(--ds-line)] bg-[var(--ds-surface)] p-6 shadow-[var(--ds-shadow-1)]",
         className,
       )}
     >
       {title || actions ? (
         <header className="mb-4 flex items-center justify-between gap-2">
-          {title ? (
-            <h2 className="text-[15px] font-semibold tracking-[-0.02em]">
-              {title}
-            </h2>
-          ) : (
-            <span />
-          )}
+          {title ? <h2 className="text-lg font-bold">{title}</h2> : <span />}
           {actions}
         </header>
       ) : null}
@@ -143,11 +137,11 @@ export function Stat({
   tone?: Tone;
 }) {
   return (
-    <div className="rounded-[var(--ds-radius-card)] bg-[var(--ds-surface)] p-5 shadow-[var(--ds-shadow-2)]">
-      <div className="text-[13px] text-[var(--ds-body)]">{label}</div>
+    <div className="rounded-[var(--ds-radius-card)] border border-[var(--ds-line)] bg-[var(--ds-surface)] p-6 shadow-[var(--ds-shadow-1)]">
+      <div className="text-sm text-[var(--ds-body)]">{label}</div>
       <div
         className={cx(
-          "mt-2 text-2xl font-semibold tracking-[-0.04em] tabular-nums",
+          "mt-2 text-3xl font-bold tabular-nums",
           tone === "danger" && "text-[var(--ds-danger)]",
           tone === "warn" && "text-[var(--ds-warn)]",
         )}
@@ -180,8 +174,8 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface-2)] p-12 text-center">
-      <p className="font-medium">{title}</p>
+    <div className="flex flex-col items-center gap-2 rounded-[var(--ds-radius-card)] bg-[var(--ds-surface-2)] p-12 text-center">
+      <p className="font-bold">{title}</p>
       {children ? (
         <div className="max-w-md text-sm text-[var(--ds-muted)]">
           {children}
@@ -245,16 +239,14 @@ export function Modal({
       onClose={onClose}
       aria-label={title}
       className={cx(
-        "m-auto w-[calc(100%-2rem)] rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface)] p-0 text-[var(--ds-text)] shadow-[var(--ds-shadow-5)] backdrop:bg-black/40 backdrop:backdrop-blur-[2px]",
+        "m-auto w-[calc(100%-2rem)] rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface)] p-0 text-[var(--ds-text)] shadow-[var(--ds-shadow-2)] backdrop:bg-black/40 backdrop:backdrop-blur-[2px]",
         wide ? "max-w-3xl" : "max-w-lg",
       )}
     >
       {open ? (
         <div className="flex max-h-[85vh] flex-col">
           <header className="flex items-center justify-between px-6 pt-5 pb-3">
-            <h2 className="text-lg font-semibold tracking-[-0.03em]">
-              {title}
-            </h2>
+            <h2 className="text-xl font-bold">{title}</h2>
             <Button
               variant="ghost"
               size="sm"
@@ -299,14 +291,12 @@ export function Drawer({
       ref={ref}
       onClose={onClose}
       aria-label={title}
-      className="ml-auto mr-0 mt-0 mb-0 h-full max-h-none w-full max-w-xl bg-[var(--ds-surface)] p-0 text-[var(--ds-text)] shadow-[var(--ds-shadow-5)] backdrop:bg-black/30"
+      className="ml-auto mr-0 mt-0 mb-0 h-full max-h-none w-full max-w-xl bg-[var(--ds-surface)] p-0 text-[var(--ds-text)] shadow-[var(--ds-shadow-2)] backdrop:bg-black/30"
     >
       {open ? (
         <div className="flex h-full flex-col">
           <header className="flex items-center justify-between border-b border-[var(--ds-line)] px-5 py-4">
-            <h2 className="text-[15px] font-semibold tracking-[-0.02em]">
-              {title}
-            </h2>
+            <h2 className="text-lg font-bold">{title}</h2>
             <Button
               variant="ghost"
               size="sm"
@@ -344,7 +334,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className={cx(
-              "pointer-events-auto rounded-[var(--ds-radius-card)] bg-[var(--ds-surface)] px-4 py-3 text-sm shadow-[var(--ds-shadow-4)]",
+              "pointer-events-auto rounded-[var(--ds-radius-card)] bg-[var(--ds-surface)] px-4 py-3 text-sm shadow-[var(--ds-shadow-2)]",
               t.tone === "danger" && "text-[var(--ds-danger)]",
               t.tone === "warn" && "text-[var(--ds-warn)]",
             )}

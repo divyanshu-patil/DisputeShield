@@ -144,7 +144,7 @@ export default function CasePage() {
 
       <StateBanner c={c} onRecollect={() => void act("collect", () => api.collect(disputeId), "Re-collecting facts…")} busy={busy === "collect"} />
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,0.9fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,0.9fr)]">
         {/* Left: case file */}
         <div className="space-y-4">
           <Card title="Checklist">
@@ -185,7 +185,7 @@ export default function CasePage() {
                   if (facts.length === 0) return null;
                   return (
                     <div key={name}>
-                      <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-[var(--ds-muted)]">{name}</h3>
+                      <h3 className="mb-1 text-sm font-bold text-[var(--ds-body)]">{name}</h3>
                       <dl className="space-y-1">
                         {facts.map((f) => (
                           <div key={f.key} className={`flex items-start gap-2 rounded px-1.5 py-1 text-sm ${hover === f.key ? "bg-[var(--ds-accent-soft)]" : ""}`}>

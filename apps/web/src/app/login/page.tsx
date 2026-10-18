@@ -25,7 +25,7 @@ function LoginForm() {
   }
 
   return (
-    <form onSubmit={(e) => void submit(e)} className="w-full max-w-sm space-y-5 rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface)] p-8 shadow-[var(--ds-shadow-4)]">
+    <form onSubmit={(e) => void submit(e)} className="w-full max-w-sm space-y-5 rounded-[var(--ds-radius-lg)] bg-[var(--ds-surface)] p-8 shadow-[var(--ds-shadow-2)]">
       <div>
         <h1>Dispute Shield</h1>
         <p className="mt-1 text-sm text-[var(--ds-muted)]">PayPal dispute evidence, checked against your records before anything is sent.</p>

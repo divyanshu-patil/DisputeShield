@@ -55,7 +55,7 @@ export default function HealthPage() {
         <DeadlineRunwayView rows={disputes} onOpen={(id) => router.push(`/disputes/${encodeURIComponent(id)}`)} />
         <p className="mt-2 text-xs text-[var(--ds-muted)]">Size = amount. Colour = evidence strength (green strong, amber medium, red weak, grey not assessed). Diamonds and a text label mark anything due within 24 hours.</p>
       </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
         <Card title="Verifier ledger (latest draft per case)">
           <VerifierLedgerView rows={statements} passedFirstTime={{ passed: drafted.filter((d) => d.verifier_passed).length, total: drafted.length }} />
         </Card>

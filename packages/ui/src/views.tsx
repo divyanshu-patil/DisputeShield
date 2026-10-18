@@ -61,6 +61,7 @@ export function DeadlineRunwayView({
     <svg
       viewBox={`0 0 ${W} ${H}`}
       className="w-full"
+      style={{ fontFamily: "var(--ds-font)" }}
       role="group"
       aria-label={`Deadline runway: ${open.length} open disputes over the next 14 days`}
     >
@@ -176,15 +177,13 @@ export function VerifierLedgerView({
     <div className="space-y-3 text-sm">
       <div className="flex gap-6">
         <div>
-          <div className="text-2xl font-semibold tabular-nums">
-            {rows.length}
-          </div>
+          <div className="text-2xl font-bold tabular-nums">{rows.length}</div>
           <div className="text-xs text-[var(--ds-muted)]">
             statements drafted
           </div>
         </div>
         <div>
-          <div className="text-2xl font-semibold tabular-nums text-[var(--ds-ok)]">
+          <div className="text-2xl font-bold tabular-nums text-[var(--ds-ok)]">
             {accepted}
           </div>
           <div className="text-xs text-[var(--ds-muted)]">
@@ -193,7 +192,7 @@ export function VerifierLedgerView({
         </div>
         {passedFirstTime ? (
           <div>
-            <div className="text-2xl font-semibold tabular-nums">
+            <div className="text-2xl font-bold tabular-nums">
               {passedFirstTime.passed}/{passedFirstTime.total}
             </div>
             <div className="text-xs text-[var(--ds-muted)]">drafts passed</div>

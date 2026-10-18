@@ -69,7 +69,7 @@ export default function RiskPage() {
       ) : rows.length === 0 ? (
         <EmptyState title="No gaps found in the last 30 days">Scan again after new payments arrive.</EmptyState>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <DataGrid rows={rows} columns={columns} getRowId={(r) => r.id} onRowClick={setSelected} storageKey="ds-risk-columns" height={Math.min(560, 56 + rows.length * 64)} />
           <Card title={selected ? `${RULES[selected.rule]?.name ?? selected.rule}` : "Select a flag"}>
             {selected ? (

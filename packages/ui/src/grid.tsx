@@ -11,18 +11,19 @@ import { useMemo } from "react";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-/** AG Grid theme built from tokens.css (DESIGN.md data table: mono caption header, hairline rows). */
+/** AG Grid theme built from tokens.css (DESIGN.md: Nunito Sans, semibold secondary headers, hairline rows). */
 export const gridTheme = themeQuartz.withParams({
   backgroundColor: "var(--ds-surface)",
   foregroundColor: "var(--ds-text)",
   headerBackgroundColor: "var(--ds-bg)",
-  headerTextColor: "var(--ds-muted)",
-  headerFontFamily: "var(--ds-mono)",
-  headerFontSize: 12,
-  headerFontWeight: 400,
+  headerTextColor: "var(--ds-body)",
+  headerFontFamily: "inherit",
+  headerFontSize: 14,
+  headerFontWeight: 600,
   borderColor: "var(--ds-line)",
   accentColor: "var(--ds-accent)",
   rowHoverColor: "var(--ds-surface-2)",
+  wrapperBorder: { color: "var(--ds-line)" },
   selectedRowBackgroundColor: "var(--ds-accent-soft)",
   oddRowBackgroundColor: "var(--ds-surface)",
   fontFamily: "inherit",
@@ -30,8 +31,8 @@ export const gridTheme = themeQuartz.withParams({
   rowHeight: 44,
   headerHeight: 40,
   cellHorizontalPadding: 12,
-  borderRadius: 6,
-  wrapperBorderRadius: 8,
+  borderRadius: 8,
+  wrapperBorderRadius: 12,
   browserColorScheme: "inherit",
 });
 
