@@ -1,8 +1,40 @@
-# Dispute Shield
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="Dispute Shield: answers PayPal disputes with evidence where every sentence cites your records and passes a verifier; you approve the exact request before anything is sent">
+</p>
 
-An open-source dispute desk for small PayPal sellers. It answers disputes with evidence where every sentence cites a PayPal or seller record and passes a deterministic verifier, and it flags order gaps (no tracking, address mismatch, no seller protection) before they turn into disputes. Nothing is sent to PayPal without a human approving the exact request. **PayPal sandbox only.**
+<p align="center">
+  <a href="#quickstart-replay-mode-no-paypal-account-needed">Quickstart</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#verifier-evals">Evals</a> ·
+  <a href="#limits">Limits</a> ·
+  <b>PayPal sandbox only</b>
+</p>
+
+<p align="center">
+  <img src="./assets/readme/showcase.png" width="100%" alt="The DS-001 case page in replay mode: checklist all met, an AI evidence draft with 4 of 4 statements verified and their fact keys, and a Case Copilot answer about the shipping address marked Checked against the facts">
+</p>
+
+An open-source dispute desk for small PayPal sellers. It answers disputes with evidence where every sentence cites a PayPal or seller record and passes a deterministic verifier, and it flags order gaps (no tracking, address mismatch, no seller protection) before they turn into disputes. Nothing is sent to PayPal without a human approving the exact request.
 
 Built for "Build What's Next with PayPal and AI" (Devpost).
+
+## Why you can trust a draft
+
+- **The model sees facts, not payloads,** and must cite fact keys for every statement. The verifier rejects any number, date, ID or claim not present in the cited facts; one repair attempt each for unparseable output and verifier failures, then a fixed template.
+- **No win probabilities.** "Strength" is a checklist result from your records.
+- **Money is integer minor units** end to end. Tracking and refund writes carry `PayPal-Request-Id`; dispute responses are stored as one submission per approval, so a retry cannot send twice. Every action lands in an append-only audit log.
+
+## How it works
+
+<p align="center">
+  <img src="./assets/readme/workflow.svg" width="100%" alt="Five steps: PayPal records become facts with their source and JSON path; the AI drafts from facts only; the verifier checks numbers, dates and IDs against the cited facts, falling back to a template after two failures; you approve the exact request, stored as a dry run or sent to the sandbox">
+</p>
+
+The Fastify API polls PayPal every 5 minutes (webhooks are wired too) and queues work on a Postgres job queue or Render Workflows; both run the same handlers. Each case also gets an evidence checklist and a decision aid (fight, accept or review) before the drafter, on Ollama Cloud, writes from the facts. The Next.js console shows the case, and nothing leaves until you approve:
+
+<p align="center">
+  <img src="./assets/readme/approve.png" width="640" alt="The Review and approve evidence dialog showing the exact provide-evidence request for DS-001, with Replay data and Dry run badges and an I have read this and approve it checkbox">
+</p>
 
 ## Quickstart (replay mode, no PayPal account needed)
 
@@ -28,37 +60,9 @@ Sign in with `DS_DEMO_ACCESS_CODE` from `.env`. Add `OLLAMA_API_KEY` and `LLM_MO
 | DS-004         | Unauthorised payment                                                      | No drafting for this reason: manual packet, accept-claim option                 |
 | RISK-001 / 002 | Unprotected payment with address mismatch; paid 50 h ago with no tracking | Risk page: add tracking, refund or dismiss                                      |
 
-## How it works
-
-```mermaid
-flowchart LR
-  PP[PayPal sandbox] -- poll every 5 min / webhook --> API[Fastify API]
-  API --> Q[(Postgres job queue<br/>or Render Workflows)]
-  Q --> C[collect: facts with source + JSON path]
-  C --> K[checklist + decision aid]
-  K --> D[drafter: Ollama Cloud, facts only]
-  D --> V{verifier}
-  V -- passes --> UI[Next.js console]
-  V -- fails twice --> T[template fallback] --> UI
-  UI -- human approves exact request --> S[submit: dry run or sandbox]
-```
-
-- **The model sees facts, not payloads,** and must cite fact keys for every statement. The verifier rejects any number, date, ID or claim not present in the cited facts; one repair attempt each for unparseable output and verifier failures, then a fixed template.
-- **No win probabilities.** "Strength" is a checklist result from your records.
-- **Money is integer minor units** end to end. Tracking and refund writes carry `PayPal-Request-Id`; dispute responses are stored as one submission per approval, so a retry cannot send twice. Every action lands in an append-only audit log.
-
-| Path                | What                                                                                     |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| `apps/web`          | Next.js console (UI only): queue, case workspace, risk, health, fulfilment, audit, setup |
-| `apps/api`          | Fastify: REST, sessions, webhook, cron tick, OpenAPI                                     |
-| `apps/workflows`    | Render Workflows tasks running the same handlers                                         |
-| `apps/cli`          | `ds seed:demo`, `ds replay-check`, `ds eval:live`, Day-0 spikes                          |
-| `packages/core`     | facts, checklists, verifier, decision aid, risk rules, state machines (no frameworks)    |
-| `packages/pipeline` | job handlers and case services shared by the API worker and Render                       |
-| `packages/paypal`   | gateway (live + replay), submission builders                                             |
-| `packages/agent`    | Ollama client, drafter                                                                   |
-| `packages/db`       | Drizzle schema, migrations (RLS, append-only audit), repos, job queue                    |
-| `packages/ui`       | design tokens, components, AG Grid wrapper, dashboard views                              |
+<p align="center">
+  <img src="./assets/readme/screens.png" width="100%" alt="Four screens: the dispute queue sorted by deadline, the risk radar with high-severity payment gaps, the health page with deadline runway and verifier ledger, and the DS-003 case in dark mode">
+</p>
 
 ## Verifier evals
 
@@ -80,6 +84,26 @@ A read-only chat on the case page ("What is missing?", "Is the address consisten
 ## Evidence packet
 
 **Download evidence packet (PDF)** on the case page saves the case as a text PDF: dispute summary, the accepted statements with their fact keys, the checklist, and a citation appendix with each fact's source record, JSON path and fetch time. Cases without a draft get the facts only. It is generated by the API with no PDF library (`packages/pipeline/src/packet-pdf.ts`).
+
+## Repository layout
+
+<details>
+<summary>Apps and packages</summary>
+
+| Path                | What                                                                                     |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| `apps/web`          | Next.js console (UI only): queue, case workspace, risk, health, fulfilment, audit, setup |
+| `apps/api`          | Fastify: REST, sessions, webhook, cron tick, OpenAPI                                     |
+| `apps/workflows`    | Render Workflows tasks running the same handlers                                         |
+| `apps/cli`          | `ds seed:demo`, `ds replay-check`, `ds eval:live`, Day-0 spikes                          |
+| `packages/core`     | facts, checklists, verifier, decision aid, risk rules, state machines (no frameworks)    |
+| `packages/pipeline` | job handlers and case services shared by the API worker and Render                       |
+| `packages/paypal`   | gateway (live + replay), submission builders                                             |
+| `packages/agent`    | Ollama client, drafter                                                                   |
+| `packages/db`       | Drizzle schema, migrations (RLS, append-only audit), repos, job queue                    |
+| `packages/ui`       | design tokens, components, AG Grid wrapper, dashboard views                              |
+
+</details>
 
 ## Commands
 
