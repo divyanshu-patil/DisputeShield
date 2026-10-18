@@ -49,7 +49,7 @@ Fields we read:
 | `dispute_id` | primary key |
 | `reason` | picks the evidence checklist |
 | `status` | `OPEN`, `WAITING_FOR_SELLER_RESPONSE`, `WAITING_FOR_BUYER_RESPONSE`, `UNDER_REVIEW`, `RESOLVED` ✅ |
-| `dispute_state` | coarse state ✅ (values ❓; seen: `REQUIRED_ACTION`) |
+| `dispute_state` | coarse state ✅ (full list ❓; seen: `REQUIRED_ACTION`, `UNDER_PAYPAL_REVIEW`, `RESOLVED`) |
 | `dispute_life_cycle_stage` | `INQUIRY`, `CHARGEBACK`, `PRE_ARBITRATION`, `ARBITRATION` ✅ |
 | `dispute_amount` {currency_code, value} | amount at risk; `value` is a string ✅ (S2) |
 | `disputed_transactions[]` | `buyer_transaction_id`, `seller_transaction_id`, `create_time`, `transaction_status` (seen `HELD`), `gross_amount`, `buyer` {email, payer_id, name}, `seller` {email, merchant_id, name}, `items[]` {item_name, item_description, item_quantity (string), reason, item_type (seen `PRODUCT`)}, `seller_protection_eligible`, `seller_protection_type` ✅ (S2) |
@@ -58,6 +58,7 @@ Fields we read:
 | `allowed_response_options` | which actions and offer types are currently valid ✅ |
 | `links` | HATEOAS links; **the presence of a link is the authorisation to attempt that action** ✅ |
 | `messages` | `[]` of {posted_by (seen `BUYER`), time_posted, content} ✅ (S2) |
+| `dispute_outcome` | present once `RESOLVED`: {`outcome_code` (seen `RESOLVED_BUYER_FAVOUR`), `outcome_reason` (seen `SELLER_ISSUED_REFUND`), `amount_refunded` {currency_code, value}} ✅ (S4, 2026-10-18; fixture `paypal/disputes/PP-R-AUY-10193248.resolved.details.json`) |
 
 Design rule: never offer or attempt an action whose HATEOAS link is absent. `LinkMissing` is a first-class error.
 
@@ -84,11 +85,11 @@ Observed in S2 (INQUIRY, `WAITING_FOR_SELLER_RESPONSE`, item not received; fixtu
 | Notes | free text, at most 2000 characters ✅ |
 | Files | JPG, JPEG, GIF, PNG, PDF; each under 10 MB; at most 50 MB per request ✅ |
 | Body (form A) | multipart part `input` (`application/json`): `{"evidences":[{"evidence_type","evidence_info":{"tracking_info":[{"carrier_name","tracking_number"}]},"notes"}]}` → HTTP 200, body `{links:[{rel:"detail"}]}`; evidence then appears with `source` `SUBMITTED_BY_SELLER` and `action_info.action` `PROVIDE_EVIDENCE` ✅ (S3, no file part) |
-| **Multipart part naming** | ❓ **Conflict** (form A without files confirmed in S3; file parts and form B still open). The integration guide describes a JSON part named `input` plus document parts. The OpenAPI schema describes a single binary field `evidence-file`. S3 must try the guide form first, then the schema form, and the winning form is written into `packages/paypal/src/live/multipart.ts` with a comment citing this file. |
+| **Multipart part naming** | Form A ✅ (S3, 2026-10-18): JSON part `input` plus document parts named `file1`, `file2`, …; a USPS tracking evidence with a PNG `file1` → HTTP 200 (debug_id f14565841237d), and the evidence then lists `documents[]` {`name`, `url`}. Form B (single `evidence-file` field, from the OpenAPI schema) was not tried and is not used. Implemented in `packages/paypal/src/live/multipart.ts`. |
 
 Required evidence by reason (from the integration guide ✅): for item-not-received disputes, `PROOF_OF_FULFILLMENT` with tracking number and carrier, or `PROOF_OF_REFUND`. Other reasons have their own required types; our MVP supports INR fully and `PROOF_OF_REFUND` flows for credit-not-processed and duplicate when a refund exists; everything else goes to the manual packet.
 
-`carrier_name` must be a value PayPal accepts. The accepted list is ❓ (S3: `USPS` accepted); S3 and S8 must record at least one working value (for example `OTHER` or a named carrier) and the code must expose a `normaliseCarrier()` map with an "unknown, use OTHER" fallback.
+`carrier_name` must be a value PayPal accepts. The accepted list is ❓. Seen in S3: `USPS` accepted ✅; `OTHER` rejected with HTTP 400 `INVALID_REQUEST` `CARRIER_NAME_IS_INVALID` (debug_id f9948717625cc) ✅. The code exposes `normaliseCarrier()`, which maps common names to codes and passes unknown names through upper-cased, so PayPal's 400 is shown to the user rather than hidden behind `OTHER`.
 
 ### 2.4 Accept claim
 
@@ -103,7 +104,7 @@ Required evidence by reason (from the integration guide ✅): for item-not-recei
 
 MVP uses `REFUND` only. Other types are listed in the UI as disabled with the reason "not in MVP".
 
-Observed in S4 ✅: JSON `{"note","accept_claim_type":"REFUND"}` → HTTP 200, body `{links:[{rel:"detail"}]}`. Re-fetch: evidence `OTHER` with `action_info` {`action` `ACCEPT_CLAIM`, `response_option` `REFUND`}, `refund_details.transactions[]` {id, gross_amount, create_time}, `fund_movements` `DISPUTE_SETTLEMENT` debit and credit, new key `money_movements`; status `UNDER_REVIEW`, `dispute_state` `UNDER_PAYPAL_REVIEW`, links only `self`. Resolution is asynchronous: treat the dispute as "refund issued, resolution pending" until `RESOLVED`.
+Observed in S4 ✅: JSON `{"note","accept_claim_type":"REFUND"}` → HTTP 200, body `{links:[{rel:"detail"}]}`. Re-fetch: evidence `OTHER` with `action_info` {`action` `ACCEPT_CLAIM`, `response_option` `REFUND`}, `refund_details.transactions[]` {id, gross_amount, create_time}, `fund_movements` `DISPUTE_SETTLEMENT` debit and credit, new key `money_movements`; status `UNDER_REVIEW`, `dispute_state` `UNDER_PAYPAL_REVIEW`, links only `self`. Resolution is asynchronous: treat the dispute as "refund issued, resolution pending" until `RESOLVED`. Observed later (S4, 2026-10-18) ✅: status and `dispute_state` `RESOLVED`, `dispute_outcome` {`outcome_code` `RESOLVED_BUYER_FAVOUR`, `outcome_reason` `SELLER_ISSUED_REFUND`, `amount_refunded` 36.00 USD}, links only `self`.
 
 ### 2.5 Make offer
 
@@ -113,7 +114,7 @@ Body: `note`, `offer_amount {currency_code, value}`, `offer_type` (for example `
 
 ### 2.6 Other actions (documented, not used in MVP)
 
-`send-message`, `escalate`, `appeal`, `provide-supporting-info`, `acknowledge-return-item` ✅ exist. Not implemented. Listed here so agents do not invent paths.
+`send-message`, `escalate`, `appeal`, `provide-supporting-info`, `acknowledge-return-item` ✅ exist. Not implemented. Listed here so agents do not invent paths. `send-message` observed (S5, 2026-10-18): `POST …/send-message` JSON `{"message"}` → HTTP 200, body `{links:[{rel:"detail"}]}` (debug_id f947680bed9c6) ✅.
 
 ### 2.7 Sandbox-only dispute tooling
 
@@ -210,16 +211,16 @@ Webhook endpoint (ours): `POST <API_ORIGIN>/api/webhooks/paypal` on the Fastify 
 | ID | Question | Spike | Blocks |
 | --- | --- | --- | --- |
 | Q1 | Can an Indian developer account obtain the buyer scopes for sandbox dispute creation? | S0, S1 | scripted dispute seeding (fallback: UI route) |
-| Q2 | Which multipart naming does `provide-evidence` accept? (form A `input` part works without files; file parts open) | S3 | live evidence submit |
-| Q3 | Which `carrier_name` values are accepted? (`USPS` yes) | S3, S8 | tracking and evidence |
+| Q2 | Which multipart naming does `provide-evidence` accept? **Form A**: `input` JSON part plus `file1`… document parts (S3, 2026-10-18) | S3 | answered |
+| Q3 | Which `carrier_name` values are accepted? (`USPS` yes; `OTHER` no, `CARRIER_NAME_IS_INVALID`; others open) | S3, S8 | tracking and evidence |
 | Q4 | Exact nested paths in order details for captures, refunds, trackers | S7 | `extract-order.ts` |
-| Q5 | `accept-claim` required fields and reasons (`REFUND` needs only `accept_claim_type`; `note` accepted) | S4 | accept flow |
+| Q5 | `accept-claim` required fields and reasons. **`REFUND` needs only `accept_claim_type`; `note` accepted**; reasons for other types not captured (not used in MVP). S4, 2026-10-18 | S4 | answered for MVP |
 | Q6 | Does the add-tracking endpoint behave as remembered, and does it accept `PayPal-Request-Id`? | S8 | Prevent module |
 | Q7 | Can the toolkit's read tools be called directly and exposed to Ollama as `tools`? **Yes** via the `/openai` adapter (1.11.0), S9 2026-10-18 | S9 part 2 | answered |
 | Q8 | AG Studio licence mechanism and variable name; custom widget registration | S10 | dashboard |
 | Q11 | Which Ollama Cloud model parses JSON reliably and supports tool calls? **gemma4:31b** (free plan; 5/5 parse and cites, tools work, 2.3 s median). Some models need paid usage (HTTP 402). S9 2026-10-18 | S9 | answered |
 | Q12 | Does the PayPal webhook still reach and verify on a Render free instance after idle (cold start), and does PayPal retry? | S5, S11 | hosted real-time story |
 | Q9 | Webhook failed-verification code and retry count (code answered: 200 + `FAILURE`; retries open) | S5 | none (designed around) |
-| Q10 | Are all `dispute_state` and `status` values captured? (S2: only INQUIRY / `REQUIRED_ACTION` / `WAITING_FOR_SELLER_RESPONSE`, `UNDER_REVIEW` once; later stages pending S3/S4) | S2, S3, S4 | state mapping |
+| Q10 | Are all `dispute_state` and `status` values captured? (seen: status `WAITING_FOR_SELLER_RESPONSE`, `UNDER_REVIEW`, `WAITING_FOR_BUYER_RESPONSE`, `RESOLVED`; `dispute_state` `REQUIRED_ACTION`, `UNDER_PAYPAL_REVIEW`, `RESOLVED`; outcome `RESOLVED_BUYER_FAVOUR` / `SELLER_ISSUED_REFUND`; INQUIRY stage only, chargeback and arbitration stages not seen) | S2, S3, S4 | state mapping |
 
 Each answer is written back into the relevant section above, with the date and the fixture that proves it, and the ❓ is removed.

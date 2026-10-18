@@ -12,7 +12,7 @@ Date: 2026-10-18. Gates from `docs/07-implementation-plan.md`; evidence in `0001
 
 **Decision: GO with Dispute Shield.** No switch to the fallback idea. G4 removes the "real-time" Should item: the UI and the Devpost text say updates arrive by polling, and webhooks are an optional speed-up. Still open and not blocking: S7/S8 (order paths, add-tracking, refund) wait for the $24 sandbox order to be approved; until then those paths run from fixtures and dry-run.
 
-## Proposed contract edits (`03-paypal-api-contract.md`), awaiting approval
+## Contract edits (`03-paypal-api-contract.md`), approved and applied 2026-10-18
 
 These are spike results already in `0001` that the contract does not yet carry. Code that depends on them is marked below.
 
