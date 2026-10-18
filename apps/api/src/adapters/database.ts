@@ -1,4 +1,4 @@
-import { type LlmClient, createOllamaClient } from "@ds/agent";
+import { type LlmClient, createOllamaClient, createPaypalReadTools } from "@ds/agent";
 import { PostgresJobQueue, createDb, createRepos } from "@ds/db";
 import { buildScenarios, recordedDraft } from "@ds/fixtures";
 import { createJobRunner } from "@ds/jobs";
@@ -13,10 +13,11 @@ export function buildDatabaseDeps(env: Env, base: Deps, url: string, log: (msg: 
   const { db, close } = createDb(url, { max: 8 });
   const repos = createRepos(db);
   const clock = base.clock;
-  const gateway =
+  const creds =
     env.DS_MODE === "live" && env.PAYPAL_CLIENT_ID && env.PAYPAL_CLIENT_SECRET
-      ? new LiveGateway({ clientId: env.PAYPAL_CLIENT_ID, clientSecret: env.PAYPAL_CLIENT_SECRET })
-      : new ReplayGateway(() => buildScenarios(clock()), clock);
+      ? { clientId: env.PAYPAL_CLIENT_ID, clientSecret: env.PAYPAL_CLIENT_SECRET }
+      : null;
+  const gateway = creds ? new LiveGateway(creds) : new ReplayGateway(() => buildScenarios(clock()), clock);
   const llm: LlmClient | null = env.OLLAMA_API_KEY ? createOllamaClient({ apiKey: env.OLLAMA_API_KEY, host: env.OLLAMA_HOST, timeoutMs: 30_000 }) : null;
 
   let jobs = base.jobs;
@@ -27,6 +28,8 @@ export function buildDatabaseDeps(env: Env, base: Deps, url: string, log: (msg: 
     llm,
     model: env.LLM_MODEL ?? null,
     recorded: env.DS_MODE === "replay" ? recordedDraft : undefined,
+    // Case Copilot: the PayPal agent toolkit's read tools in live mode; replay serves the same tools from fixtures.
+    readTools: creds ? createPaypalReadTools(creds) : undefined,
     submitMode: env.DS_SUBMIT_MODE,
     clock,
     enqueue: (j) => jobs.enqueue(j),

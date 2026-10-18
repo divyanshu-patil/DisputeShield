@@ -1,5 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { type LlmClient, draftEvidence } from "@ds/agent";
+import {
+  type CopilotTurn,
+  type LlmClient,
+  type PaypalReadTools,
+  askCopilot,
+  draftEvidence,
+  recordTools,
+} from "@ds/agent";
 import {
   RUBRIC,
   assessCase,
@@ -33,6 +40,7 @@ import {
   type PaypalTransactionDetail,
   type RiskThresholds,
 } from "@ds/schemas";
+import { gatewayReadTools } from "./copilot-tools.js";
 import { parseFulfilmentCsv } from "./csv.js";
 
 // Application services and job handlers shared by apps/api (Postgres worker) and apps/workflows (Render
@@ -59,6 +67,8 @@ export type PipelineDeps = {
     disputeId: string,
     facts: Fact[],
   ) => { model: string; promptVersion: string; draft: EvidenceDraft } | null;
+  /** Live mode with credentials: the PayPal agent toolkit's read tools for the Case Copilot. */
+  readTools?: PaypalReadTools;
   submitMode: "dry-run" | "live";
   clock: () => Date;
   enqueue: (job: {
@@ -1080,9 +1090,51 @@ export function createPipeline(d: PipelineDeps) {
     }));
   }
 
+  /** Case Copilot (05 section 9): read-only tools; the answer is checked against the facts. */
+  async function copilot(
+    disputeId: string,
+    question: string,
+    history: CopilotTurn[] = [],
+  ) {
+    const dispute = await repos.disputes.get(disputeId);
+    if (!dispute)
+      throw new ServiceError("NOT_FOUND", `dispute ${disputeId} not found`);
+    if (!d.llm || !d.model) return { available: false as const };
+    const kase = await repos.cases.byDispute(disputeId);
+    const facts = kase ? await repos.facts.latest(kase.id) : [];
+    const tools = recordTools(
+      d.readTools ?? gatewayReadTools(gateway, clock),
+      (source, ref, body) => repos.payloads.store(source, ref, body, clock()),
+      clock,
+    );
+    const r = await askCopilot({
+      llm: d.llm,
+      model: d.model,
+      disputeId,
+      facts,
+      checklist: assessCase(dispute.reason, facts).checklist,
+      tools,
+      question,
+      history,
+    });
+    await repos.audit.append({
+      actor: "owner",
+      action: "COPILOT_ASKED",
+      caseId: kase?.id,
+      disputeId,
+      detail: {
+        verified: r.verified,
+        tools: r.toolCalls.map((t) => t.name),
+        ...(r.detail ? { detail: r.detail } : {}),
+      },
+    });
+    return { available: true as const, ...r };
+  }
+
   return {
     handlers,
     syncDispute,
+    copilot,
     syncDisputes,
     collectCase,
     draftCase,

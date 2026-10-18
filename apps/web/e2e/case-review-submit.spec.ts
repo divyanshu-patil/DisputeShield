@@ -8,6 +8,10 @@ test("DS-001: citations, source drawer, failing edit blocked, approve and store 
   await expect(page.getByText("✓ Verified")).toBeVisible();
   // No AI key in the e2e servers: the recorded model draft is shown and labelled.
   await expect(page.getByText(/Recorded model output/)).toBeVisible();
+  // Case Copilot with no AI key: an honest notice instead of an answer (AC-AI-03).
+  await page.getByText(/Ask about this dispute/).click();
+  await page.getByRole("button", { name: "What is missing?" }).click();
+  await expect(page.getByText(/needs an AI key/)).toBeVisible();
 
   // A citation chip opens the fact's source record.
   await page

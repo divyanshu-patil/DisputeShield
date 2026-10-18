@@ -170,3 +170,49 @@ export const verifierPassed = (
   report.accepted.length > 0 &&
   report.rejected.length === 0 &&
   blockingMet(checklist);
+
+const CITED_KEY = /[a-z_]+(?:\.[a-z_]+)+/g;
+// ponytail: a sentence that says something is absent ("no delivery date is recorded") skips the claim
+// words; values are still checked. A negated fabrication slips through, acceptable because copilot
+// answers go to the owner, never to PayPal. Swap for per-claim negation scope if that changes.
+const ABSENT_RE =
+  /\b(?:no|not|missing|without|absent|can't|cannot|isn't|wasn't|hasn't|none)\b/i;
+
+/**
+ * Case Copilot answers (05 section 9): the same token check as drafts, per sentence. A sentence may cite
+ * nothing only when it states no value and no claim ("I can't see that."). Returns the cited keys.
+ */
+export function verifyAnswer(
+  answer: string,
+  facts: Map<string, Fact>,
+): { ok: true; factKeys: string[] } | { ok: false; detail: string } {
+  const keys = new Set<string>();
+  for (const sentence of answer.split(/(?<=[.!?])\s+|\n+/)) {
+    const cites = [...sentence.matchAll(CITATION_MARKER)].flatMap(
+      (m) => m[0].match(CITED_KEY) ?? [],
+    );
+    const text = stripCitations(sentence);
+    if (!text) continue;
+    if (INSTRUCTION_RE.test(text))
+      return { ok: false, detail: "reads as an instruction" };
+    const unknown = cites.filter((k) => !facts.has(k));
+    if (unknown.length > 0)
+      return { ok: false, detail: `unknown fact ${unknown.join(", ")}` };
+    const cited = cites.flatMap((k) =>
+      extractTokens(facts.get(k)?.display ?? ""),
+    );
+    const bad = extractTokens(text).find((t) => !tokenMatches(t, cited));
+    if (bad)
+      return { ok: false, detail: `"${bad.raw}" does not match a cited fact` };
+    const claim = CLAIM_WORDS.find(
+      (c) =>
+        !ABSENT_RE.test(text) &&
+        c.re.test(text) &&
+        !cites.some((k) => c.needs(k, facts.get(k)?.display ?? "")),
+    );
+    if (claim)
+      return { ok: false, detail: `"${claim.word}" needs a cited fact` };
+    for (const k of cites) keys.add(k);
+  }
+  return { ok: true, factKeys: [...keys] };
+}

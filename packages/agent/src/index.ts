@@ -6,3 +6,5 @@ export * from "./studio/turn.js";
 export * from "./copilot/toolkit.js";
 export * from "./drafter/draft.js";
 export * from "./drafter/prompt.js";
+export * from "./copilot/copilot.js";
+export * from "./copilot/record-tools.js";

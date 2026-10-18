@@ -73,6 +73,10 @@ flowchart LR
 
 Without an AI key, replay mode shows a recorded `gemma4:31b` draft for DS-001 and DS-003 (`packages/fixtures/src/recorded-drafts.ts`), labelled "Recorded model output". The verifier still checks it against the current facts, and any mismatch falls back to the template.
 
+## Case Copilot
+
+A read-only chat on the case page ("What is missing?", "Is the address consistent?", "Explain the deadline"). It answers from the case facts and the evidence checklist, and can look things up with four read tools: `get_dispute`, `get_order`, `get_shipment_tracking` and `list_transactions`. In live mode these are `@paypal/agent-toolkit` tools; replay mode serves the same tools from recorded data. Each tool result is stored in `raw_payloads` and turned into facts by the case-file extractors, so the model sees facts, never PayPal JSON. Every sentence of an answer must cite the facts it uses, and any date, amount, ID or carrier must match them, or the answer is replaced with "I could not verify that answer". It has no tool that can change anything. Without an AI key it says so.
+
 ## Commands
 
 ```sh

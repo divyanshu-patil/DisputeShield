@@ -20,6 +20,8 @@ Dispute Shield is an open-source dispute desk with two halves.
 
 **Prevent.** A risk scan flags orders paid long ago with no tracking, address mismatches and payments without seller protection. The owner can add tracking or refund from the flag, again with a preview first.
 
+**Ask.** A read-only Case Copilot answers questions such as "What is missing?" from the case facts and the evidence checklist. It can re-read the dispute, order or transaction from PayPal with read-only tools. Its answers go through the same fact check as the drafts.
+
 A Health page shows deadlines, verifier results and pipeline status, and every action is in an exportable audit log.
 
 ## How we built it
@@ -41,15 +43,17 @@ All calls are to the sandbox.
 - **Transaction Search:** shipping details, protection eligibility and item names for each case file and for the risk scan.
 - **Orders v2:** order details and add-tracking.
 - **Payments v2:** refund a capture.
+- **PayPal Agent Toolkit** (`@paypal/agent-toolkit`, OpenAI-format tools driven by our own Ollama loop): the Case Copilot's read tools `get_dispute`, `get_order`, `get_shipment_tracking` and `list_transactions` in live mode. Each result is stored and converted to facts before the model sees it. Replay mode serves the same tools from recorded data.
 
 Day-0 spike results against the sandbox are in `docs/decisions/0001-day0-spike-results.md`.
 
 ## Where the AI is used, and where it is blocked
 
-- **Used:** drafting the evidence statements and the recommendation rationale.
+- **Used:** drafting the evidence statements and the recommendation rationale; answering the owner's questions in the Case Copilot.
 - **Blocked:**
   - The verifier removes any sentence that cites nothing, cites a fact that does not exist, states a value that differs from the fact, claims something the records cannot show, or reads as an instruction.
   - The model never chooses whether to send: a person approves the exact request.
+  - The Copilot has only read tools and its answers pass the same value check, or are replaced with "I could not verify that answer".
   - It never sees raw payloads or personal data.
   - The UI never states a chance of winning.
 - **Measured:** the verifier passes 16 true statements and rejects 15 adversarial ones in CI, including an invented tracking number, a wrong date, a fake carrier, "buyer confirmed receipt" and prompt injection. A live run on 2026-10-18 (`docs/evals/2026-10-18.md`) with `gemma4:31b`, five runs per draftable demo case plus a prompt-injection variant, gave:
@@ -92,7 +96,7 @@ Day-0 spike results against the sandbox are in `docs/decisions/0001-day0-spike-r
 
 ## Built with
 
-TypeScript, Node.js, Fastify, Next.js, React, Turborepo, pnpm, PostgreSQL, Supabase, Drizzle, zod, Ollama Cloud, PayPal REST APIs, AG Grid, OpenAPI, Playwright, Vitest. **[Add AG Studio, Render and APIMatic only if used.]**
+TypeScript, Node.js, Fastify, Next.js, React, Turborepo, pnpm, PostgreSQL, Supabase, Drizzle, zod, Ollama Cloud, PayPal REST APIs, PayPal Agent Toolkit, AG Grid, OpenAPI, Playwright, Vitest. **[Add AG Studio, Render and APIMatic only if used.]**
 
 ## Links
 

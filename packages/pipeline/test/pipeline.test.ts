@@ -150,8 +150,46 @@ describe("demo scenarios through the pipeline", () => {
     );
   });
 
+  it("copilot_reads_recorded_tools_and_stores_them (AC-AI-03)", async () => {
+    expect(await p.copilot("DS-001", "Status?")).toEqual({ available: false });
+    const replies = [
+      {
+        content: "",
+        tool_calls: [
+          {
+            function: {
+              name: "get_dispute",
+              arguments: { dispute_id: "DS-001" },
+            },
+          },
+        ],
+      },
+      {
+        content: "The tracking number is 1Z999AA10123456784 [tracking.number].",
+      },
+    ];
+    const withModel = createPipeline({
+      repos,
+      gateway,
+      llm: {
+        chat: async () => ({ message: replies.shift() ?? { content: "" } }),
+        listModels: async () => [],
+      },
+      model: "m",
+      submitMode: "dry-run",
+      clock: () => new Date(),
+      enqueue: async () => undefined,
+    });
+    const r = await withModel.copilot("DS-001", "What is the tracking number?");
+    expect(r.available && r.verified).toBe(true);
+    expect(r.available && r.toolCalls[0]?.name).toBe("get_dispute");
+    expect(
+      await repos.payloads.latest("copilot.get_dispute", "DS-001"),
+    ).not.toBeNull();
+  });
+
   it("never_calls_a_paypal_write_in_dry_run (AC-NFR-09)", () => {
-    // Runs after the submit, accept and add-tracking tests above.
+    // Runs after the submit, accept, add-tracking and copilot tests above.
     expect(writes).toEqual([]);
   });
 

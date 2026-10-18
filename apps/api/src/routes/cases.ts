@@ -20,6 +20,11 @@ const approveBody = z.discriminatedUnion("action", [
   z.object({ action: z.literal("ACCEPT_CLAIM"), comment: z.string().max(500).optional(), confirm: z.literal(true) }),
 ]);
 
+const copilotBody = z.object({
+  question: z.string().trim().min(1).max(500),
+  history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(2000) })).max(8).default([]),
+});
+
 export function requireServices(deps: Deps): Services {
   if (!deps.services) throw new NotImplementedError("This route needs a database (set DATABASE_URL).");
   return deps.services;
@@ -74,6 +79,13 @@ export function caseRoutes(app: FastifyInstance, deps: Deps): void {
     const { id } = parse(idParams, req.params);
     const q = parse(previewQuery, req.query);
     return requireServices(deps).pipeline.preview(id, q.action === "ACCEPT_CLAIM" ? { action: q.action, ...(q.comment ? { comment: q.comment } : {}) } : { action: q.action });
+  });
+
+  // AC-AI-03: read tools only; the answer passes the verifier's token check or is replaced.
+  app.post("/disputes/:id/copilot", { ...secured, config: { rateLimit: { max: 20, timeWindow: "1 minute" } }, schema: r("Ask the read-only Case Copilot about this dispute", { body: copilotBody }) }, async (req) => {
+    const { id } = parse(idParams, req.params);
+    const body = parse(copilotBody, req.body);
+    return requireServices(deps).pipeline.copilot(id, body.question, body.history);
   });
 
   app.post("/disputes/sync", { ...secured, schema: doc({ summary: "Sync all disputes from PayPal (Sync now)", tags: ["disputes"], secured: true, response: { 202: Ok, 401: ErrorBody } }) }, async (_req, reply) => {

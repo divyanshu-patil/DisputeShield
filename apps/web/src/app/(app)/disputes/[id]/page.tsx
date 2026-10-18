@@ -1,5 +1,5 @@
 "use client";
-import { ApiError, type CaseFile, type EvidenceDraft, type Fact, type Payload, type Statement, type Submission } from "@ds/api-client";
+import { ApiError, type CaseFile, type CopilotAnswer, type EvidenceDraft, type Fact, type Payload, type Statement, type Submission } from "@ds/api-client";
 import {
   ACTION_LABELS,
   Badge,
@@ -69,8 +69,9 @@ export default function CasePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending, c]);
 
-  async function openSource(key: string) {
-    const fact = c?.facts.find((f) => f.key === key);
+  // Copilot facts can come from a fresh PayPal read, so they are passed in rather than looked up.
+  async function openSource(key: string, given?: Fact) {
+    const fact = given ?? c?.facts.find((f) => f.key === key);
     if (!fact) return;
     setSource({ fact, payload: null });
     try {
@@ -229,6 +230,7 @@ export default function CasePage() {
               <ActionButton label="Sync from PayPal" variant="ghost" busy={busy === "sync"} blocked={null} onClick={() => void act("sync", () => api.syncDispute(disputeId), "Sync requested.")} />
             </div>
           </Card>
+          <CopilotPanel disputeId={disputeId} openFact={(f) => void openSource(f.key, f)} />
           <SubmissionsCard subs={c.submissions} />
           <Card title="Timeline">
             {(audit.data?.items ?? []).length === 0 ? (
@@ -536,6 +538,85 @@ function DraftPanel({ c, disputeId, hover, setHover, openSource, onChanged }: { 
           <p className="mt-2 whitespace-pre-wrap rounded bg-[var(--ds-surface-2)] p-2 text-xs">{draft.report.notesText}</p>
         </details>
       </div>
+    </Card>
+  );
+}
+
+const STARTERS = ["What is missing?", "Is the address consistent?", "Explain the deadline"];
+const CITES = /\s*\[[a-z_]+(?:\.[a-z_]+)+(?:\s*,\s*[a-z_]+(?:\.[a-z_]+)+)*\]/g;
+
+/** Case Copilot (06 section on the case page, AC-AI-03): read-only questions, answers checked against the facts. */
+function CopilotPanel({ disputeId, openFact }: { disputeId: string; openFact: (f: Fact) => void }) {
+  const [turns, setTurns] = useState<{ q: string; a?: CopilotAnswer; error?: string }[]>([]);
+  const [q, setQ] = useState("");
+  const busy = turns.some((t) => !t.a && !t.error);
+
+  async function ask(question: string) {
+    // Only verified answers go back as history, so a rejected answer cannot steer the next one.
+    const history = turns.flatMap((t) =>
+      t.a?.available && t.a.verified ? [{ role: "user" as const, content: t.q }, { role: "assistant" as const, content: t.a.answer }] : [],
+    );
+    const at = turns.length;
+    setTurns((ts) => [...ts, { q: question }]);
+    setQ("");
+    const done = (patch: { a?: CopilotAnswer; error?: string }) => setTurns((ts) => ts.map((t, i) => (i === at ? { ...t, ...patch } : t)));
+    try {
+      done({ a: await api.copilot(disputeId, question, history) });
+    } catch (e) {
+      done({ error: msg(e) });
+    }
+  }
+
+  return (
+    <Card title="Case Copilot">
+      <details open={turns.length > 0}>
+        <summary className="cursor-pointer text-sm text-[var(--ds-muted)]">Ask about this dispute. Read-only: it can look things up in PayPal but cannot change anything.</summary>
+        <div className="mt-3 space-y-3" aria-live="polite">
+          {turns.map((t, i) => (
+            <div key={i} className="space-y-1 text-sm">
+              <p className="font-medium">{t.q}</p>
+              {t.error ? (
+                <ErrorNote>{t.error}</ErrorNote>
+              ) : !t.a ? (
+                <Skeleton rows={2} />
+              ) : !t.a.available ? (
+                <p className="text-[var(--ds-muted)]">The Copilot needs an AI key, and this demo runs without one.</p>
+              ) : (
+                <>
+                  <p className={t.a.verified ? "" : "text-[var(--ds-muted)]"}>{t.a.answer.replace(CITES, "")}</p>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {t.a.verified ? <Badge tone="ok">✓ Checked against the facts</Badge> : <Badge tone="warn">Not verified</Badge>}
+                    {(t.a.verified ? t.a.facts : t.a.facts.slice(0, 8)).map((f) => (
+                      <CitationChip key={f.key} factKey={f.key} onOpen={() => openFact(f)} />
+                    ))}
+                  </div>
+                  {t.a.toolCalls.length > 0 ? (
+                    <p className="text-xs text-[var(--ds-muted)]">Looked up: {t.a.toolCalls.map((c) => `${c.name} (${c.facts} facts)`).join(", ")}</p>
+                  ) : null}
+                </>
+              )}
+            </div>
+          ))}
+          <div className="flex flex-wrap gap-1">
+            {STARTERS.map((s) => (
+              <Button key={s} size="sm" variant="ghost" disabled={busy} onClick={() => void ask(s)}>
+                {s}
+              </Button>
+            ))}
+          </div>
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (q.trim()) void ask(q.trim());
+            }}
+          >
+            <label htmlFor="copilot-q" className="sr-only">Question for the Case Copilot</label>
+            <input id="copilot-q" className="ds-input min-w-0 flex-1" maxLength={500} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ask a question" />
+            <Button type="submit" size="sm" busy={busy} disabled={!q.trim()}>Ask</Button>
+          </form>
+        </div>
+      </details>
     </Card>
   );
 }

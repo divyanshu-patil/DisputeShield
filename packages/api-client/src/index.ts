@@ -225,6 +225,19 @@ export type Settings = {
 export type AnalyticsSource =
   "disputes" | "evidence_items" | "statements" | "risk_flags";
 
+export type CopilotTurn = { role: "user" | "assistant"; content: string };
+export type CopilotAnswer =
+  | { available: false }
+  | {
+      available: true;
+      answer: string;
+      verified: boolean;
+      facts: Fact[];
+      toolCalls: { name: string; facts: number }[];
+      model: string;
+      promptVersion: string;
+    };
+
 export type ClientOptions = {
   baseUrl?: string;
   fetch?: typeof fetch;
@@ -286,7 +299,14 @@ export function createApiClient(o: ClientOptions = {}) {
     caseFile: (id: string) => get<CaseFile>(`/api/disputes/${enc(id)}/case`),
     syncAll: () => post<{ ok: true }>("/api/disputes/sync"),
     preview: (id: string, action: "PROVIDE_EVIDENCE" | "ACCEPT_CLAIM") =>
-      get<Submission["requestSnapshot"]>(`/api/disputes/${enc(id)}/preview?action=${action}`),
+      get<Submission["requestSnapshot"]>(
+        `/api/disputes/${enc(id)}/preview?action=${action}`,
+      ),
+    copilot: (id: string, question: string, history: CopilotTurn[] = []) =>
+      post<CopilotAnswer>(`/api/disputes/${enc(id)}/copilot`, {
+        question,
+        history,
+      }),
     syncDispute: (id: string) =>
       post<{ ok: true }>(`/api/disputes/${enc(id)}/sync`),
     collect: (id: string) =>
