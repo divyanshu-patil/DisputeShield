@@ -26,9 +26,11 @@ jobs:
         uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # uri.paypal.com is PayPal's OAuth scope namespace, not a host. Recorded payloads under
+      # packages/fixtures/paypal keep PayPal's own links verbatim; nothing follows them.
       - name: Sandbox-only PayPal hosts (AGENTS.md rule 1)
         run: |
-          hits=$(git grep -nIoE '[a-z0-9.-]+\.paypal\.com' -- . ':!docs' ':!*.md' | grep -vE '(sandbox|developer)\.paypal\.com' || true)
+          hits=$(git grep -nIoE '[a-z0-9.-]+\.paypal\.com' -- . ':!docs' ':!*.md' ':!packages/fixtures/paypal' | grep -vE '(sandbox|developer|uri)\.paypal\.com' || true)
           if [ -n "$hits" ]; then echo "Non-sandbox PayPal host found:"; echo "$hits"; exit 1; fi
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7

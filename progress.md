@@ -63,7 +63,7 @@ P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`draf
 
 1. **`DATABASE_URL` and `DATABASE_URL_TEST` in `.env` use the Supabase transaction pooler (port 6543).** AGENTS.md rule 13 forbids it. Switch to the session pooler (same host, port 5432) or the direct URL. Point `DATABASE_URL_TEST` at the local `docker compose` database (`postgres://ds:ds@localhost:5432/ds_test`), not at Supabase, because tests will reset it.
 2. ~~Replace `[COPYRIGHT HOLDER]` in `LICENSE`.~~ Done 2026-10-18.
-3. Create the GitHub repo and add it as `origin` so CI can run.
+3. ~~Create the GitHub repo and add it as `origin` so CI can run.~~ Done (public). CI failed on the sandbox-host check (scope names and recorded payload links); fixed 2026-10-18.
 4. Still to fill in `.env`: `PAYPAL_SANDBOX_BUYER_EMAIL`, `RENDER_*` (P1-12).
 5. Approve the $24 sandbox order (S7/S8) at `https://www.sandbox.paypal.com/checkoutnow?token=5U925703JP3687631`, then run `pnpm ds spike s7 --order 5U925703JP3687631 --send` and `pnpm ds spike s8 --order 5U925703JP3687631 --send`.
 
