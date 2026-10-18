@@ -25,7 +25,7 @@ A Health page shows deadlines, verifier results and pipeline status, and every a
 ## How we built it
 
 - Turborepo monorepo in TypeScript, pnpm, exact pinned dependencies.
-- **API:** Fastify 5 with an OpenAPI 3.1 document checked in CI; cookie session behind an access code, rate-limited login, CORS allow-list, scrubbed logs.
+- **API:** Fastify 5 with an OpenAPI 3.0 document checked in CI; cookie session behind an access code, rate-limited login, CORS allow-list, scrubbed logs.
 - **Web:** Next.js and React. It holds no secrets and talks only to our API through a typed client. Grids use AG Grid.
 - **Data:** Postgres (Supabase for hosting, Docker locally) with Drizzle; row-level security on every table; money stored as integer minor units.
 - **PayPal gateway** with a live adapter and a replay adapter that serves recorded sandbox responses, so the demo runs without credentials and is labelled as recorded.
@@ -102,7 +102,7 @@ TypeScript, Node.js, Fastify, Next.js, React, Turborepo, pnpm, PostgreSQL, Supab
 
 ## Testing instructions
 
-- **Hosted:** **[URL]**, access code **[code]**. The hosted demo runs on recorded sandbox data and says so in a banner. The API may take about a minute to wake after idle.
+- **Hosted:** **[URL]**, access code **[code]**. The hosted demo runs on recorded sandbox data, marked "Replay data" in the header. The API may take about a minute to wake after idle.
 - **Local (replay, no credentials):** the five commands in the README quickstart.
 - **90-second path:**
   1. Sign in and open DS-001.
