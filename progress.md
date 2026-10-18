@@ -79,7 +79,7 @@ P2-1 … P2-13 done: extractors, checklists, verifier, templates, drafter (`draf
 
 ## Next
 
-P4-4 hosted deploy (needs the Supabase session-pooler URL and a Render account), demo video and Devpost text. S7/S8 once the sandbox order is approved.
+P4-4 hosted deploy (needs the Supabase session-pooler URL and a Render account) and the demo video. Devpost text drafted in `docs/submission/devpost.md`; its bracketed items wait on the deploy, AG Studio, Render and APIMatic. S7/S8 once the sandbox order is approved.
 
 ## Run it locally (replay mode)
 
