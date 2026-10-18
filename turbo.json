@@ -66,6 +66,7 @@
       "cache": false,
       "env": [
         "DATABASE_URL",
+        "E2E_DATABASE_URL",
         "CRON_SECRET",
         "DS_COOKIE_SECRET",
         "DS_DEMO_ACCESS_CODE"
