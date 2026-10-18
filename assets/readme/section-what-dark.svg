@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="150" viewBox="0 0 1200 150" role="img" aria-labelledby="title desc">
+  <title id="title">Six things on one case page</title>
+  <desc id="desc">Every screen below is a real capture of the replay demo.</desc>
+  <rect x="1" y="1" width="1198" height="148" rx="20" fill="#151b1f" stroke="#29343a"/>
+  <rect x="40" y="26" width="226" height="32" rx="16" fill="#1a2547"/>
+  <text x="58" y="48" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="600" fill="#8aa8ff">01 · WHAT IT DOES</text>
+  <text x="40" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="#eef2f3">Six things on one case page</text>
+  <text x="40" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" fill="#b7c0c5">Every screen below is a real capture of the replay demo.</text>
+</svg>

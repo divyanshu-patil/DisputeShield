@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="150" viewBox="0 0 1200 150" role="img" aria-labelledby="title desc">
+  <title id="title">Evals, Copilot, packet and layout</title>
+  <desc id="desc">Open any section for the details.</desc>
+  <rect x="1" y="1" width="1198" height="148" rx="20" fill="#ffffff" stroke="#e3e8ea"/>
+  <rect x="40" y="26" width="249" height="32" rx="16" fill="#f0f4ff"/>
+  <text x="58" y="48" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="600" fill="#2a5bd7">04 · UNDER THE HOOD</text>
+  <text x="40" y="100" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="#2b363c">Evals, Copilot, packet and layout</text>
+  <text x="40" y="132" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" fill="#535f66">Open any section for the details.</text>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="230" viewBox="0 0 1200 230" role="img" aria-labelledby="title desc">
+  <title id="title">Measured results</title>
+  <desc id="desc">Live eval with gemma4:31b on 2026-10-18: 15 of 15 drafts schema-valid on the first try; the verifier rejected all 15 adversarial outputs; 0 injected instructions accepted; 17 Playwright tests including axe accessibility checks on seven pages.</desc>
+  <rect width="1200" height="230" rx="24" fill="#f5f7f7"/>
+  <g transform="translate(40 30)">
+    <rect width="260" height="170" rx="16" fill="#ffffff" stroke="#e3e8ea"/>
+    <text x="24" y="76" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="800" fill="#2a5bd7">15/15</text>
+    <text x="24" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="600" fill="#2b363c">AI drafts schema-valid</text>
+    <text x="24" y="146" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" fill="#535f66">on the first try</text>
+  </g>
+  <g transform="translate(320 30)">
+    <rect width="260" height="170" rx="16" fill="#ffffff" stroke="#e3e8ea"/>
+    <text x="24" y="76" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="800" fill="#2a5bd7">15/15</text>
+    <text x="24" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="600" fill="#2b363c">adversarial outputs</text>
+    <text x="24" y="146" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" fill="#535f66">rejected by the verifier</text>
+  </g>
+  <g transform="translate(600 30)">
+    <rect width="260" height="170" rx="16" fill="#ffffff" stroke="#e3e8ea"/>
+    <text x="24" y="76" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="800" fill="#177245">0</text>
+    <text x="24" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="600" fill="#2b363c">injected instructions</text>
+    <text x="24" y="146" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" fill="#535f66">accepted</text>
+  </g>
+  <g transform="translate(880 30)">
+    <rect width="260" height="170" rx="16" fill="#ffffff" stroke="#e3e8ea"/>
+    <text x="24" y="76" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="800" fill="#2a5bd7">17</text>
+    <text x="24" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="600" fill="#2b363c">browser tests, axe</text>
+    <text x="24" y="146" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="20" fill="#535f66">accessibility on 7 pages</text>
+  </g>
+</svg>
