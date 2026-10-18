@@ -16,7 +16,7 @@ pnpm seed:demo                  # migrates and loads the demo shop
 pnpm dev                        # web on http://localhost:3000, API on :4000
 ```
 
-Sign in with `DS_DEMO_ACCESS_CODE` from `.env`. Add `OLLAMA_API_KEY` and `LLM_MODEL` (we use `gemma4:31b`) for AI drafts; without them drafts use plain templates and everything else works.
+Sign in with `DS_DEMO_ACCESS_CODE` from `.env`. Add `OLLAMA_API_KEY` and `LLM_MODEL` (we use `gemma4:31b`) for AI drafts; without them DS-001 and DS-003 show a recorded model draft (labelled), other drafts use plain templates, and everything else works.
 
 ### The demo shop (Hearthside Ceramics)
 
