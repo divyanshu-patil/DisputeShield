@@ -1,6 +1,6 @@
 // provide-evidence multipart body (docs/03-paypal-api-contract.md 2.3, Q2).
-// Form A from the integration guide: a JSON part named `input`, then document parts. Spike S3 decides
-// whether this form or form B (single `evidence-file` field) is the one PayPal accepts.
+// Form A from the integration guide: a JSON part named `input`, then document parts. Confirmed in S3
+// (with and without a `file1` part, docs/decisions/0001); form B (`evidence-file`) was not needed.
 
 export type EvidenceInput = {
   evidences: {
@@ -15,7 +15,7 @@ export type EvidenceInput = {
 
 export type EvidenceFile = { name: string; type: string; data: Uint8Array };
 
-/** Form A. Document parts are named `file1`, `file2`, … ⚠️ (guide example from memory; S3 checks it). */
+/** Form A. Document parts are named `file1`, `file2`, … (`file1` confirmed in S3). */
 export function evidenceFormA(
   input: EvidenceInput,
   files: EvidenceFile[] = [],
